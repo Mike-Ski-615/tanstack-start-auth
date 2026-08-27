@@ -1,6 +1,42 @@
+# 统一换行符：提交时自动规范化，检出时统一为 LF
+* text=auto eol=lf
+
+# 源码与配置：强制按文本处理
+*.ts text
+*.tsx text
+*.js text
+*.mjs text
+*.jsx text
+*.json text
+*.css text
+*.html text
+*.md text
+*.sql text
+
+# Lockfile：文本 diff（JSONL 格式，勿手工编辑）
+bun.lock text
+
+# 图片与字体：二进制
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.avif binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+
+# 自动生成的文件：不计入 GitHub 语言统计，PR 中默认折叠
+# TanStack Router 路由树（由 @tanstack/react-start 插件生成）
+src/routeTree.gen.ts linguist-generated
+# Prisma 8 契约产物（由 bun prisma contract emit 生成）
 src/prisma/contract.json linguist-generated
 src/prisma/contract.d.ts linguist-generated
 src/prisma/ops.json linguist-generated
 src/prisma/migration.json linguist-generated
 migrations/snapshots/**/contract.json linguist-generated
 migrations/snapshots/**/contract.d.ts linguist-generated
+migrations/app/refs/db.json linguist-generated

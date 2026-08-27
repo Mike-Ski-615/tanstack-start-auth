@@ -1,36 +1,44 @@
-# dependencies (bun install)
-node_modules
+# 依赖
+node_modules/
 
-# output
-out
-dist
+# 构建产物
+dist/
+out/
+build/
 *.tgz
 
-# code coverage
-coverage
-*.lcov
-
-# logs
-logs
-_.log
-report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
-
-# dotenv environment variable files
-.env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
-
-# caches
+# TanStack Start / Vite 临时目录与缓存
+.tanstack/
+.vite/
+.cache/
 .eslintcache
-.cache
 *.tsbuildinfo
 
-# IntelliJ based IDEs
-.idea
+# 测试与覆盖率
+coverage/
+*.lcov
 
-# Finder (MacOS) folder config
+# 日志
+logs/
+*.log
+npm-debug.log*
+bun-debug.log*
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# 环境变量（.env.example 保留在版本库中）
+.env
+.env.local
+.env.*.local
+
+# 本地 markdown issue 追踪目录（agent skills 约定）
+.scratch/
+
+# 编辑器与操作系统
+.idea/
+.vscode/*
+!.vscode/extensions.json
 .DS_Store
-node_modules/
-dist/
+Thumbs.db
+
+# 注意：以下目录为 agent 配置，有意保留在版本库中，勿忽略：
+# .agents/ .claude/ .codex/ .cursor/ .devin/ .intent/ skills-lock.json docs/agents/
