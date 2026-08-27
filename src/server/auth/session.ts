@@ -82,22 +82,3 @@ export async function endSession(sessionId: Char<36>): Promise<void> {
 
   deleteCookie(SESSION_COOKIE, { path: "/", secure: true, sameSite: "lax" });
 }
-
-/**
- * 当前登录用户（Session + 完整 User 行）。
- *
- * 注意：user 是完整数据库行（含 passwordHash），仅限服务端使用；
- * 面向客户端的公开形态由 getCurrentUserFn 投影。
- */
-export async function getCurrentUser() {
-  const session = await readSession();
-  if (!session) return null;
-
-  const user = await db.orm.public.User.where({
-    id: session.userId,
-  }).first();
-
-  if (!user) return null;
-
-  return { session, user };
-}

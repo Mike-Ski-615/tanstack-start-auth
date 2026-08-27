@@ -18,3 +18,7 @@ Session 模块的不变量：为某 User 签发新 Session 时，
 认证用例之一：为新人创建 User 并立即签发 Session（注册即登录）。
 与 authenticate（登录）、signOut（登出）同属 auth 用例模块，
 失败以结果值表达（如 email_taken），不抛异常。
+
+### CurrentUser（当前用户）
+面向服务与客户端的用户唯一公开形态：{ id, email, name, image, bio }。
+投影发生在 current-user 模块源头，passwordHash 等存储层字段永不离开。

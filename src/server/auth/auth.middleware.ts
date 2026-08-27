@@ -1,6 +1,6 @@
 import { createMiddleware } from "@tanstack/react-start";
 
-import { getCurrentUser } from "./session";
+import { getCurrentUser } from "./current-user";
 
 export const authMiddleware = createMiddleware({
   type: "function",

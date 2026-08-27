@@ -20,7 +20,6 @@ const {
   issueSession,
   readSession,
   endSession,
-  getCurrentUser,
 } = await import("../src/server/auth/session");
 const { hashSessionToken } = await import("../src/server/auth/session.core");
 const {
@@ -193,22 +192,5 @@ describe.skipIf(!TEST_DATABASE_URL)("session module（集成测试）", () => {
     expect(attrs.includes("max-age=0") || attrs.includes("expires=")).toBe(
       true,
     );
-  });
-
-  test("getCurrentUser", async () => {
-    // 无会话 → null
-    const { result: nobody } = await inRequest(() => getCurrentUser());
-    expect(nobody).toBeNull();
-
-    // 有效会话 → { session, user }
-    const userId = await createUser();
-    const { setCookieHeader } = await inRequest(() => issueSession(userId));
-    const token = parseSessionToken(setCookieHeader!);
-
-    const { result: current } = await inRequest(() => getCurrentUser(), {
-      cookie: `${SESSION_COOKIE}=${token}`,
-    });
-    expect(current?.user.id).toBe(userId);
-    expect(current?.session.userId).toBe(userId);
   });
 });
