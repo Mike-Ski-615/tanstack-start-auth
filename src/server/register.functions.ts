@@ -5,7 +5,7 @@ import { registerSchema } from "#schemas/auth";
 
 import { hashPassword } from "./password";
 
-import { createSession, setSessionCookie } from "./auth/session";
+import { issueSession } from "./auth/session";
 
 export const register = createServerFn({
   method: "POST",
@@ -22,7 +22,7 @@ export const register = createServerFn({
 
     const passwordHash = await hashPassword(data.password);
 
-    const { token, user } = await db.transaction(async (tx) => {
+    const user = await db.transaction(async (tx) => {
       const user = await tx.orm.public.User.create({
         email: data.email,
         name: data.name,
@@ -31,12 +31,10 @@ export const register = createServerFn({
         bio: "这个人很懒,什么也没有留下",
       });
 
-      const token = await createSession(user.id, tx);
+      await issueSession(user.id, tx);
 
-      return { token, user };
+      return user;
     });
-
-    setSessionCookie(token);
 
     return {
       ok: true,

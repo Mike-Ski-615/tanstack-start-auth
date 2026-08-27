@@ -3,11 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { db } from "#prisma/db";
 import { loginSchema } from "#schemas/auth";
 
-import {
-  createSession,
-  revokeAllSessions,
-  setSessionCookie,
-} from "./auth/session";
+import { issueSession } from "./auth/session";
 
 import { verifyPassword } from "./password";
 
@@ -30,12 +26,7 @@ export const login = createServerFn({
       throw new Error("Invalid email or password");
     }
 
-    const token = await db.transaction(async (tx) => {
-      await revokeAllSessions(user.id, tx);
-      return createSession(user.id, tx);
-    });
-
-    setSessionCookie(token);
+    await issueSession(user.id);
 
     return {
       ok: true,

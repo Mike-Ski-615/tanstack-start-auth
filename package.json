@@ -5,6 +5,7 @@
     "dev": "vite dev",
     "build": "vite build",
     "start": "vite preview",
+    "test": "bun test",
     "postinstall": "prisma skills sync || exit 0",
     "contract:emit": "prisma contract emit"
   },

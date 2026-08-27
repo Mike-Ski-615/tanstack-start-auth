@@ -53,7 +53,26 @@ bun run dev
 | `bun run dev` | 启动开发服务器（端口 3000） |
 | `bun run build` | 生产构建 |
 | `bun run start` | 预览生产构建 |
+| `bun test` | 运行测试（单元测试总是跑；集成测试需 `TEST_DATABASE_URL`，缺失时自动跳过） |
 | `bun run contract:emit` | 修改 `src/prisma/contract.ts` 后重新生成契约（`contract.json` / `contract.d.ts`） |
+
+## 测试
+
+测试文件位于 `test/` 目录：
+
+- `test/session.core.test.ts` —— Session 模块纯核心（token 生成/哈希）的单元测试，无外部依赖
+- `test/session.test.ts` —— Session 模块公开 interface 的集成测试，在真实请求上下文（`requestHandler` 包裹）中运行，对着独立测试库执行
+
+配置集成测试库（一次性）：
+
+```bash
+# 创建独立测试库（勿用开发库）并初始化表结构
+createdb tanstack_auth_test   # 或 psql -c "CREATE DATABASE tanstack_auth_test"
+DATABASE_URL="postgresql://user:password@localhost:5432/tanstack_auth_test" bun prisma db init
+
+# 在 .env 中追加（或运行时传入）：
+# TEST_DATABASE_URL="postgresql://user:password@localhost:5432/tanstack_auth_test"
+```
 
 ## 项目结构
 
