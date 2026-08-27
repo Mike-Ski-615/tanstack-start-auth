@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "moduleResolution": "bundler",
+    "module": "preserve",
+    "target": "ES2022",
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "types": [
+      "vite/client",
+      "bun",
+      "node"
+    ],
+    "paths": {
+      "#lib/*": ["./src/lib/*.ts"],
+      "#hooks/*": ["./src/hooks/*.ts"],
+      "#prisma/*": ["./src/prisma/*.ts"],
+      "#schemas/*": ["./src/schemas/*.ts"],
+      "#provider/*": ["./src/provider/*"],
+      "#components/*": ["./src/components/*.tsx"]
+    },
+    "resolvePackageJsonImports": true,
+    "resolveJsonModule": true
+  }
+}
