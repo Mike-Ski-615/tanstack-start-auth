@@ -6,12 +6,10 @@ import { Button } from "#components/ui/button";
 import {
   Field,
   FieldDescription,
-  FieldError,
   FieldGroup,
-  FieldLabel,
 } from "#components/ui/field";
+import { TextField } from "#components/form/text-field";
 import { toast } from "sonner";
-import { Input } from "#components/ui/input";
 import { registerSchema, RegisterValues } from "#schemas/auth";
 import { register } from "../../server/register.functions";
 
@@ -67,84 +65,30 @@ function RegisterPage() {
             已有账号？ <Link to="/auth/login">登录</Link>
           </FieldDescription>
         </div>
-        <form.Field
+        <TextField
+          form={form}
           name="name"
-          children={(field) => {
-            const isInvalid =
-              field.state.meta.isTouched && !field.state.meta.isValid;
-
-            return (
-              <Field data-invalid={isInvalid}>
-                <FieldLabel htmlFor={field.name}>名称</FieldLabel>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  type="text"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(event) => field.handleChange(event.target.value)}
-                  aria-invalid={isInvalid}
-                  placeholder="张三"
-                  autoComplete="name"
-                  required
-                />
-                {isInvalid && <FieldError errors={field.state.meta.errors} />}
-              </Field>
-            );
-          }}
+          label="名称"
+          placeholder="张三"
+          autoComplete="name"
         />
-        <form.Field
+
+        <TextField
+          form={form}
           name="email"
-          children={(field) => {
-            const isInvalid =
-              field.state.meta.isTouched && !field.state.meta.isValid;
-
-            return (
-              <Field data-invalid={isInvalid}>
-                <FieldLabel htmlFor={field.name}>邮箱</FieldLabel>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  type="email"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(event) => field.handleChange(event.target.value)}
-                  aria-invalid={isInvalid}
-                  placeholder="name@example.com"
-                  autoComplete="email"
-                  required
-                />
-                {isInvalid && <FieldError errors={field.state.meta.errors} />}
-              </Field>
-            );
-          }}
+          label="邮箱"
+          type="email"
+          placeholder="name@example.com"
+          autoComplete="email"
         />
 
-        <form.Field
+        <TextField
+          form={form}
           name="password"
-          children={(field) => {
-            const isInvalid =
-              field.state.meta.isTouched && !field.state.meta.isValid;
-
-            return (
-              <Field data-invalid={isInvalid}>
-                <FieldLabel htmlFor={field.name}>密码</FieldLabel>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  type="password"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(event) => field.handleChange(event.target.value)}
-                  aria-invalid={isInvalid}
-                  placeholder="请输入密码"
-                  autoComplete="new-password"
-                  required
-                />
-                {isInvalid && <FieldError errors={field.state.meta.errors} />}
-              </Field>
-            );
-          }}
+          label="密码"
+          type="password"
+          placeholder="请输入密码"
+          autoComplete="new-password"
         />
 
         <Field>
