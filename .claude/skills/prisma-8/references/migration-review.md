@@ -35,7 +35,7 @@ A live DB is therefore the authoritative source of origin. The "recorded marker"
 
 The **destination** is the contract hash you want the database to be at. Two ways to name a destination:
 
-- **A `--to <name>`** — a named pointer to a hash, stored under `migrations/app/refs/<name>`. Refs are named after environments by convention (`staging`, `production`) to communicate *"this is where production is expected to be"*. The ref itself is just a hash + an optional set of required invariants; it has nothing to do with which database you connect to.
+- **A `--to <name>`** — a named pointer to a hash, stored under `migrations/app/refs/<name>.json`. Refs are named after environments by convention (`staging`, `production`) to communicate *"this is where production is expected to be"*. The ref itself is just a hash + an optional set of required invariants; it has nothing to do with which database you connect to.
 - **The current contract head** — implicit when no `--to` is passed. This is the hash of the current `contract.json` on disk.
 
 `--to staging` does **not** mean "connect to the staging database." It means "navigate the database I connected to (via `--db` or config) toward whatever hash this ref points at." Database selection is orthogonal: pass `--db $STAGING_DATABASE_URL` to actually point at staging.
@@ -43,6 +43,8 @@ The **destination** is the contract hash you want the database to be at. Two way
 ### The migration graph
 
 The on-disk migrations form a directed graph: **nodes are contract hashes; edges are migrations.** Each migration declares a `from` hash and a `to` hash. A migration applies only when the database's current marker matches its `from` hash; running it advances the marker to its `to` hash.
+
+The graph is a static, committed artifact. Several branch tips may coexist, rollback edges may form cycles, and no node is privileged — "where is my database" is answered by the marker and refs, never by the graph itself. `references/migration-model.md` carries the full model, including how `migration plan` chooses its origin.
 
 `migration status` queries the graph for the path from origin to destination and reports per-edge status:
 
@@ -141,7 +143,9 @@ pnpm prisma migration ref list | grep production
 pnpm prisma migration ref delete production
 ```
 
-`migration ref set` writes a file at `migrations/app/refs/<name>` carrying the hash and any required invariants. Refs are commit-friendly artifacts — keep them in git; the team agrees on what `production` points at the same way they agree on what `main` is.
+`migration ref set` writes a file at `migrations/app/refs/<name>.json` carrying the hash and any required invariants. Refs are commit-friendly artifacts — keep them in git; the team agrees on what `production` points at the same way they agree on what `main` is. The hash being set must be the `to` of an on-disk migration, or the command refuses — see `references/migration-model.md` for the refusal codes.
+
+Two ref roles, one mechanism: environment refs like `production` are the contract CD will migrate that environment to (a forward promise), while the `db` ref is a checkpoint of where the project's dev database was last brought to — written by `db init` / `db update`, consumed by `migration plan` as its default origin. `references/migration-model.md` covers the `db` ref, advancement rules, and plan-origin resolution.
 
 ## Workflow — apply a migration against an environment
 
