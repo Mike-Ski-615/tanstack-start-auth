@@ -13,3 +13,8 @@ User 的一次登录态记录。凭 Session Token 建立，7 天过期，可被�
 ### 签发即顶替（supersedes）
 Session 模块的不变量：为某 User 签发新 Session 时，
 该用户所有现存活跃 Session 一律撤销。产品语义为单设备在线。
+
+### enroll（注册开户）
+认证用例之一：为新人创建 User 并立即签发 Session（注册即登录）。
+与 authenticate（登录）、signOut（登出）同属 auth 用例模块，
+失败以结果值表达（如 email_taken），不抛异常。
