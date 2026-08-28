@@ -32,14 +32,16 @@ const {
 const SESSION_COOKIE = "__Host-session";
 const TEST_PASSWORD = "correct-horse-battery";
 
-/** 在最小请求上下文中执行 fn，捕获结果与 Set-Cookie 响应头。 */
+/** 在最小请求上下文中执行 fn，捕获结果与 Set-Cookie 响应头。
+ * 注：只能直调模块函数（enroll/verifyEmail 等）；server function
+ * 包装层需经 vite 插件编译注入 RPC 封装，bun 测试中不可直调。 */
 async function inRequest<T>(
   fn: () => Promise<T>,
   opts?: { cookie?: string },
 ): Promise<{ result: T; setCookieHeader: string | null }> {
   let captured: { result: T; setCookieHeader: string | null } | undefined;
 
-  const handle = requestHandler(async () => {
+  const handle = requestHandler(async (request) => {
     const result = await fn();
     captured = {
       result,
