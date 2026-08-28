@@ -5,6 +5,7 @@
 ### Session（会话）
 User 的一次登录态记录。凭 Session Token 建立，7 天过期，可被撤销（revokedAt）。
 存储于 Session 表，token 仅存 sha256 哈希。
+读取时 join 携带 user 公开字段（一次查询）；签发时顺手清理该用户已过期行。
 
 ### Session Token（会话令牌）
 32 字节随机数（base64url），经 `__Host-session` cookie 下发。
@@ -25,7 +26,7 @@ Session 模块的不变量：为某 User 签发新 Session 时，
 
 ### CurrentUser（当前用户）
 面向服务与客户端的用户唯一公开形态：{ id, email, name, image, bio }。
-投影发生在 current-user 模块源头，passwordHash 等存储层字段永不离开。
+投影发生在查询源头（readSession 的 select 分支），passwordHash 等存储层字段不进入查询结果。
 
 ### Reset Token（重置令牌）
 一次性、有过期时间（1 小时）的令牌，经密码重置邮件下发，库存 sha256 哈希。

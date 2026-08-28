@@ -112,6 +112,27 @@ describe.skipIf(!TEST_DATABASE_URL)("session module（集成测试）", () => {
     expect(rows.filter((r) => r.revokedAt === null).length).toBe(1);
   });
 
+  test("issueSession 顺手清理该用户已过期的会话行", async () => {
+    const userId = await createUser();
+
+    // 先埋一个过期行
+    await db.orm.public.Session.create({
+      tokenHash: hashSessionToken(`stale-${crypto.randomUUID()}`),
+      userId,
+      expiresAt: new Date(Date.now() - 1000).toISOString(),
+    });
+    expect((await db.orm.public.Session.where({ userId }).all()).length).toBe(
+      1,
+    );
+
+    await inRequest(() => issueSession(userId));
+
+    // 过期行被清掉，只剩新签发的活跃会话
+    const rows = await db.orm.public.Session.where({ userId }).all();
+    expect(rows.length).toBe(1);
+    expect(rows[0]!.revokedAt).toBeNull();
+  });
+
   test("issueSession(userId, tx) 参与调用方事务：回滚则无会话", async () => {
     const userId = await createUser();
 
@@ -144,6 +165,10 @@ describe.skipIf(!TEST_DATABASE_URL)("session module（集成测试）", () => {
 
     const { result: valid } = await inRequest(() => readSession(), { cookie });
     expect(valid?.userId).toBe(userId);
+
+    // join 形态：user 随会话一次查出（FK 必在，类型非空）
+    const userRow = await db.orm.public.User.where({ id: userId }).first();
+    expect(valid?.user.email).toBe(userRow!.email);
 
     // 垃圾 cookie → null
     const { result: garbage } = await inRequest(() => readSession(), {

@@ -22,6 +22,13 @@ export function hashSessionToken(token: string): string {
 const SESSION_COOKIE = "__Host-session";
 const SESSION_MAX_AGE = 7 * 24 * 60 * 60;
 
+/** 会话 cookie 的共享属性：签发与清除必须一致（__Host- 前缀要求 path=/）。 */
+const SESSION_COOKIE_OPTIONS = {
+  secure: true,
+  sameSite: "lax",
+  path: "/",
+} as const;
+
 /**
  * 为某 User 签发 Session。
  *
@@ -36,6 +43,10 @@ export async function issueSession(userId: Char<36>, tx?: Tx): Promise<void> {
   const now = new Date().toISOString();
 
   const issue = async (conn: Tx) => {
+    // 顺手清理该用户已过期的会话行，防止死数据无限堆积
+    await conn.orm.public.Session.where({ userId })
+      .where((f) => f.expiresAt.lt(now))
+      .delete();
     await conn.orm.public.Session.where({ userId, revokedAt: null }).update({
       revokedAt: now,
     });
@@ -49,17 +60,16 @@ export async function issueSession(userId: Char<36>, tx?: Tx): Promise<void> {
   }
 
   setCookie(SESSION_COOKIE, token, {
+    ...SESSION_COOKIE_OPTIONS,
     httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    path: "/",
     maxAge: SESSION_MAX_AGE,
   });
 }
 
 /**
- * 读取当前请求的 Session。
+ * 读取当前请求的 Session，join 携带 user 的公开字段（一次查询）。
  *
+ * select 分支即投影边界：passwordHash 等存储层字段不进入查询结果。
  * 无 cookie、令牌无效、Session 已撤销或已过期时返回 null。
  */
 export async function readSession() {
@@ -68,7 +78,11 @@ export async function readSession() {
 
   const session = await db.orm.public.Session.where({
     tokenHash: hashSessionToken(token),
-  }).first();
+  })
+    .include("user", (user) =>
+      user.select("id", "email", "name", "image", "bio"),
+    )
+    .first();
 
   if (!session || session.revokedAt !== null) {
     return null;
@@ -81,8 +95,10 @@ export async function readSession() {
   return session;
 }
 
-/** Session 行（服务端使用，如登出需要的 session.id）。 */
-export type Session = NonNullable<Awaited<ReturnType<typeof readSession>>>;
+type SessionWithUser = NonNullable<Awaited<ReturnType<typeof readSession>>>;
+
+/** Session 行（服务端使用，如登出需要的 session.id）。不含 user。 */
+export type Session = Omit<SessionWithUser, "user">;
 
 /**
  * 撤销指定 Session 并清除会话 cookie。
@@ -92,5 +108,5 @@ export async function endSession(sessionId: Char<36>): Promise<void> {
     revokedAt: new Date().toISOString(),
   });
 
-  deleteCookie(SESSION_COOKIE, { path: "/", secure: true, sameSite: "lax" });
+  deleteCookie(SESSION_COOKIE, SESSION_COOKIE_OPTIONS);
 }

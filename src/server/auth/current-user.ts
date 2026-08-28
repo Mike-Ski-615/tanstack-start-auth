@@ -1,5 +1,4 @@
 import type { Char } from "@prisma/orm-postgres/target/codec-types";
-import { db } from "#prisma/db";
 
 import { readSession, type Session } from "./session";
 
@@ -19,20 +18,19 @@ export type CurrentUser = {
 
 /**
  * 当前登录用户：Session 行（服务端使用，如登出需要的 session.id）
- * + 公开形态的 user。无会话或用户不存在时返回 null。
+ * + 公开形态的 user。无会话时返回 null。
+ *
+ * 本模块不访问数据库——readSession 已 join 携带 user（一次查询）。
  */
 export async function getCurrentUser(): Promise<{
   session: Session;
   user: CurrentUser;
 } | null> {
-  const session = await readSession();
-  if (!session) return null;
+  const joined = await readSession();
+  if (!joined) return null;
 
-  const user = await db.orm.public.User.where({
-    id: session.userId,
-  }).first();
-
-  if (!user) return null;
+  // user 从 session 上剥离：Session 形态不含 user，passwordHash 不出本模块
+  const { user, ...session } = joined;
 
   return {
     session,
