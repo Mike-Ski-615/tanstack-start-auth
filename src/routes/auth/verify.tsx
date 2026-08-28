@@ -71,18 +71,22 @@ function VerifyPage() {
             <>
               验证链接无效或已过期。
               <br />
-              请返回{" "}
+              请前往{" "}
+              <Link to="/auth/awaiting-verification" className="underline">
+                重发验证邮件
+              </Link>{" "}
+              或返回{" "}
               <Link to="/auth/login" className="underline">
                 登录页
-              </Link>{" "}
-              重新发起验证。
+              </Link>
+              。
             </>
           )}
         </FieldDescription>
         {state === "failed" && (
           <Field>
             <Button variant="outline" asChild>
-              <Link to="/auth/login">返回登录</Link>
+              <Link to="/auth/awaiting-verification">重发验证邮件</Link>
             </Button>
           </Field>
         )}

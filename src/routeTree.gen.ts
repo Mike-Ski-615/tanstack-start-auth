@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthIndexRouteImport } from './routes/auth/index'
+import { Route as AuthAwaitingVerificationRouteImport } from './routes/auth/awaiting-verification'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-password'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
@@ -44,6 +45,12 @@ const AuthIndexRoute = AuthIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthAwaitingVerificationRoute =
+  AuthAwaitingVerificationRouteImport.update({
+    id: '/awaiting-verification',
+    path: '/awaiting-verification',
+    getParentRoute: () => AuthRoute,
+  } as any)
 const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
@@ -74,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/auth/awaiting-verification': typeof AuthAwaitingVerificationRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
@@ -84,6 +92,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/auth/awaiting-verification': typeof AuthAwaitingVerificationRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
@@ -97,6 +106,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/auth/awaiting-verification': typeof AuthAwaitingVerificationRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/auth/awaiting-verification'
     | '/auth/forgot-password'
     | '/auth/login'
     | '/auth/register'
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/dashboard'
+    | '/auth/awaiting-verification'
     | '/auth/forgot-password'
     | '/auth/login'
     | '/auth/register'
@@ -132,6 +144,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/dashboard'
+    | '/auth/awaiting-verification'
     | '/auth/forgot-password'
     | '/auth/login'
     | '/auth/register'
@@ -181,6 +194,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/auth/'
       preLoaderRoute: typeof AuthIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/auth/awaiting-verification': {
+      id: '/auth/awaiting-verification'
+      path: '/awaiting-verification'
+      fullPath: '/auth/awaiting-verification'
+      preLoaderRoute: typeof AuthAwaitingVerificationRouteImport
       parentRoute: typeof AuthRoute
     }
     '/auth/forgot-password': {
@@ -234,6 +254,7 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 )
 
 interface AuthRouteChildren {
+  AuthAwaitingVerificationRoute: typeof AuthAwaitingVerificationRoute
   AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthRegisterRoute: typeof AuthRegisterRoute
@@ -243,6 +264,7 @@ interface AuthRouteChildren {
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
+  AuthAwaitingVerificationRoute: AuthAwaitingVerificationRoute,
   AuthForgotPasswordRoute: AuthForgotPasswordRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthRegisterRoute: AuthRegisterRoute,
