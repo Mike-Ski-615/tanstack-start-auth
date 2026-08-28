@@ -9,7 +9,6 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
       passwordHash: field.text(),
       image: field.text(),
       bio: field.text(),
-      verifiedAt: field.temporal.timestamptzString().optional(),
       createdAt: field.temporal.createdAtString(),
       updatedAt: field.temporal.updatedAtString(),
     },

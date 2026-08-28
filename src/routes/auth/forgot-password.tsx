@@ -11,7 +11,7 @@ import {
 import { TextField } from "#components/form/text-field";
 import { toast } from "sonner";
 import { emailOnlySchema, EmailOnlyValues } from "#schemas/auth";
-import { requestPasswordResetFn } from "../../server/verification.functions";
+import { requestPasswordResetFn } from "../../server/reset.functions";
 
 export const Route = createFileRoute("/auth/forgot-password")({
   component: ForgotPasswordPage,

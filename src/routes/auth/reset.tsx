@@ -12,7 +12,7 @@ import {
 import { TextField } from "#components/form/text-field";
 import { toast } from "sonner";
 import { resetPasswordSchema } from "#schemas/auth";
-import { resetPasswordFn } from "../../server/verification.functions";
+import { resetPasswordFn } from "../../server/reset.functions";
 
 const resetSearchSchema = z.object({
   token: z.string().catch(""),

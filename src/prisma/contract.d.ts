@@ -33,7 +33,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'eee469dd944a062224add01c4c928c3fcfa3bd88a095b5c8987d127abb5ae488'>;
+  StorageHashBase<'033f538e0e1cee97b26e0d9c02a41ad3c160ddd27e2a5b9401430cd835e378a8'>;
 export type ExecutionHash =
   ExecutionHashBase<'c0bbc0230a52463cea0afa779b27b6d8fe41719215af157bb17df7bcb5269b48'>;
 export type ProfileHash =
@@ -275,7 +275,6 @@ export type FieldOutputTypes = {
       readonly passwordHash: CodecTypes['pg/text@1']['output'];
       readonly image: CodecTypes['pg/text@1']['output'];
       readonly bio: CodecTypes['pg/text@1']['output'];
-      readonly verifiedAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
     };
@@ -317,7 +316,6 @@ export type FieldInputTypes = {
       readonly passwordHash: CodecTypes['pg/text@1']['input'];
       readonly image: CodecTypes['pg/text@1']['input'];
       readonly bio: CodecTypes['pg/text@1']['input'];
-      readonly verifiedAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
     };
@@ -361,7 +359,6 @@ export type StorageColumnTypes = {
       readonly name: CodecTypes['pg/text@1']['output'];
       readonly passwordHash: CodecTypes['pg/text@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
-      readonly verifiedAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
     };
   };
 };
@@ -403,7 +400,6 @@ export type StorageColumnInputTypes = {
       readonly name: CodecTypes['pg/text@1']['input'];
       readonly passwordHash: CodecTypes['pg/text@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
-      readonly verifiedAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
     };
   };
 };
@@ -635,11 +631,6 @@ type ContractBase = Omit<
                   readonly nativeType: 'text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
-                };
-                readonly verifiedAt: {
-                  readonly nativeType: 'timestamptz';
-                  readonly codecId: 'pg/timestamptz-string@1';
-                  readonly nullable: true;
                 };
                 readonly createdAt: {
                   readonly nativeType: 'timestamptz';
@@ -927,13 +918,6 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
-              readonly verifiedAt: {
-                readonly nullable: true;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-string@1';
-                };
-              };
               readonly createdAt: {
                 readonly nullable: false;
                 readonly type: {
@@ -991,7 +975,6 @@ type ContractBase = Omit<
                 readonly passwordHash: { readonly column: 'passwordHash' };
                 readonly image: { readonly column: 'image' };
                 readonly bio: { readonly column: 'bio' };
-                readonly verifiedAt: { readonly column: 'verifiedAt' };
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
               };

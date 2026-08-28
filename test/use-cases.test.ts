@@ -1,9 +1,9 @@
 /**
- * 认证用例模块集成测试。
+ * 认证用例集成测试（登录/注册/登出）。
  *
  * 门控：仅在设置了 TEST_DATABASE_URL 时运行。
- * 用例通过 issueSession 间接写 cookie，因此与 session 测试一样
- * 用 requestHandler 包裹，在真实（最小）请求上下文中运行。
+ * 用例已内联进各 server function 的 handler，测试经 callServerFn
+ * （__executeServer + runWithStartContext）在真实（最小）请求上下文中运行。
  */
 import { afterAll, describe, expect, test } from "bun:test";
 import type { Char } from "@prisma/orm-postgres/target/codec-types";
@@ -15,55 +15,24 @@ if (TEST_DATABASE_URL) {
   process.env.DATABASE_URL = TEST_DATABASE_URL;
 }
 
+// server-fn 的 mock 必须先于 server function 模块加载
+const { callServerFn, inRequest, parseSessionToken } = await import(
+  "./server-fn"
+);
 const { db } = await import("../src/prisma/db");
-const {
-  authenticate,
-  enroll,
-  signOut,
-} = await import("../src/server/auth/use-cases");
+const { login } = await import("../src/server/login.functions");
+const { register } = await import("../src/server/register.functions");
+const { logout } = await import("../src/server/logout.functions");
 const { hashPassword } = await import("../src/server/password");
 const { readSession } = await import("../src/server/auth/session");
-const {
-  requestHandler,
-  getResponseHeader,
-} = await import("@tanstack/react-start/server");
 
 const SESSION_COOKIE = "__Host-session";
 const TEST_PASSWORD = "correct-horse-battery";
 
-/** 在最小请求上下文中执行 fn，捕获结果与 Set-Cookie 响应头。 */
-async function inRequest<T>(
-  fn: () => Promise<T>,
-  opts?: { cookie?: string },
-): Promise<{ result: T; setCookieHeader: string | null }> {
-  let captured: { result: T; setCookieHeader: string | null } | undefined;
-
-  const handle = requestHandler(async () => {
-    const result = await fn();
-    captured = {
-      result,
-      setCookieHeader: getResponseHeader("Set-Cookie") ?? null,
-    };
-    return new Response(null);
-  });
-
-  const headers = new Headers();
-  if (opts?.cookie) headers.set("cookie", opts.cookie);
-  await handle(new Request("http://localhost/", { headers }), undefined);
-
-  if (!captured) throw new Error("request handler did not run");
-  return captured;
-}
-
-function parseSessionToken(setCookieHeader: string): string {
-  const pair = setCookieHeader.split(";")[0]!;
-  return pair.slice(pair.indexOf("=") + 1);
-}
-
 describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
   const createdUserIds: Char<36>[] = [];
 
-  /** 建一个带真实密码哈希的已验证用户，返回 id。 */
+  /** 建一个带真实密码哈希的用户，返回 id。 */
   async function createUserWithPassword(
     password: string = TEST_PASSWORD,
   ): Promise<{ id: Char<36>; email: string }> {
@@ -74,7 +43,6 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
       passwordHash: await hashPassword(password),
       image: "/default-user.webp",
       bio: "integration test user",
-      verifiedAt: new Date().toISOString(),
     });
     createdUserIds.push(user.id);
     return { id: user.id, email };
@@ -87,13 +55,15 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
     }
   });
 
-  test("authenticate 凭据正确 → ok + 活跃会话", async () => {
+  test("login 凭据正确 → ok + 活跃会话", async () => {
     const { email } = await createUserWithPassword();
 
-    const { result, setCookieHeader } = await inRequest(() =>
-      authenticate(email, TEST_PASSWORD),
-    );
+    const { result, error, setCookieHeader } = await callServerFn(login, {
+      email,
+      password: TEST_PASSWORD,
+    });
 
+    expect(error).toBeUndefined();
     expect(result).toEqual({ ok: true });
     expect(setCookieHeader).not.toBeNull();
 
@@ -105,120 +75,138 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
     createdUserIds.push(session!.userId);
   });
 
-  test("authenticate 密码错误 → invalid_credentials，无会话", async () => {
+  test("login 密码错误 → 抛错，无会话", async () => {
     const { email } = await createUserWithPassword();
 
-    const { result, setCookieHeader } = await inRequest(() =>
-      authenticate(email, "wrong-password"),
-    );
-
-    expect(result).toEqual({ ok: false, error: "invalid_credentials" });
-    expect(setCookieHeader).toBeNull();
-  });
-
-  test("authenticate 邮箱不存在 → 同样是 invalid_credentials（防枚举）", async () => {
-    const { result, setCookieHeader } = await inRequest(() =>
-      authenticate(`nobody-${crypto.randomUUID()}@example.com`, TEST_PASSWORD),
-    );
-
-    expect(result).toEqual({ ok: false, error: "invalid_credentials" });
-    expect(setCookieHeader).toBeNull();
-  });
-
-  test("authenticate 邮箱未验证 → email_not_verified（硬门槛）", async () => {
-    const email = `unverified-${crypto.randomUUID()}@example.com`;
-    const user = await db.orm.public.User.create({
+    const { result, error, setCookieHeader } = await callServerFn(login, {
       email,
-      name: "unverified",
-      passwordHash: await hashPassword(TEST_PASSWORD),
-      image: "/default-user.webp",
-      bio: "unverified user",
+      password: "wrong-password",
     });
-    createdUserIds.push(user.id);
 
-    const { result, setCookieHeader } = await inRequest(() =>
-      authenticate(email, TEST_PASSWORD),
-    );
-
-    expect(result).toEqual({ ok: false, error: "email_not_verified" });
+    expect(result).toBeUndefined();
+    expect(error?.message).toBe("Invalid email or password");
     expect(setCookieHeader).toBeNull();
   });
 
-  test("enroll 新用户 → ok + 用户投影 + 等待验证（不再即登录）", async () => {
+  test("login 邮箱不存在 → 同样抛同一错误（防枚举）", async () => {
+    const { result, error, setCookieHeader } = await callServerFn(login, {
+      email: `nobody-${crypto.randomUUID()}@example.com`,
+      password: TEST_PASSWORD,
+    });
+
+    expect(result).toBeUndefined();
+    expect(error?.message).toBe("Invalid email or password");
+    expect(setCookieHeader).toBeNull();
+  });
+
+  test("register 新用户 → ok + 用户投影 + 即登录", async () => {
     const email = `new-${crypto.randomUUID()}@example.com`;
 
-    const { result, setCookieHeader } = await inRequest(() =>
-      enroll("新人", email, TEST_PASSWORD),
-    );
+    const {
+      result,
+      error,
+      setCookieHeader,
+    } = await callServerFn<{
+      ok: true;
+      user: { id: Char<36>; email: string; name: string };
+    }>(register, { name: "新人", email, password: TEST_PASSWORD });
 
-    expect(result.ok).toBe(true);
-    if (!result.ok) throw new Error("expected ok");
-    expect(result.user.email).toBe(email);
-    expect(result.user.name).toBe("新人");
-    expect(result.user.id).toBeTruthy();
-    createdUserIds.push(result.user.id);
+    expect(error).toBeUndefined();
+    expect(result?.ok).toBe(true);
+    expect(result?.user.email).toBe(email);
+    expect(result?.user.name).toBe("新人");
+    expect(result?.user.id).toBeTruthy();
+    createdUserIds.push(result!.user.id);
 
-    // 硬门槛：注册不签发 Session，用户处于未验证状态
-    expect(setCookieHeader).toBeNull();
-    const user = await db.orm.public.User.where({ id: result.user.id }).first();
-    expect(user?.verifiedAt).toBeNull();
+    // 注册即登录：Session 随响应下发且真实有效
+    expect(setCookieHeader).not.toBeNull();
+    const token = parseSessionToken(setCookieHeader!);
+    const { result: session } = await inRequest(() => readSession(), {
+      cookie: `${SESSION_COOKIE}=${token}`,
+    });
+    expect(session?.userId).toBe(result!.user.id);
 
     // 默认资料沉入用例：头像与签名已填充
+    const user = await db.orm.public.User.where({ id: result!.user.id }).first();
     expect(user?.image).toBe("/default-user.webp");
     expect(user?.bio).toBe("这个人很懒,什么也没有留下");
   });
 
-  test("enroll 邮箱占用 → email_taken，不产生第二个用户", async () => {
+  test("register 邮箱占用 → 抛错，不产生第二个用户", async () => {
     const { email } = await createUserWithPassword();
 
-    const { result } = await inRequest(() =>
-      enroll("冒名者", email, TEST_PASSWORD),
-    );
+    const { result, error } = await callServerFn(register, {
+      name: "冒名者",
+      email,
+      password: TEST_PASSWORD,
+    });
 
-    expect(result).toEqual({ ok: false, error: "email_taken" });
+    expect(result).toBeUndefined();
+    expect(error?.message).toBe("Unable to create account");
 
     const users = await db.orm.public.User.where({ email }).all();
     expect(users.length).toBe(1);
   });
 
-  test("enroll 并发竞态：唯一约束兜底，恰好一人成功", async () => {
+  test("register 并发竞态：唯一约束兜底，恰好一人成功", async () => {
     const email = `race-${crypto.randomUUID()}@example.com`;
 
-    const [r1, r2] = await Promise.all([
-      inRequest(() => enroll("甲", email, TEST_PASSWORD)),
-      inRequest(() => enroll("乙", email, TEST_PASSWORD)),
+    // 查重在事务外：多数情况下败者被查重拦下抛错；
+    // 真竞态下则吃到唯一约束违例（同样以 error 返回）
+    const [r1, r2] = await Promise.allSettled([
+      callServerFn<{ ok: true; user: { id: Char<36> } }>(register, {
+        name: "甲",
+        email,
+        password: TEST_PASSWORD,
+      }),
+      callServerFn<{ ok: true; user: { id: Char<36> } }>(register, {
+        name: "乙",
+        email,
+        password: TEST_PASSWORD,
+      }),
     ]);
 
-    const results = [r1.result, r2.result];
-    const oks = results.filter((r) => r.ok);
-    const taken = results.filter((r) => !r.ok);
+    const fulfilled = [r1, r2].filter(
+      (r): r is PromiseFulfilledResult<
+        Awaited<ReturnType<typeof callServerFn<{ ok: true; user: { id: Char<36> } }>>>
+      > => r.status === "fulfilled",
+    );
+    const rejected = [r1, r2].filter((r) => r.status === "rejected");
 
+    const oks = fulfilled.filter((r) => r.value.result?.ok);
+    const losers = fulfilled.filter((r) => r.value.error !== undefined);
+
+    // 恰好一人成功；败者要么被查重拦下，要么在真竞态下吃到唯一约束违例
     expect(oks.length).toBe(1);
-    expect(taken.length).toBe(1);
-    expect(taken[0]).toEqual({ ok: false, error: "email_taken" });
+    expect(losers.length + rejected.length).toBe(1);
 
-    if (!oks[0]!.ok) throw new Error("expected ok");
-    createdUserIds.push(oks[0]!.user.id);
+    createdUserIds.push(oks[0]!.value.result!.user.id);
 
     const users = await db.orm.public.User.where({ email }).all();
     expect(users.length).toBe(1);
   });
 
-  test("signOut 撤销会话并清除 cookie", async () => {
+  test("logout 撤销会话并清除 cookie", async () => {
     const { email } = await createUserWithPassword();
 
-    const { setCookieHeader } = await inRequest(() =>
-      authenticate(email, TEST_PASSWORD),
-    );
+    const { setCookieHeader } = await callServerFn(login, {
+      email,
+      password: TEST_PASSWORD,
+    });
     const token = parseSessionToken(setCookieHeader!);
     const { result: session } = await inRequest(() => readSession(), {
       cookie: `${SESSION_COOKIE}=${token}`,
     });
     expect(session).not.toBeNull();
 
-    const { setCookieHeader: clearHeader } = await inRequest(() =>
-      signOut(session!.id),
+    const { result, error, setCookieHeader: clearHeader } = await callServerFn(
+      logout,
+      undefined,
+      { cookie: `${SESSION_COOKIE}=${token}` },
     );
+
+    expect(error).toBeUndefined();
+    expect(result).toEqual({ ok: true });
 
     const row = await db.orm.public.Session.where({ id: session!.id }).first();
     expect(row!.revokedAt).not.toBeNull();

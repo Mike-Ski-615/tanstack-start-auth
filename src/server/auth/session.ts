@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import {
   deleteCookie,
   getCookie,
@@ -6,9 +7,17 @@ import {
 import type { Char } from "@prisma/orm-postgres/target/codec-types";
 import { db } from "#prisma/db";
 
-import { generateSessionToken, hashSessionToken } from "./session.core";
-
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/** 生成会话令牌：32 字节随机数，base64url 编码（43 字符）。 */
+export function generateSessionToken(): string {
+  return crypto.randomBytes(32).toString("base64url");
+}
+
+/** 会话令牌的 sha256 hex 哈希。数据库只保存它，不保存令牌本身。 */
+export function hashSessionToken(token: string): string {
+  return crypto.createHash("sha256").update(token).digest("hex");
+}
 
 const SESSION_COOKIE = "__Host-session";
 const SESSION_MAX_AGE = 7 * 24 * 60 * 60;
@@ -71,6 +80,9 @@ export async function readSession() {
 
   return session;
 }
+
+/** Session 行（服务端使用，如登出需要的 session.id）。 */
+export type Session = NonNullable<Awaited<ReturnType<typeof readSession>>>;
 
 /**
  * 撤销指定 Session 并清除会话 cookie。

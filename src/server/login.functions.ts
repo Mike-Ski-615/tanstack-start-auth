@@ -1,25 +1,27 @@
 import { createServerFn } from "@tanstack/react-start";
+import { db } from "#prisma/db";
 
 import { loginSchema } from "#schemas/auth";
 
-import { authenticate } from "./auth/use-cases";
+import { issueSession } from "./auth/session";
+import { verifyPassword } from "./password";
 
-/** 客户端据此切换“重发验证邮件”入口（稳定宇串，勿改文案） */
-export const EMAIL_NOT_VERIFIED = "EMAIL_NOT_VERIFIED";
-
+/**
+ * 登录用例：校验凭据，成功即签发 Session（签发即顶替）。
+ */
 export const login = createServerFn({
   method: "POST",
 })
   .validator(loginSchema)
-  .handler(async ({ data }) => {
-    const result = await authenticate(data.email, data.password);
+  .handler(async ({ data: { email, password } }) => {
+    const user = await db.orm.public.User.where({ email }).first();
 
-    if (!result.ok) {
-      if (result.error === "email_not_verified") {
-        throw new Error(EMAIL_NOT_VERIFIED);
-      }
+    // 防账号枚举：两种失败抛同一错误
+    if (!user || !(await verifyPassword(user.passwordHash, password))) {
       throw new Error("Invalid email or password");
     }
+
+    await issueSession(user.id);
 
     return {
       ok: true,

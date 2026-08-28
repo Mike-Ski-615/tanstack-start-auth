@@ -1,30 +1,22 @@
 import { argon2id, argon2Verify } from "hash-wasm";
 
-const SALT_LENGTH = 16;
-const HASH_LENGTH = 32;
-const MEMORY_SIZE = 65_536;
-const TIME_COST = 3;
-const PARALLELISM = 4;
-
 /**
- * Argon2id password hashing.
+ * Argon2id 密码哈希。
  */
 export async function hashPassword(password: string): Promise<string> {
-  const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH));
-
   return argon2id({
     password,
-    salt,
-    iterations: TIME_COST,
-    parallelism: PARALLELISM,
-    memorySize: MEMORY_SIZE,
-    hashLength: HASH_LENGTH,
-    outputType: "encoded",
+    salt: crypto.getRandomValues(new Uint8Array(16)),
+    iterations: 2, // OWASP 最低配置：19 MiB / t=2 / p=1
+    parallelism: 1,
+    memorySize: 19_456, // 19 MiB
+    hashLength: 32,
+    outputType: "encoded", // 参数与盐内嵌结果串，verify 自包含
   });
 }
 
 /**
- * Verify a password against an Argon2id hash.
+ * 校验密码是否匹配 Argon2id 哈希。
  */
 export async function verifyPassword(
   passwordHash: string,

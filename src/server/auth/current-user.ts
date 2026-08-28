@@ -1,7 +1,7 @@
 import type { Char } from "@prisma/orm-postgres/target/codec-types";
 import { db } from "#prisma/db";
 
-import { readSession } from "./session";
+import { readSession, type Session } from "./session";
 
 /**
  * 当前用户的唯一公开形态。
@@ -22,7 +22,7 @@ export type CurrentUser = {
  * + 公开形态的 user。无会话或用户不存在时返回 null。
  */
 export async function getCurrentUser(): Promise<{
-  session: NonNullable<Awaited<ReturnType<typeof readSession>>>;
+  session: Session;
   user: CurrentUser;
 } | null> {
   const session = await readSession();

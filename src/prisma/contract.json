@@ -394,13 +394,6 @@
                   "codecId": "pg/timestamptz-string@1",
                   "kind": "scalar"
                 }
-              },
-              "verifiedAt": {
-                "nullable": true,
-                "type": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "kind": "scalar"
-                }
               }
             },
             "relations": {
@@ -475,9 +468,6 @@
                 },
                 "updatedAt": {
                   "column": "updatedAt"
-                },
-                "verifiedAt": {
-                  "column": "verifiedAt"
                 }
               },
               "namespaceId": "public",
@@ -778,11 +768,6 @@
                   "codecId": "pg/timestamptz-string@1",
                   "nativeType": "timestamptz",
                   "nullable": false
-                },
-                "verifiedAt": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "nativeType": "timestamptz",
-                  "nullable": true
                 }
               },
               "foreignKeys": [],
@@ -806,7 +791,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "eee469dd944a062224add01c4c928c3fcfa3bd88a095b5c8987d127abb5ae488"
+    "storageHash": "033f538e0e1cee97b26e0d9c02a41ad3c160ddd27e2a5b9401430cd835e378a8"
   },
   "execution": {
     "executionHash": "c0bbc0230a52463cea0afa779b27b6d8fe41719215af157bb17df7bcb5269b48",

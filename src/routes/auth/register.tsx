@@ -23,13 +23,10 @@ function RegisterPage() {
 
   const registerMutation = useMutation({
     mutationFn: (data: RegisterValues) => register({ data }),
-    onSuccess: (result) => {
-      // 验证是登录的硬门槛：注册不即登录，
-      // 等待验证的状态属于 awaiting-verification 页（状态进 URL）
-      navigate({
-        to: "/auth/awaiting-verification",
-        search: { email: result.user.email },
-      });
+    onSuccess: () => {
+      // 注册即登录：Session 已随响应下发，直接进仪表盘
+      toast.success("注册成功，欢迎加入");
+      navigate({ to: "/dashboard" });
     },
     onError: () => {
       toast.error("注册失败，请检查信息后重试");

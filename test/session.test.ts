@@ -21,7 +21,7 @@ const {
   readSession,
   endSession,
 } = await import("../src/server/auth/session");
-const { hashSessionToken } = await import("../src/server/auth/session.core");
+const { hashSessionToken } = await import("../src/server/auth/session");
 const {
   requestHandler,
   getResponseHeader,

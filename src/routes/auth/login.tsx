@@ -12,7 +12,7 @@ import {
 import { TextField } from "#components/form/text-field";
 import { loginSchema, LoginValues } from "#schemas/auth";
 import { getCurrentUserFn } from "../../server/current-user.functions";
-import { EMAIL_NOT_VERIFIED, login } from "../../server/login.functions";
+import { login } from "../../server/login.functions";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -47,12 +47,8 @@ function LoginPage() {
       toast.success("登录成功，欢迎回来");
       navigate({ to: search.redirect });
     },
-    onError: (error) => {
-      if (error.message === EMAIL_NOT_VERIFIED) {
-        toast.error("邮箱尚未验证，请先完成验证");
-      } else {
-        toast.error("登录失败，请检查邮箱或密码");
-      }
+    onError: () => {
+      toast.error("登录失败，请检查邮箱或密码");
     },
   });
 
