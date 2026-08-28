@@ -1,12 +1,13 @@
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { GalleryVerticalEnd } from "lucide-react";
+import { GalleryVerticalEnd, Apple } from "lucide-react";
 import { Button } from "#components/ui/button";
 import {
   Field,
   FieldDescription,
   FieldGroup,
+  FieldSeparator,
 } from "#components/ui/field";
 import { TextField } from "#components/form/text-field";
 import { toast } from "sonner";
@@ -100,6 +101,25 @@ function RegisterPage() {
             {registerMutation.isPending ? "注册中..." : "注册"}
           </Button>
         </Field>
+
+        <FieldSeparator>或</FieldSeparator>
+
+        <Field className="grid gap-4 sm:grid-cols-2">
+          <Button variant="outline" type="button">
+            <Apple />
+            使用 Apple 注册
+          </Button>
+
+          <Button variant="outline" type="button">
+            <Apple />
+            使用 Google 注册
+          </Button>
+        </Field>
+
+        <FieldDescription className="px-6 text-center">
+          继续即表示你同意 <Link to="/">服务条款</Link> 和{" "}
+          <Link to="/">隐私政策</Link>。
+        </FieldDescription>
       </FieldGroup>
     </form>
   );

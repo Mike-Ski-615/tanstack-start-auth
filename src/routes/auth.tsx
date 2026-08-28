@@ -1,38 +1,18 @@
-import { Button } from "#components/ui/button";
-import { Field, FieldDescription, FieldSeparator } from "#components/ui/field";
-import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
-import { Apple } from "lucide-react";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/auth")({
   component: AuthLayout,
 });
 
+/**
+ * auth 区的纯布局壳：只负责居中与宽度，不夹带任何内容。
+ * 社交登录等页脚属于具体页面（login/register），不属于布局。
+ */
 function AuthLayout() {
   return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-10">
       <div className="w-full max-w-sm">
-        <div className="flex flex-col gap-6">
-          <Outlet />
-
-          <FieldSeparator>或</FieldSeparator>
-
-          <Field className="grid gap-4 sm:grid-cols-2">
-            <Button variant="outline" type="button">
-              <Apple />
-              使用 Apple 登录
-            </Button>
-
-            <Button variant="outline" type="button">
-              <Apple />
-              使用 Google 登录
-            </Button>
-          </Field>
-
-          <FieldDescription className="px-6 text-center">
-            继续即表示你同意 <Link to="/">服务条款</Link> 和{" "}
-            <Link to="/">隐私政策</Link>。
-          </FieldDescription>
-        </div>
+        <Outlet />
       </div>
     </div>
   );

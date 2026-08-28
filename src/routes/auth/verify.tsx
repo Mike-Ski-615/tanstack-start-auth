@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { GalleryVerticalEnd } from "lucide-react";
@@ -26,12 +26,18 @@ function VerifyPage() {
   const { token } = Route.useSearch();
   const navigate = useNavigate();
   const [state, setState] = useState<VerifyState>("pending");
+  // 令牌一次性：防 StrictMode 双调用重复消费（第一次消费被丢弃、
+  // 第二次得 invalid_token 会把成功态覆盖成失败态）
+  const consumedToken = useRef<string | null>(null);
 
   useEffect(() => {
     if (!token) {
       setState("failed");
       return;
     }
+
+    if (consumedToken.current === token) return;
+    consumedToken.current = token;
 
     let cancelled = false;
 
