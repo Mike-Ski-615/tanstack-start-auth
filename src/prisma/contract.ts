@@ -9,6 +9,20 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
       passwordHash: field.text(),
       image: field.text(),
       bio: field.text(),
+      verifiedAt: field.temporal.timestamptzString().optional(),
+      createdAt: field.temporal.createdAtString(),
+      updatedAt: field.temporal.updatedAtString(),
+    },
+  });
+
+  const Token = model("Token", {
+    fields: {
+      id: field.id.uuidv7String(),
+      tokenHash: field.text().unique(),
+      purpose: field.text(),
+      userId: field.uuidString(),
+      expiresAt: field.temporal.timestamptzString(),
+      lastSentAt: field.temporal.timestamptzString(),
       createdAt: field.temporal.createdAtString(),
       updatedAt: field.temporal.updatedAtString(),
     },
@@ -46,6 +60,9 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
         sessions: rel.hasMany(Session, {
           by: "userId",
         }),
+        tokens: rel.hasMany(Token, {
+          by: "userId",
+        }),
       }),
       Post: Post.relations({
         author: rel.belongsTo(User, {
@@ -54,6 +71,18 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
         }),
       }),
       Session: Session.relations({
+        user: rel
+          .belongsTo(User, {
+            from: "userId",
+            to: "id",
+          })
+          .sql({
+            fk: {
+              onDelete: "cascade",
+            },
+          }),
+      }),
+      Token: Token.relations({
         user: rel
           .belongsTo(User, {
             from: "userId",

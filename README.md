@@ -5,6 +5,7 @@
 ## 特性
 
 - 🔐 **完整认证流程** —— 注册 / 登录 / 登出，基于服务端会话（session）
+- ✉️ **验证闭环** —— 注册邮箱验证（硬门槛）+ 密码重置；重置蕴含验证（见 `docs/adr/0001-reset-implies-verification.md`）；邮件当前输出到控制台（`src/server/mail.ts`）
 - 🛡️ **受保护路由** —— `_authenticated` 无路径布局路由统一拦截未登录访问（307 重定向到登录页）
 - ⚡ **SSR + 流式 hydration** —— TanStack Start 服务端渲染，TanStack Query 查询状态流式同步到客户端
 - 🗄️ **Prisma 8（契约优先）** —— TypeScript 定义数据契约，PostgreSQL 存储
@@ -81,7 +82,7 @@ src/
 ├── routes/
 │   ├── __root.tsx              # 根路由（布局、Toaster、主题）
 │   ├── index.tsx               # 首页
-│   ├── auth/                   # 登录 / 注册（公开）
+│   ├── auth/                   # 登录 / 注册 / 邮箱验证 / 忘记密码 / 重置密码（公开）
 │   ├── _authenticated.tsx      # 鉴权布局（pathless layout route）
 │   └── _authenticated/
 │       └── dashboard.tsx       # 受保护的仪表盘

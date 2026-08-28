@@ -2,6 +2,7 @@ import type { Char } from "@prisma/orm-postgres/target/codec-types";
 import { db } from "#prisma/db";
 
 import { endSession, issueSession } from "./session";
+import { sendVerification } from "./verification";
 import { hashPassword, verifyPassword } from "../password";
 
 /**
@@ -12,7 +13,7 @@ import { hashPassword, verifyPassword } from "../password";
 
 export type AuthenticateResult =
   | { ok: true }
-  | { ok: false; error: "invalid_credentials" };
+  | { ok: false; error: "invalid_credentials" | "email_not_verified" };
 
 export type EnrollResult =
   | { ok: true; user: { id: Char<36>; email: string; name: string } }
@@ -21,7 +22,8 @@ export type EnrollResult =
 /**
  * 登录用例：校验凭据，成功即签发 Session（签发即顶替）。
  *
- * 策略：用户不存在与密码错误返回同一个 invalid_credentials，防账号枚举。
+ * 策略：用户不存在与密码错误返回同一个 invalid_credentials，防账号枚举；
+ * 验证是硬门槛——密码正确但邮箱未验证时返回 email_not_verified。
  */
 export async function authenticate(
   email: string,
@@ -39,13 +41,20 @@ export async function authenticate(
     return { ok: false, error: "invalid_credentials" };
   }
 
+  if (user.verifiedAt === null) {
+    return { ok: false, error: "email_not_verified" };
+  }
+
   await issueSession(user.id);
 
   return { ok: true };
 }
 
 /**
- * 注册开户用例：创建 User 并立即签发 Session（注册即登录）。
+ * 注册开户用例：创建未验证的 User 并发送验证邮件。
+ *
+ * 验证是登录的硬门槛，因此注册不再即登录：
+ * 用户在邮箱中点击验证链接后才获得第一个 Session（见 verifyEmail）。
  *
  * 策略：邮箱占用双保险——先查重返回 email_taken；并发竞态下
  * 唯一约束违例也捕获并映射为同一个 email_taken。
@@ -73,10 +82,10 @@ export async function enroll(
         bio: "这个人很懒,什么也没有留下",
       });
 
-      await issueSession(user.id, tx);
-
       return user;
     });
+
+    await sendVerification(user.id, email);
 
     return {
       ok: true,

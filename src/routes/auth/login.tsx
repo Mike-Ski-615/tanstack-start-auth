@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { Link, createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
@@ -11,7 +12,8 @@ import {
 import { TextField } from "#components/form/text-field";
 import { loginSchema, LoginValues } from "#schemas/auth";
 import { getCurrentUserFn } from "../../server/current-user.functions";
-import { login } from "../../server/login.functions";
+import { EMAIL_NOT_VERIFIED, login } from "../../server/login.functions";
+import { resendVerificationFn } from "../../server/verification.functions";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -39,6 +41,14 @@ export const Route = createFileRoute("/auth/login")({
 function LoginPage() {
   const navigate = useNavigate();
   const search = Route.useSearch();
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [resendIn, setResendIn] = useState(0);
+
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const timer = setTimeout(() => setResendIn((s) => s - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendIn]);
 
   const loginMutation = useMutation({
     mutationFn: (data: LoginValues) => login({ data }),
@@ -46,10 +56,24 @@ function LoginPage() {
       toast.success("登录成功，欢迎回来");
       navigate({ to: search.redirect });
     },
-    onError: () => {
-      toast.error("登录失败，请检查邮箱或密码");
+    onError: (error) => {
+      if (error.message === EMAIL_NOT_VERIFIED) {
+        setNeedsVerification(true);
+        toast.error("邮箱尚未验证，请先完成验证");
+      } else {
+        toast.error("登录失败，请检查邮箱或密码");
+      }
     },
   });
+
+  const handleResend = async () => {
+    const email = form.state.values.email;
+    if (!email) return;
+
+    await resendVerificationFn({ data: { email } });
+    toast.info("验证邮件已重新发送，请查收");
+    setResendIn(60);
+  };
 
   const form = useForm({
     defaultValues: {
@@ -108,6 +132,23 @@ function LoginPage() {
             {loginMutation.isPending ? "登录中..." : "登录"}
           </Button>
         </Field>
+
+        {needsVerification && (
+          <Field>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={resendIn > 0}
+              onClick={handleResend}
+            >
+              {resendIn > 0 ? `重新发送（${resendIn}s）` : "重新发送验证邮件"}
+            </Button>
+          </Field>
+        )}
+
+        <FieldDescription className="text-center">
+          <Link to="/auth/forgot-password">忘记密码？</Link>
+        </FieldDescription>
       </FieldGroup>
     </form>
   );

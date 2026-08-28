@@ -63,7 +63,7 @@ function parseSessionToken(setCookieHeader: string): string {
 describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
   const createdUserIds: Char<36>[] = [];
 
-  /** 建一个带真实密码哈希的用户，返回 id。 */
+  /** 建一个带真实密码哈希的已验证用户，返回 id。 */
   async function createUserWithPassword(
     password: string = TEST_PASSWORD,
   ): Promise<{ id: Char<36>; email: string }> {
@@ -74,6 +74,7 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
       passwordHash: await hashPassword(password),
       image: "/default-user.webp",
       bio: "integration test user",
+      verifiedAt: new Date().toISOString(),
     });
     createdUserIds.push(user.id);
     return { id: user.id, email };
@@ -124,7 +125,26 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
     expect(setCookieHeader).toBeNull();
   });
 
-  test("enroll 新用户 → ok + 用户投影 + 已登录", async () => {
+  test("authenticate 邮箱未验证 → email_not_verified（硬门槛）", async () => {
+    const email = `unverified-${crypto.randomUUID()}@example.com`;
+    const user = await db.orm.public.User.create({
+      email,
+      name: "unverified",
+      passwordHash: await hashPassword(TEST_PASSWORD),
+      image: "/default-user.webp",
+      bio: "unverified user",
+    });
+    createdUserIds.push(user.id);
+
+    const { result, setCookieHeader } = await inRequest(() =>
+      authenticate(email, TEST_PASSWORD),
+    );
+
+    expect(result).toEqual({ ok: false, error: "email_not_verified" });
+    expect(setCookieHeader).toBeNull();
+  });
+
+  test("enroll 新用户 → ok + 用户投影 + 等待验证（不再即登录）", async () => {
     const email = `new-${crypto.randomUUID()}@example.com`;
 
     const { result, setCookieHeader } = await inRequest(() =>
@@ -138,16 +158,12 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
     expect(result.user.id).toBeTruthy();
     createdUserIds.push(result.user.id);
 
-    // 注册即登录：cookie 已下发且会话活跃
-    expect(setCookieHeader).not.toBeNull();
-    const token = parseSessionToken(setCookieHeader!);
-    const { result: session } = await inRequest(() => readSession(), {
-      cookie: `${SESSION_COOKIE}=${token}`,
-    });
-    expect(session?.userId).toBe(result.user.id);
+    // 硬门槛：注册不签发 Session，用户处于未验证状态
+    expect(setCookieHeader).toBeNull();
+    const user = await db.orm.public.User.where({ id: result.user.id }).first();
+    expect(user?.verifiedAt).toBeNull();
 
     // 默认资料沉入用例：头像与签名已填充
-    const user = await db.orm.public.User.where({ id: result.user.id }).first();
     expect(user?.image).toBe("/default-user.webp");
     expect(user?.bio).toBe("这个人很懒,什么也没有留下");
   });
