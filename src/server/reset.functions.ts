@@ -1,12 +1,12 @@
 import crypto from "node:crypto";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestUrl } from "@tanstack/react-start/server";
-import type { Char } from "@prisma/orm-postgres/target/codec-types";
 import { db } from "#prisma/db";
+import { uuid } from "#prisma/uuid";
 
 import { emailOnlySchema, resetPasswordSchema } from "#schemas/auth";
 
-import { issueSession } from "./auth/session";
+import { useAppSession } from "#lib/session";
 import { hashPassword } from "./password";
 import { sendMail } from "./mail";
 
@@ -47,9 +47,12 @@ function buildLink(token: string): string {
  * 单一性：事务内先删该用户的旧令牌再建新行。
  * 返回 false 表示处于重发冷却期（静默跳过，不更新不发送）。
  */
-async function issueToken(userId: Char<36>, email: string): Promise<boolean> {
+async function issueToken(userId: string, email: string): Promise<boolean> {
+  // 进入 ORM 边界才转品牌类型（uuid 接缝隔离在 #prisma/uuid）
+  const uid = uuid(userId);
+
   const existing = await db.orm.public.Token.where({
-    userId,
+    userId: uid,
     purpose: TOKEN_PURPOSE,
   }).first();
 
@@ -68,11 +71,11 @@ async function issueToken(userId: Char<36>, email: string): Promise<boolean> {
   ).toISOString();
 
   await db.transaction(async (tx) => {
-    await tx.orm.public.Token.where({ userId, purpose: TOKEN_PURPOSE }).delete();
+    await tx.orm.public.Token.where({ userId: uid, purpose: TOKEN_PURPOSE }).delete();
     await tx.orm.public.Token.create({
       tokenHash,
       purpose: TOKEN_PURPOSE,
-      userId,
+      userId: uid,
       expiresAt,
       lastSentAt: now.toISOString(),
     });
@@ -124,8 +127,10 @@ export const requestPasswordResetFn = createServerFn({
   });
 
 /**
- * 重置密码：消费令牌 → 改密 → 签发新 Session
- * （签发即顶替自动撤销全部旧会话）→ 自动登录。
+ * 重置密码：消费令牌 → 改密 → 写入新会话（自动登录）。
+ *
+ * 注意：无状态加密 cookie 会话无法服务端撤销，
+ * 旧浏览器里的旧会话 cookie 在自然过期前仍然有效。
  */
 export const resetPasswordFn = createServerFn({
   method: "POST",
@@ -145,7 +150,8 @@ export const resetPasswordFn = createServerFn({
         await tx.orm.public.Token.where({ id: row.id }).delete();
       });
 
-      await issueSession(row.userId);
+      const session = await useAppSession();
+      await session.update({ userId: row.userId });
 
       return { ok: true };
     },

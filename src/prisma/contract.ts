@@ -38,26 +38,11 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
     },
   });
 
-  const Session = model("Session", {
-    fields: {
-      id: field.id.uuidv7String(),
-      tokenHash: field.text().unique(),
-      userId: field.uuidString(),
-      expiresAt: field.temporal.timestamptzString(),
-      revokedAt: field.temporal.timestamptzString().optional(),
-      createdAt: field.temporal.createdAtString(),
-      updatedAt: field.temporal.updatedAtString(),
-    },
-  });
-
   return {
     models: {
       User: User.relations({
         posts: rel.hasMany(Post, {
           by: "authorId",
-        }),
-        sessions: rel.hasMany(Session, {
-          by: "userId",
         }),
         tokens: rel.hasMany(Token, {
           by: "userId",
@@ -68,18 +53,6 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
           from: "authorId",
           to: "id",
         }),
-      }),
-      Session: Session.relations({
-        user: rel
-          .belongsTo(User, {
-            from: "userId",
-            to: "id",
-          })
-          .sql({
-            fk: {
-              onDelete: "cascade",
-            },
-          }),
       }),
       Token: Token.relations({
         user: rel

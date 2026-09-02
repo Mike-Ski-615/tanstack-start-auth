@@ -1,17 +1,18 @@
 import { createServerFn } from "@tanstack/react-start";
+import { redirect } from "@tanstack/react-router";
+import { useAppSession } from "#lib/session";
 
-import { authMiddleware } from "./auth/auth.middleware";
-import { endSession } from "./auth/session";
-
-/** 登出用例：撤销会话并清除 cookie。无失败面（sessionId 来自鉴权中间件）。 */
+/**
+ * 登出用例（文档模式）：清除会话并重定向到首页。
+ *
+ * 无状态会话下 clear() 即下发过期 Set-Cookie；无需鉴权中间件
+ * （未登录调用也只是空操作）。
+ */
 export const logout = createServerFn({
   method: "POST",
-})
-  .middleware([authMiddleware])
-  .handler(async ({ context }) => {
-    await endSession(context.session.id);
+}).handler(async () => {
+  const session = await useAppSession();
+  await session.clear();
 
-    return {
-      ok: true,
-    };
-  });
+  throw redirect({ to: "/" });
+});

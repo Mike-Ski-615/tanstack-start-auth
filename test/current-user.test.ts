@@ -1,11 +1,12 @@
 /**
- * CurrentUser 模块集成测试。
+ * getUserFn 集成测试（文档模式）。
  *
  * 门控：仅在设置了 TEST_DATABASE_URL 时运行。
- * 核心回归守卫：返回的 user 是公开形态，passwordHash 永不出现在其中。
+ * 核心回归守卫：返回的用户是公开形态，passwordHash 永不出现；
+ * 无会话/篡改会话/用户不存在均返回 null。
  */
 import { afterAll, describe, expect, test } from "bun:test";
-import type { Char } from "@prisma/orm-postgres/target/codec-types";
+import type { User } from "../src/server/user.functions";
 
 const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL;
 
@@ -14,49 +15,19 @@ if (TEST_DATABASE_URL) {
   process.env.DATABASE_URL = TEST_DATABASE_URL;
 }
 
+const { callServerFn, inRequest, parseSessionToken } =
+  await import("./server-fn");
 const { db } = await import("../src/prisma/db");
-const { issueSession } = await import("../src/server/auth/session");
-const { getCurrentUser } = await import("../src/server/auth/current-user");
-const {
-  requestHandler,
-  getResponseHeader,
-} = await import("@tanstack/react-start/server");
+const { uuid } = await import("../src/prisma/uuid");
+const { useAppSession } = await import("../src/lib/session");
+const { getUserFn } = await import("../src/server/user.functions");
 
-const SESSION_COOKIE = "__Host-session";
+const SESSION_COOKIE = "app-session";
 
-/** 在最小请求上下文中执行 fn，捕获结果与 Set-Cookie 响应头。 */
-async function inRequest<T>(
-  fn: () => Promise<T>,
-  opts?: { cookie?: string },
-): Promise<{ result: T; setCookieHeader: string | null }> {
-  let captured: { result: T; setCookieHeader: string | null } | undefined;
+describe.skipIf(!TEST_DATABASE_URL)("getUserFn（集成测试）", () => {
+  const createdUserIds: string[] = [];
 
-  const handle = requestHandler(async () => {
-    const result = await fn();
-    captured = {
-      result,
-      setCookieHeader: getResponseHeader("Set-Cookie") ?? null,
-    };
-    return new Response(null);
-  });
-
-  const headers = new Headers();
-  if (opts?.cookie) headers.set("cookie", opts.cookie);
-  await handle(new Request("http://localhost/", { headers }), undefined);
-
-  if (!captured) throw new Error("request handler did not run");
-  return captured;
-}
-
-function parseSessionToken(setCookieHeader: string): string {
-  const pair = setCookieHeader.split(";")[0]!;
-  return pair.slice(pair.indexOf("=") + 1);
-}
-
-describe.skipIf(!TEST_DATABASE_URL)("CurrentUser 模块（集成测试）", () => {
-  const createdUserIds: Char<36>[] = [];
-
-  async function createUser(): Promise<Char<36>> {
+  async function createUser(): Promise<string> {
     const user = await db.orm.public.User.create({
       email: `test-${crypto.randomUUID()}@example.com`,
       name: "tester",
@@ -70,53 +41,79 @@ describe.skipIf(!TEST_DATABASE_URL)("CurrentUser 模块（集成测试）", () =
 
   afterAll(async () => {
     for (const id of createdUserIds) {
-      await db.orm.public.Session.where({ userId: id }).delete();
-      await db.orm.public.User.where({ id: id }).delete();
+      await db.orm.public.User.where({ id: uuid(id) }).delete();
     }
   });
 
+  /** 为指定 userId 签发一个会话 cookie（直接写会话，绕过登录）。 */
+  async function issueCookie(userId: string): Promise<string> {
+    const { setCookieHeader } = await inRequest(async () => {
+      const session = await useAppSession();
+      await session.update({ userId });
+    });
+    return parseSessionToken(setCookieHeader!);
+  }
+
   test("无会话 → null", async () => {
-    const { result } = await inRequest(() => getCurrentUser());
+    const { result } = await callServerFn<User | null>(getUserFn);
     expect(result).toBeNull();
   });
 
-  test("有效会话 → { session, user } 形态完整", async () => {
+  test("有效会话 → 公开形态完整", async () => {
     const userId = await createUser();
+    const sealed = await issueCookie(userId);
 
-    const { setCookieHeader } = await inRequest(() => issueSession(userId));
-    const token = parseSessionToken(setCookieHeader!);
-
-    const { result } = await inRequest(() => getCurrentUser(), {
-      cookie: `${SESSION_COOKIE}=${token}`,
+    const { result } = await callServerFn<User | null>(getUserFn, undefined, {
+      cookie: `${SESSION_COOKIE}=${sealed}`,
     });
 
     expect(result).not.toBeNull();
-    expect(result!.user.id).toBe(userId);
-    expect(result!.user.name).toBe("tester");
-    expect(result!.user.image).toBe("/default-user.webp");
-    expect(result!.user.bio).toBe("integration test user");
-    expect(result!.session.userId).toBe(userId);
+    expect(result!.id).toBe(userId);
+    expect(result!.name).toBe("tester");
+    expect(result!.image).toBe("/default-user.webp");
+    expect(result!.bio).toBe("integration test user");
   });
 
-  test("user 是公开形态：passwordHash 永不出现", async () => {
+  test("用户是公开形态：passwordHash 永不出现", async () => {
     const userId = await createUser();
+    const sealed = await issueCookie(userId);
 
-    const { setCookieHeader } = await inRequest(() => issueSession(userId));
-    const token = parseSessionToken(setCookieHeader!);
-
-    const { result } = await inRequest(() => getCurrentUser(), {
-      cookie: `${SESSION_COOKIE}=${token}`,
+    const { result } = await callServerFn<User | null>(getUserFn, undefined, {
+      cookie: `${SESSION_COOKIE}=${sealed}`,
     });
 
     expect(result).not.toBeNull();
-    expect("passwordHash" in result!.user).toBe(false);
+    expect("passwordHash" in result!).toBe(false);
     // 公开形态的完整键集，多一个少一个都报红
-    expect(Object.keys(result!.user).sort()).toEqual([
+    expect(Object.keys(result!).sort()).toEqual([
       "bio",
       "email",
       "id",
       "image",
       "name",
     ]);
+  });
+
+  test("会话指向不存在的用户 → null", async () => {
+    const sealed = await issueCookie(crypto.randomUUID());
+
+    const { result } = await callServerFn<User | null>(getUserFn, undefined, {
+      cookie: `${SESSION_COOKIE}=${sealed}`,
+    });
+
+    expect(result).toBeNull();
+  });
+
+  test("篡改的会话 cookie → null", async () => {
+    const userId = await createUser();
+    const sealed = await issueCookie(userId);
+    const tampered =
+      sealed.slice(0, -1) + (sealed[sealed.length - 1] === "A" ? "B" : "A");
+
+    const { result } = await callServerFn<User | null>(getUserFn, undefined, {
+      cookie: `${SESSION_COOKIE}=${tampered}`,
+    });
+
+    expect(result).toBeNull();
   });
 });

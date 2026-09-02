@@ -1,221 +1,113 @@
 /**
- * Session module 集成测试。
+ * 会话模块集成测试（文档模式：无状态加密 cookie）。
  *
- * 门控：仅在设置了 TEST_DATABASE_URL 时运行（指向独立测试库，勿用开发库）。
- * 所有公开 interface 的调用都通过 requestHandler 包裹，在真实（最小）
- * 请求上下文中跨越同一条 seam——cookie 传输边缘也在断言范围内。
+ * 不依赖数据库：useAppSession 的 update/data/clear 原语
+ * 与 cookie 传输边缘在最小请求上下文中验证。
  */
-import { afterAll, describe, expect, test } from "bun:test";
-import type { Char } from "@prisma/orm-postgres/target/codec-types";
+import { describe, expect, test } from "bun:test";
 
-const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL;
+const { inRequest, parseSessionToken } = await import("./server-fn");
+const { useAppSession } = await import("../src/lib/session");
 
-// 必须在 db 模块加载前指向测试库
-if (TEST_DATABASE_URL) {
-  process.env.DATABASE_URL = TEST_DATABASE_URL;
-}
-
-const { db } = await import("../src/prisma/db");
-const {
-  issueSession,
-  readSession,
-  endSession,
-} = await import("../src/server/auth/session");
-const { hashSessionToken } = await import("../src/server/auth/session");
-const {
-  requestHandler,
-  getResponseHeader,
-} = await import("@tanstack/react-start/server");
-
-const SESSION_COOKIE = "__Host-session";
+const SESSION_COOKIE = "app-session";
 const SEVEN_DAYS = 7 * 24 * 60 * 60;
 
-/** 在最小请求上下文中执行 fn，捕获结果与 Set-Cookie 响应头。 */
-async function inRequest<T>(
-  fn: () => Promise<T>,
-  opts?: { cookie?: string },
-): Promise<{ result: T; setCookieHeader: string | null }> {
-  let captured: { result: T; setCookieHeader: string | null } | undefined;
-
-  const handle = requestHandler(async () => {
-    const result = await fn();
-    captured = {
-      result,
-      setCookieHeader: getResponseHeader("Set-Cookie") ?? null,
-    };
-    return new Response(null);
-  });
-
-  const headers = new Headers();
-  if (opts?.cookie) headers.set("cookie", opts.cookie);
-  await handle(new Request("http://localhost/", { headers }), undefined);
-
-  if (!captured) throw new Error("request handler did not run");
-  return captured;
+/** 篡改密封载荷：替换末位字符（HMAC 校验必然失败）。 */
+function tamper(sealed: string): string {
+  const last = sealed[sealed.length - 1];
+  return sealed.slice(0, -1) + (last === "A" ? "B" : "A");
 }
 
-/** 从 Set-Cookie 头中解析出令牌值。 */
-function parseSessionToken(setCookieHeader: string): string {
-  const pair = setCookieHeader.split(";")[0]!;
-  return pair.slice(pair.indexOf("=") + 1);
-}
-
-describe.skipIf(!TEST_DATABASE_URL)("session module（集成测试）", () => {
-  const createdUserIds: Char<36>[] = [];
-
-  async function createUser(): Promise<Char<36>> {
-    const user = await db.orm.public.User.create({
-      email: `test-${crypto.randomUUID()}@example.com`,
-      name: "tester",
-      passwordHash: "not-a-real-hash",
-      image: "/default-user.webp",
-      bio: "integration test user",
-    });
-    createdUserIds.push(user.id);
-    return user.id;
-  }
-
-  afterAll(async () => {
-    for (const id of createdUserIds) {
-      await db.orm.public.Session.where({ userId: id }).delete();
-      await db.orm.public.User.where({ id: id }).delete();
-    }
-  });
-
-  test("issueSession 创建活跃会话并写入 cookie", async () => {
-    const userId = await createUser();
-
-    const { setCookieHeader } = await inRequest(() => issueSession(userId));
-
-    expect(setCookieHeader).not.toBeNull();
-    const attrs = setCookieHeader!.toLowerCase();
-    expect(attrs).toContain(`${SESSION_COOKIE.toLowerCase()}=`);
-    expect(attrs).toContain("httponly");
-    expect(attrs).toContain("secure");
-    expect(attrs).toContain("samesite=lax");
-    expect(attrs).toContain("path=/");
-    expect(attrs).toContain(`max-age=${SEVEN_DAYS}`);
-
-    const rows = await db.orm.public.Session.where({ userId }).all();
-    expect(rows.length).toBe(1);
-    expect(rows[0]!.revokedAt).toBeNull();
-  });
-
-  test("issueSession 顶替：再次签发撤销全部旧会话", async () => {
-    const userId = await createUser();
-
-    await inRequest(() => issueSession(userId));
-    await inRequest(() => issueSession(userId));
-
-    const rows = await db.orm.public.Session.where({ userId }).all();
-    expect(rows.length).toBe(2);
-    expect(rows.filter((r) => r.revokedAt === null).length).toBe(1);
-  });
-
-  test("issueSession 顺手清理该用户已过期的会话行", async () => {
-    const userId = await createUser();
-
-    // 先埋一个过期行
-    await db.orm.public.Session.create({
-      tokenHash: hashSessionToken(`stale-${crypto.randomUUID()}`),
-      userId,
-      expiresAt: new Date(Date.now() - 1000).toISOString(),
-    });
-    expect((await db.orm.public.Session.where({ userId }).all()).length).toBe(
-      1,
-    );
-
-    await inRequest(() => issueSession(userId));
-
-    // 过期行被清掉，只剩新签发的活跃会话
-    const rows = await db.orm.public.Session.where({ userId }).all();
-    expect(rows.length).toBe(1);
-    expect(rows[0]!.revokedAt).toBeNull();
-  });
-
-  test("issueSession(userId, tx) 参与调用方事务：回滚则无会话", async () => {
-    const userId = await createUser();
-
-    await inRequest(async () => {
-      try {
-        await db.transaction(async (tx) => {
-          await issueSession(userId, tx);
-          throw new Error("force rollback");
+describe.skipIf(!process.env.SESSION_SECRET)(
+  "useAppSession（文档模式）",
+  () => {
+    test("update 写入会话并下发安全 cookie", async () => {
+      const { result, setCookieHeader } = await inRequest(async () => {
+        const session = await useAppSession();
+        const updated = await session.update({
+          userId: "u-1",
+          email: "a@b.c",
         });
-      } catch {
-        // 预期中的回滚
-      }
+        return updated.data;
+      });
+
+      expect(result).toMatchObject({ userId: "u-1", email: "a@b.c" });
+
+      expect(setCookieHeader).not.toBeNull();
+      const attrs = setCookieHeader!.toLowerCase();
+      expect(attrs).toContain(`${SESSION_COOKIE}=`);
+      expect(attrs).toContain("httponly");
+      expect(attrs).toContain("samesite=lax");
+      expect(attrs).toContain(`max-age=${SEVEN_DAYS}`);
     });
 
-    const rows = await db.orm.public.Session.where({ userId }).all();
-    expect(rows.length).toBe(0);
-  });
+    test("cookie 跨请求重放 → data 往返", async () => {
+      const { setCookieHeader } = await inRequest(async () => {
+        const session = await useAppSession();
+        await session.update({ userId: "u-2" });
+      });
+      const sealed = parseSessionToken(setCookieHeader!);
 
-  test("readSession 校验 cookie", async () => {
-    const userId = await createUser();
+      const { result } = await inRequest(
+        async () => {
+          const session = await useAppSession();
+          return session.data;
+        },
+        { cookie: `${SESSION_COOKIE}=${sealed}` },
+      );
 
-    // 无 cookie → null
-    const { result: noCookie } = await inRequest(() => readSession());
-    expect(noCookie).toBeNull();
-
-    // 有效 cookie → 会话行
-    const { setCookieHeader } = await inRequest(() => issueSession(userId));
-    const token = parseSessionToken(setCookieHeader!);
-    const cookie = `${SESSION_COOKIE}=${token}`;
-
-    const { result: valid } = await inRequest(() => readSession(), { cookie });
-    expect(valid?.userId).toBe(userId);
-
-    // join 形态：user 随会话一次查出（FK 必在，类型非空）
-    const userRow = await db.orm.public.User.where({ id: userId }).first();
-    expect(valid?.user.email).toBe(userRow!.email);
-
-    // 垃圾 cookie → null
-    const { result: garbage } = await inRequest(() => readSession(), {
-      cookie: `${SESSION_COOKIE}=garbage-token`,
+      expect(result).toMatchObject({ userId: "u-2" });
     });
-    expect(garbage).toBeNull();
 
-    // 已撤销 → null
-    await inRequest(() => endSession(valid!.id));
-    const { result: revoked } = await inRequest(() => readSession(), { cookie });
-    expect(revoked).toBeNull();
+    test("无会话 → data 为空", async () => {
+      const { result } = await inRequest(async () => {
+        const session = await useAppSession();
+        return session.data;
+      });
 
-    // 已过期 → null
-    const expiredToken = `expired-${crypto.randomUUID()}`;
-    await db.orm.public.Session.create({
-      tokenHash: hashSessionToken(expiredToken),
-      userId,
-      expiresAt: new Date(Date.now() - 1000).toISOString(),
+      expect(result.userId).toBeUndefined();
     });
-    const { result: expired } = await inRequest(() => readSession(), {
-      cookie: `${SESSION_COOKIE}=${expiredToken}`,
+
+    test("篡改的 cookie → data 为空（解密失败安全降级）", async () => {
+      const { setCookieHeader } = await inRequest(async () => {
+        const session = await useAppSession();
+        await session.update({ userId: "u-3" });
+      });
+      const sealed = tamper(parseSessionToken(setCookieHeader!));
+
+      const { result } = await inRequest(
+        async () => {
+          const session = await useAppSession();
+          return session.data;
+        },
+        { cookie: `${SESSION_COOKIE}=${sealed}` },
+      );
+
+      expect(result.userId).toBeUndefined();
     });
-    expect(expired).toBeNull();
-  });
 
-  test("endSession 撤销会话并清除 cookie", async () => {
-    const userId = await createUser();
+    test("clear 清空会话并下发过期 cookie", async () => {
+      const { setCookieHeader } = await inRequest(async () => {
+        const session = await useAppSession();
+        await session.update({ userId: "u-4" });
+      });
+      const sealed = parseSessionToken(setCookieHeader!);
 
-    const { setCookieHeader } = await inRequest(() => issueSession(userId));
-    const token = parseSessionToken(setCookieHeader!);
-    const { result: session } = await inRequest(() => readSession(), {
-      cookie: `${SESSION_COOKIE}=${token}`,
+      const { result, setCookieHeader: clearHeader } = await inRequest(
+        async () => {
+          const session = await useAppSession();
+          await session.clear();
+          return session.data;
+        },
+        { cookie: `${SESSION_COOKIE}=${sealed}` },
+      );
+
+      expect(result.userId).toBeUndefined();
+      expect(clearHeader).not.toBeNull();
+      const attrs = clearHeader!.toLowerCase();
+      expect(attrs.includes("max-age=0") || attrs.includes("expires=")).toBe(
+        true,
+      );
     });
-    expect(session).not.toBeNull();
-
-    const { setCookieHeader: clearHeader } = await inRequest(() =>
-      endSession(session!.id),
-    );
-
-    const row = await db.orm.public.Session.where({ id: session!.id }).first();
-    expect(row!.revokedAt).not.toBeNull();
-
-    expect(clearHeader).not.toBeNull();
-    const attrs = clearHeader!.toLowerCase();
-    expect(attrs).toContain(SESSION_COOKIE.toLowerCase());
-    expect(attrs.includes("max-age=0") || attrs.includes("expires=")).toBe(
-      true,
-    );
-  });
-});
+  },
+);

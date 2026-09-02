@@ -1,5 +1,5 @@
 import { Button } from "#components/ui/button";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, isRedirect, useNavigate } from "@tanstack/react-router";
 import { logout } from "../../server/logout.functions";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -19,10 +19,16 @@ function DashboardPage() {
       <p className="text-sm text-muted-foreground">{user.email}</p>
       <Button
         onClick={async () => {
-          await logout();
-          await navigate({
-            to: "/auth/login",
-          });
+          try {
+            await logout();
+          } catch (error) {
+            // 登出成功：server function 抛 redirect，客户端 RPC 原样抛回
+            if (isRedirect(error)) {
+              navigate({ to: "/" });
+              return;
+            }
+            throw error;
+          }
         }}
       >
         登出

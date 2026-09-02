@@ -96,7 +96,7 @@ export async function callServerFn<R = unknown>(
   return { ...captured, setCookieHeader };
 }
 
-/** 在最小请求上下文中直调模块函数（如 readSession），捕获结果与 Set-Cookie 响应头。 */
+/** 在最小请求上下文中直调模块函数（如 useAppSession），捕获结果与 Set-Cookie 响应头。 */
 export async function inRequest<T>(
   fn: () => Promise<T>,
   opts?: { cookie?: string },

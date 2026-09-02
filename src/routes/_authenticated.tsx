@@ -1,9 +1,9 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { getCurrentUserFn } from "../server/current-user.functions";
+import { getUserFn } from "../server/user.functions";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async ({ location }) => {
-    const user = await getCurrentUserFn();
+    const user = await getUserFn();
 
     if (!user) {
       throw redirect({

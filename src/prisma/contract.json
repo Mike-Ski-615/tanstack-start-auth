@@ -8,10 +8,6 @@
       "model": "Post",
       "namespace": "public"
     },
-    "Session": {
-      "model": "Session",
-      "namespace": "public"
-    },
     "Token": {
       "model": "Token",
       "namespace": "public"
@@ -116,109 +112,6 @@
               },
               "namespaceId": "public",
               "table": "Post"
-            }
-          },
-          "Session": {
-            "fields": {
-              "createdAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "kind": "scalar"
-                }
-              },
-              "expiresAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "kind": "scalar"
-                }
-              },
-              "id": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sql/char@1",
-                  "kind": "scalar",
-                  "typeParams": {
-                    "length": 36
-                  }
-                }
-              },
-              "revokedAt": {
-                "nullable": true,
-                "type": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "kind": "scalar"
-                }
-              },
-              "tokenHash": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "updatedAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "kind": "scalar"
-                }
-              },
-              "userId": {
-                "nullable": false,
-                "type": {
-                  "codecId": "sql/char@1",
-                  "kind": "scalar",
-                  "typeParams": {
-                    "length": 36
-                  }
-                }
-              }
-            },
-            "relations": {
-              "user": {
-                "cardinality": "N:1",
-                "on": {
-                  "localFields": [
-                    "userId"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
-                },
-                "to": {
-                  "model": "User",
-                  "namespace": "public"
-                }
-              }
-            },
-            "storage": {
-              "fields": {
-                "createdAt": {
-                  "column": "createdAt"
-                },
-                "expiresAt": {
-                  "column": "expiresAt"
-                },
-                "id": {
-                  "column": "id"
-                },
-                "revokedAt": {
-                  "column": "revokedAt"
-                },
-                "tokenHash": {
-                  "column": "tokenHash"
-                },
-                "updatedAt": {
-                  "column": "updatedAt"
-                },
-                "userId": {
-                  "column": "userId"
-                }
-              },
-              "namespaceId": "public",
-              "table": "Session"
             }
           },
           "Token": {
@@ -412,21 +305,6 @@
                   "namespace": "public"
                 }
               },
-              "sessions": {
-                "cardinality": "1:N",
-                "on": {
-                  "localFields": [
-                    "id"
-                  ],
-                  "targetFields": [
-                    "userId"
-                  ]
-                },
-                "to": {
-                  "model": "Session",
-                  "namespace": "public"
-                }
-              },
               "tokens": {
                 "cardinality": "1:N",
                 "on": {
@@ -534,96 +412,6 @@
                 ]
               },
               "uniques": []
-            },
-            "Session": {
-              "columns": {
-                "createdAt": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "default": {
-                    "expression": "now()",
-                    "kind": "function"
-                  },
-                  "nativeType": "timestamptz",
-                  "nullable": false
-                },
-                "expiresAt": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "nativeType": "timestamptz",
-                  "nullable": false
-                },
-                "id": {
-                  "codecId": "sql/char@1",
-                  "nativeType": "character",
-                  "nullable": false,
-                  "typeParams": {
-                    "length": 36
-                  }
-                },
-                "revokedAt": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "nativeType": "timestamptz",
-                  "nullable": true
-                },
-                "tokenHash": {
-                  "codecId": "pg/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "updatedAt": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "nativeType": "timestamptz",
-                  "nullable": false
-                },
-                "userId": {
-                  "codecId": "sql/char@1",
-                  "nativeType": "character",
-                  "nullable": false,
-                  "typeParams": {
-                    "length": 36
-                  }
-                }
-              },
-              "foreignKeys": [
-                {
-                  "onDelete": "cascade",
-                  "source": {
-                    "columns": [
-                      "userId"
-                    ],
-                    "namespaceId": "public",
-                    "tableName": "Session"
-                  },
-                  "target": {
-                    "columns": [
-                      "id"
-                    ],
-                    "namespaceId": "public",
-                    "tableName": "User"
-                  }
-                }
-              ],
-              "indexes": [
-                {
-                  "columns": [
-                    "userId"
-                  ],
-                  "name": "Session_userId_idx_a489d58a",
-                  "prefix": "Session_userId_idx",
-                  "unique": false
-                }
-              ],
-              "primaryKey": {
-                "columns": [
-                  "id"
-                ]
-              },
-              "uniques": [
-                {
-                  "columns": [
-                    "tokenHash"
-                  ]
-                }
-              ]
             },
             "Token": {
               "columns": {
@@ -791,10 +579,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "033f538e0e1cee97b26e0d9c02a41ad3c160ddd27e2a5b9401430cd835e378a8"
+    "storageHash": "250b996a60e3c469bd4cad997fc2183de296232a21c67b541b0aa7de9e50d6a3"
   },
   "execution": {
-    "executionHash": "c0bbc0230a52463cea0afa779b27b6d8fe41719215af157bb17df7bcb5269b48",
+    "executionHash": "e240236a3fd7ffb2791f42372e7038ae85a160cf5d2a1725a9aa4ec3f50ec9c0",
     "mutations": {
       "defaults": [
         {
@@ -821,32 +609,6 @@
             "column": "updatedAt",
             "namespace": "public",
             "table": "Post"
-          }
-        },
-        {
-          "onCreate": {
-            "id": "uuidv7",
-            "kind": "generator"
-          },
-          "ref": {
-            "column": "id",
-            "namespace": "public",
-            "table": "Session"
-          }
-        },
-        {
-          "onCreate": {
-            "id": "timestampNow",
-            "kind": "generator"
-          },
-          "onUpdate": {
-            "id": "timestampNow",
-            "kind": "generator"
-          },
-          "ref": {
-            "column": "updatedAt",
-            "namespace": "public",
-            "table": "Session"
           }
         },
         {

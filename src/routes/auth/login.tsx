@@ -1,6 +1,12 @@
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
-import { Link, createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import {
+  Link,
+  createFileRoute,
+  isRedirect,
+  redirect,
+  useNavigate,
+} from "@tanstack/react-router";
 import { GalleryVerticalEnd, Apple } from "lucide-react";
 import { Button } from "#components/ui/button";
 import {
@@ -11,7 +17,7 @@ import {
 } from "#components/ui/field";
 import { TextField } from "#components/form/text-field";
 import { loginSchema, LoginValues } from "#schemas/auth";
-import { getCurrentUserFn } from "../../server/current-user.functions";
+import { getUserFn } from "../../server/user.functions";
 import { login } from "../../server/login.functions";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -28,7 +34,7 @@ const loginSearchSchema = z.object({
 export const Route = createFileRoute("/auth/login")({
   validateSearch: loginSearchSchema,
   beforeLoad: async ({ search }) => {
-    const user = await getCurrentUserFn();
+    const user = await getUserFn();
 
     if (user) {
       throw redirect({ to: search.redirect });
@@ -43,11 +49,19 @@ function LoginPage() {
 
   const loginMutation = useMutation({
     mutationFn: (data: LoginValues) => login({ data }),
-    onSuccess: () => {
-      toast.success("登录成功，欢迎回来");
-      navigate({ to: search.redirect });
+    onSuccess: (result) => {
+      // 凭据失败：server function 以返回值携带 error（防枚举文案）
+      if (result?.error) {
+        toast.error("登录失败，请检查邮箱或密码");
+      }
     },
-    onError: () => {
+    onError: (error) => {
+      // 登录成功：server function 抛 redirect，客户端 RPC 原样抛回
+      if (isRedirect(error)) {
+        toast.success("登录成功，欢迎回来");
+        navigate({ to: search.redirect });
+        return;
+      }
       toast.error("登录失败，请检查邮箱或密码");
     },
   });

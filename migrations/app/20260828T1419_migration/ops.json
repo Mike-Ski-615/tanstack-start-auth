@@ -1,0 +1,81 @@
+[
+  {
+    "id": "dropTable.Session",
+    "label": "Drop table \"Session\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"Session\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Session\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop table \"Session\"",
+        "sql": "DROP TABLE \"public\".\"Session\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"Session\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Session\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropColumn.User.verifiedAt",
+    "label": "Drop column \"verifiedAt\" from \"User\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "verifiedAt",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"verifiedAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "verifiedAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"verifiedAt\"",
+        "sql": "ALTER TABLE \"public\".\"User\" DROP COLUMN \"verifiedAt\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"verifiedAt\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "verifiedAt"
+        ]
+      }
+    ]
+  }
+]
