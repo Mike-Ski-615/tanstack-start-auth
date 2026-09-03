@@ -10,7 +10,7 @@ import appCss from "../styles/app.css?url";
 import { QueryClient } from "@tanstack/react-query";
 import { Toaster } from "#components/ui/sonner";
 import { ThemeProvider } from "#provider/theme-provider";
-import { AuthProvider } from "#provider/auth";
+import { AuthProvider } from "#provider/auth-provider.js";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;

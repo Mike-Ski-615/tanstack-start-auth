@@ -19,8 +19,6 @@ export const registerSchema = z.object({
   email: emailField,
   password: passwordField,
 });
-export type LoginValues = z.infer<typeof loginSchema>;
-export type RegisterValues = z.infer<typeof registerSchema>;
 
 export const emailOnlySchema = z.object({
   email: emailField,
@@ -31,5 +29,7 @@ export const resetPasswordSchema = z.object({
   password: passwordField,
 });
 
+export type LoginValues = z.infer<typeof loginSchema>;
+export type RegisterValues = z.infer<typeof registerSchema>;
 export type EmailOnlyValues = z.infer<typeof emailOnlySchema>;
 export type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;

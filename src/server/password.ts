@@ -7,11 +7,13 @@ export async function hashPassword(password: string): Promise<string> {
   return argon2id({
     password,
     salt: crypto.getRandomValues(new Uint8Array(16)),
-    iterations: 2, // OWASP 最低配置：19 MiB / t=2 / p=1
+
+    iterations: 3,
     parallelism: 1,
-    memorySize: 19_456, // 19 MiB
+    memorySize: 64 * 1024, // 64 MiB
+
     hashLength: 32,
-    outputType: "encoded", // 参数与盐内嵌结果串，verify 自包含
+    outputType: "encoded",
   });
 }
 

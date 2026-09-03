@@ -6,7 +6,6 @@ import { useSession } from "@tanstack/react-start/server";
  */
 type SessionData = {
   userId?: string;
-  email?: string;
 };
 
 /**
@@ -24,6 +23,7 @@ export function useAppSession() {
       secure: process.env.NODE_ENV === "production", // 生产仅 HTTPS
       sameSite: "lax", // 防 CSRF
       httpOnly: true, // 防 XSS，前端 JS 读不到
+      path: "/", // 全站有效
       maxAge: 7 * 24 * 60 * 60, // 7 天
     },
   });
