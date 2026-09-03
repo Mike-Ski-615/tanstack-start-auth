@@ -1,16 +1,16 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { Char } from "@prisma/orm-postgres/target/codec-types";
 import { db } from "#prisma/db";
-import { uuid } from "#prisma/uuid";
 import { useAppSession } from "#lib/session";
 
 /**
  * 当前登录用户的唯一公开形态：投影发生在源头，passwordHash 不出本模块。
  *
- * id 统一为普通 string：Char<36> 品牌已被隔离在 #prisma/uuid 的
- * 唯一强转接缝里，不出现在应用层签名中。
+ * id 声明为 Char<36>（品牌类型，运行时就是普通 string），
+ * 从 ORM 查询一路贯穿到客户端路由 context，无需转换。
  */
 export type User = {
-  id: string;
+  id: Char<36>;
   email: string;
   name: string;
   image: string;
@@ -31,7 +31,7 @@ export const getUserFn = createServerFn({
 
   if (!userId) return null;
 
-  const user = await db.orm.public.User.where({ id: uuid(userId) })
+  const user = await db.orm.public.User.where({ id: userId })
     .select("id", "email", "name", "image", "bio")
     .first();
 

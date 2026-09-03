@@ -1,11 +1,15 @@
 import { useSession } from "@tanstack/react-start/server";
+import type { Char } from "@prisma/orm-postgres/target/codec-types";
 
 /**
  * 会话数据形态：无状态加密 cookie（iron-session 风格），
  * 全部数据加密后存放在 HTTP-only cookie 中，服务端无会话存储。
+ *
+ * userId 声明为 Char<36>：品牌类型在运行时就是普通 string
+ * （cookie 加密/解密无损），仅在编译期约束 id 形态。
  */
 type SessionData = {
-  userId?: string;
+  userId?: Char<36>;
 };
 
 /**

@@ -1,8 +1,8 @@
 import crypto from "node:crypto";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestUrl } from "@tanstack/react-start/server";
+import type { Char } from "@prisma/orm-postgres/target/codec-types";
 import { db } from "#prisma/db";
-import { uuid } from "#prisma/uuid";
 
 import { emailOnlySchema, resetPasswordSchema } from "#schemas/auth";
 
@@ -45,12 +45,9 @@ function buildLink(token: string): string {
  * 单一性：事务内先删该用户的旧令牌再建新行。
  * 返回 false 表示处于重发冷却期（静默跳过，不更新不发送）。
  */
-async function issueToken(userId: string, email: string): Promise<boolean> {
-  // 进入 ORM 边界才转品牌类型（uuid 接缝隔离在 #prisma/uuid）
-  const uid = uuid(userId);
-
+async function issueToken(userId: Char<36>, email: string): Promise<boolean> {
   const existing = await db.orm.public.Token.where({
-    userId: uid,
+    userId,
     purpose: TOKEN_PURPOSE,
   }).first();
 
@@ -69,11 +66,14 @@ async function issueToken(userId: string, email: string): Promise<boolean> {
   ).toISOString();
 
   await db.transaction(async (tx) => {
-    await tx.orm.public.Token.where({ userId: uid, purpose: TOKEN_PURPOSE }).delete();
+    await tx.orm.public.Token.where({
+      userId,
+      purpose: TOKEN_PURPOSE,
+    }).delete();
     await tx.orm.public.Token.create({
       tokenHash,
       purpose: TOKEN_PURPOSE,
-      userId: uid,
+      userId,
       expiresAt,
       lastSentAt: now.toISOString(),
     });

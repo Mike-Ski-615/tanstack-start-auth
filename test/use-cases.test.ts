@@ -10,6 +10,7 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import { isRedirect } from "@tanstack/react-router";
 import type { CurrentUser } from "../src/server/user.functions";
+import type { Char } from "@prisma/orm-postgres/target/codec-types";
 
 const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL;
 
@@ -22,7 +23,6 @@ if (TEST_DATABASE_URL) {
 const { callServerFn, inRequest, parseSessionToken } =
   await import("./server-fn");
 const { db } = await import("../src/prisma/db");
-const { uuid } = await import("../src/prisma/uuid");
 const { login } = await import("../src/server/login.functions");
 const { register } = await import("../src/server/register.functions");
 const { logout } = await import("../src/server/logout.functions");
@@ -33,12 +33,12 @@ const SESSION_COOKIE = "app-session";
 const TEST_PASSWORD = "correct-horse-battery";
 
 describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
-  const createdUserIds: string[] = [];
+  const createdUserIds: Char<36>[] = [];
 
   /** 建一个带真实密码哈希的用户，返回 id 与邮箱。 */
   async function createUserWithPassword(
     password: string = TEST_PASSWORD,
-  ): Promise<{ id: string; email: string }> {
+  ): Promise<{ id: Char<36>; email: string }> {
     const email = `test-${crypto.randomUUID()}@example.com`;
     const user = await db.orm.public.User.create({
       email,
@@ -54,7 +54,7 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
   afterAll(async () => {
     // Token 外键为 cascade，删用户即清理
     for (const id of createdUserIds) {
-      await db.orm.public.User.where({ id: uuid(id) }).delete();
+      await db.orm.public.User.where({ id }).delete();
     }
   });
 
@@ -117,7 +117,7 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
 
     const { result, error, setCookieHeader } = await callServerFn<{
       success: true;
-      user: { id: string; email: string; name: string };
+      user: { id: Char<36>; email: string; name: string };
     }>(register, { name: "新人", email, password: TEST_PASSWORD });
 
     expect(error).toBeUndefined();
@@ -134,7 +134,7 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
 
     // 默认资料沉入用例：头像与签名已填充
     const row = await db.orm.public.User.where({
-      id: uuid(result!.user.id),
+      id: result!.user.id,
     }).first();
     expect(row?.image).toBe("/default-user.webp");
     expect(row?.bio).toBe("这个人很懒,什么也没有留下");
@@ -162,11 +162,19 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
     // 查重在事务外：多数情况下败者被查重拦下返回 error；
     // 真竞态下则吃到唯一约束违例（同样以 error 返回）
     const [r1, r2] = await Promise.allSettled([
-      callServerFn<{ success?: true; error?: string; user?: { id: string } }>(
+      callServerFn<{
+        success?: true;
+        error?: string;
+        user?: { id: Char<36> };
+      }>(
         register,
         { name: "甲", email, password: TEST_PASSWORD },
       ),
-      callServerFn<{ success?: true; error?: string; user?: { id: string } }>(
+      callServerFn<{
+        success?: true;
+        error?: string;
+        user?: { id: Char<36> };
+      }>(
         register,
         { name: "乙", email, password: TEST_PASSWORD },
       ),
@@ -181,7 +189,7 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
             typeof callServerFn<{
               success?: true;
               error?: string;
-              user?: { id: string };
+              user?: { id: Char<36> };
             }>
           >
         >

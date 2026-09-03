@@ -7,6 +7,7 @@
  */
 import { afterAll, describe, expect, test } from "bun:test";
 import type { User } from "../src/server/user.functions";
+import type { Char } from "@prisma/orm-postgres/target/codec-types";
 
 const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL;
 
@@ -18,16 +19,15 @@ if (TEST_DATABASE_URL) {
 const { callServerFn, inRequest, parseSessionToken } =
   await import("./server-fn");
 const { db } = await import("../src/prisma/db");
-const { uuid } = await import("../src/prisma/uuid");
 const { useAppSession } = await import("../src/lib/session");
 const { getUserFn } = await import("../src/server/user.functions");
 
 const SESSION_COOKIE = "app-session";
 
 describe.skipIf(!TEST_DATABASE_URL)("getUserFn（集成测试）", () => {
-  const createdUserIds: string[] = [];
+  const createdUserIds: Char<36>[] = [];
 
-  async function createUser(): Promise<string> {
+  async function createUser(): Promise<Char<36>> {
     const user = await db.orm.public.User.create({
       email: `test-${crypto.randomUUID()}@example.com`,
       name: "tester",
@@ -41,12 +41,12 @@ describe.skipIf(!TEST_DATABASE_URL)("getUserFn（集成测试）", () => {
 
   afterAll(async () => {
     for (const id of createdUserIds) {
-      await db.orm.public.User.where({ id: uuid(id) }).delete();
+      await db.orm.public.User.where({ id }).delete();
     }
   });
 
   /** 为指定 userId 签发一个会话 cookie（直接写会话，绕过登录）。 */
-  async function issueCookie(userId: string): Promise<string> {
+  async function issueCookie(userId: Char<36>): Promise<string> {
     const { setCookieHeader } = await inRequest(async () => {
       const session = await useAppSession();
       await session.update({ userId });
@@ -95,7 +95,7 @@ describe.skipIf(!TEST_DATABASE_URL)("getUserFn（集成测试）", () => {
   });
 
   test("会话指向不存在的用户 → null", async () => {
-    const sealed = await issueCookie(crypto.randomUUID());
+    const sealed = await issueCookie(crypto.randomUUID() as Char<36>);
 
     const { result } = await callServerFn<User | null>(getUserFn, undefined, {
       cookie: `${SESSION_COOKIE}=${sealed}`,

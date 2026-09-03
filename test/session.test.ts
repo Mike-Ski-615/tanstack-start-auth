@@ -5,6 +5,7 @@
  * 与 cookie 传输边缘在最小请求上下文中验证。
  */
 import { describe, expect, test } from "bun:test";
+import type { Char } from "@prisma/orm-postgres/target/codec-types";
 
 const { inRequest, parseSessionToken } = await import("./server-fn");
 const { useAppSession } = await import("../src/lib/session");
@@ -25,7 +26,7 @@ describe.skipIf(!process.env.SESSION_SECRET)(
       const { result, setCookieHeader } = await inRequest(async () => {
         const session = await useAppSession();
         const updated = await session.update({
-          userId: "u-1",
+          userId: "u-1" as Char<36>,
           email: "a@b.c",
         });
         return updated.data;
@@ -44,7 +45,7 @@ describe.skipIf(!process.env.SESSION_SECRET)(
     test("cookie 跨请求重放 → data 往返", async () => {
       const { setCookieHeader } = await inRequest(async () => {
         const session = await useAppSession();
-        await session.update({ userId: "u-2" });
+        await session.update({ userId: "u-2" as Char<36> });
       });
       const sealed = parseSessionToken(setCookieHeader!);
 
@@ -71,7 +72,7 @@ describe.skipIf(!process.env.SESSION_SECRET)(
     test("篡改的 cookie → data 为空（解密失败安全降级）", async () => {
       const { setCookieHeader } = await inRequest(async () => {
         const session = await useAppSession();
-        await session.update({ userId: "u-3" });
+        await session.update({ userId: "u-3" as Char<36> });
       });
       const sealed = tamper(parseSessionToken(setCookieHeader!));
 
@@ -89,7 +90,7 @@ describe.skipIf(!process.env.SESSION_SECRET)(
     test("clear 清空会话并下发过期 cookie", async () => {
       const { setCookieHeader } = await inRequest(async () => {
         const session = await useAppSession();
-        await session.update({ userId: "u-4" });
+        await session.update({ userId: "u-4" as Char<36> });
       });
       const sealed = parseSessionToken(setCookieHeader!);
 

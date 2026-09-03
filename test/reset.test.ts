@@ -13,6 +13,7 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import { isRedirect } from "@tanstack/react-router";
 import type { CurrentUser } from "../src/server/user.functions";
+import type { Char } from "@prisma/orm-postgres/target/codec-types";
 
 const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL;
 
@@ -24,7 +25,6 @@ if (TEST_DATABASE_URL) {
 // server-fn 的 mock 必须先于 server function 模块加载
 const { callServerFn, parseSessionToken } = await import("./server-fn");
 const { db } = await import("../src/prisma/db");
-const { uuid } = await import("../src/prisma/uuid");
 const { login } = await import("../src/server/login.functions");
 const { requestPasswordResetFn, resetPasswordFn } =
   await import("../src/server/reset.functions");
@@ -58,7 +58,7 @@ function extractToken(mail: string): string {
 }
 
 describe.skipIf(!TEST_DATABASE_URL)("密码重置（集成测试）", () => {
-  const createdUserIds: string[] = [];
+  const createdUserIds: Char<36>[] = [];
 
   function uniqueEmail(prefix: string): string {
     return `${prefix}-${crypto.randomUUID()}@example.com`;
@@ -81,7 +81,7 @@ describe.skipIf(!TEST_DATABASE_URL)("密码重置（集成测试）", () => {
   afterAll(async () => {
     for (const id of createdUserIds) {
       // Token 外键为 cascade，删用户即清理
-      await db.orm.public.User.where({ id: uuid(id) }).delete();
+      await db.orm.public.User.where({ id }).delete();
     }
   });
 
