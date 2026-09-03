@@ -204,7 +204,7 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
     expect(users.length).toBe(1);
   });
 
-  test("logout → redirect + 清除 cookie", async () => {
+  test("logout → 清除 cookie + 返回 success", async () => {
     const { email } = await createUserWithPassword();
 
     const { setCookieHeader } = await callServerFn(login, {
@@ -213,13 +213,14 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
     });
     const sealed = parseSessionToken(setCookieHeader!);
 
-    const { error, setCookieHeader: clearHeader } = await callServerFn(
+    const { result, error, setCookieHeader: clearHeader } = await callServerFn(
       logout,
       undefined,
       { cookie: `${SESSION_COOKIE}=${sealed}` },
     );
 
-    expect(isRedirect(error)).toBe(true);
+    expect(error).toBeUndefined();
+    expect(result).toEqual({ success: true });
     expect(clearHeader).not.toBeNull();
     const attrs = clearHeader!.toLowerCase();
     expect(attrs.includes("max-age=0") || attrs.includes("expires=")).toBe(
