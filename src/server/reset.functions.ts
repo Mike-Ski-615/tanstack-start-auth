@@ -19,9 +19,7 @@ import { sendMail } from "./mail";
  * - 一次性——令牌命中即消费（删除）
  */
 
-export type ResetPasswordResult =
-  | { ok: true }
-  | { ok: false; error: "invalid_token" };
+export type ResetPasswordResult = { ok: true };
 
 const TOKEN_PURPOSE = "reset_password";
 const TOKEN_TTL_SECONDS = 60 * 60;
@@ -139,7 +137,7 @@ export const resetPasswordFn = createServerFn({
   .handler(
     async ({ data: { token, password } }): Promise<ResetPasswordResult> => {
       const row = await findLiveToken(token);
-      if (!row) return { ok: false, error: "invalid_token" };
+      if (!row) throw new Error("invalid_token");
 
       const passwordHash = await hashPassword(password);
 

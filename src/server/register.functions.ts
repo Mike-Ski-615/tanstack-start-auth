@@ -9,7 +9,7 @@ import { hashPassword } from "./password";
 /**
  * 注册开户用例（文档模式）：查重 → 建用户 → 写入会话（注册即登录）。
  *
- * 邮箱已占用以返回值携带 error（不抛错）；
+ * 邮箱已占用直接 throw（客户端 onError 据此显示具体提示）；
  * 并发竞态由数据库唯一约束兜底（违例以错误冒出）。
  */
 export const register = createServerFn({
@@ -20,7 +20,7 @@ export const register = createServerFn({
     const existingUser = await db.orm.public.User.where({ email }).first();
 
     if (existingUser) {
-      return { error: "User already exists" };
+      throw new Error("User already exists");
     }
 
     const passwordHash = await hashPassword(password);
@@ -35,9 +35,9 @@ export const register = createServerFn({
 
     // 创建会话：注册即登录
     const session = await useAppSession();
+
     await session.update({
       userId: user.id,
-      email: user.email,
     });
 
     return {

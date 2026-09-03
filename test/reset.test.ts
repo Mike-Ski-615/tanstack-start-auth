@@ -178,19 +178,21 @@ describe.skipIf(!TEST_DATABASE_URL)("密码重置（集成测试）", () => {
     });
     expect(first).toEqual({ ok: true });
 
-    const { result: second, setCookieHeader } = await callServerFn(
+    const { error: secondError, setCookieHeader } = await callServerFn(
       resetPasswordFn,
       { token, password: "second-reset-123" },
     );
-    expect(second).toEqual({ ok: false, error: "invalid_token" });
+    expect(secondError).toBeDefined();
+    expect(secondError?.message).toBe("invalid_token");
     expect(setCookieHeader).toBeNull();
   });
 
   test("resetPasswordFn 无效令牌 → invalid_token", async () => {
-    const { result } = await callServerFn(resetPasswordFn, {
+    const { error } = await callServerFn(resetPasswordFn, {
       token: "garbage-token",
       password: "whatever-123",
     });
-    expect(result).toEqual({ ok: false, error: "invalid_token" });
+    expect(error).toBeDefined();
+    expect(error?.message).toBe("invalid_token");
   });
 });

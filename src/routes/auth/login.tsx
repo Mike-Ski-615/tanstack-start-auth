@@ -3,7 +3,6 @@ import { useMutation } from "@tanstack/react-query";
 import {
   Link,
   createFileRoute,
-  isRedirect,
   redirect,
   useNavigate,
 } from "@tanstack/react-router";
@@ -49,19 +48,12 @@ function LoginPage() {
 
   const loginMutation = useMutation({
     mutationFn: (data: LoginValues) => login({ data }),
-    onSuccess: (result) => {
-      // 凭据失败：server function 以返回值携带 error（防枚举文案）
-      if (result?.error) {
-        toast.error("登录失败，请检查邮箱或密码");
-      }
+    onSuccess: () => {
+      toast.success("登录成功，欢迎回来");
+      navigate({ to: search.redirect });
     },
-    onError: (error) => {
-      // 登录成功：server function 抛 redirect，客户端 RPC 原样抛回
-      if (isRedirect(error)) {
-        toast.success("登录成功，欢迎回来");
-        navigate({ to: search.redirect });
-        return;
-      }
+    // 凭据失败或网络异常统一走这里，文案刻意笼统（防枚举）
+    onError: () => {
       toast.error("登录失败，请检查邮箱或密码");
     },
   });

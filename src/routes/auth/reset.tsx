@@ -4,11 +4,7 @@ import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { GalleryVerticalEnd } from "lucide-react";
 import { Button } from "#components/ui/button";
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-} from "#components/ui/field";
+import { Field, FieldDescription, FieldGroup } from "#components/ui/field";
 import { TextField } from "#components/form/text-field";
 import { toast } from "sonner";
 import { resetPasswordSchema } from "#schemas/auth";
@@ -30,13 +26,9 @@ function ResetPage() {
   const resetMutation = useMutation({
     mutationFn: (password: string) =>
       resetPasswordFn({ data: { token, password } }),
-    onSuccess: (result) => {
-      if (result.ok) {
-        toast.success("密码重置成功，欢迎回来");
-        navigate({ to: "/dashboard" });
-      } else {
-        toast.error("重置链接无效或已过期，请重新发起");
-      }
+    onSuccess: () => {
+      toast.success("密码重置成功，欢迎回来");
+      navigate({ to: "/dashboard" });
     },
     onError: () => {
       toast.error("重置失败，请稍后重试");

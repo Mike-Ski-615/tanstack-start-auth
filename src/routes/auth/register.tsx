@@ -23,12 +23,7 @@ function RegisterPage() {
 
   const registerMutation = useMutation({
     mutationFn: (data: RegisterValues) => register({ data }),
-    onSuccess: (result) => {
-      // 邮箱已占用：server function 以返回值携带 error
-      if (result?.error) {
-        toast.error("该邮箱已被注册");
-        return;
-      }
+    onSuccess: () => {
       // 注册即登录：会话 cookie 已随响应下发，直接进仪表盘
       toast.success("注册成功，欢迎加入");
       navigate({ to: "/dashboard" });
