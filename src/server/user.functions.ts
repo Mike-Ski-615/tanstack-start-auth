@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { setResponseHeader } from "@tanstack/react-start/server";
 import type { Char } from "@prisma/orm-postgres/target/codec-types";
 import { db } from "#prisma/db";
 import { useAppSession } from "#lib/session";
@@ -26,6 +27,9 @@ export type User = {
 export const getUserFn = createServerFn({
   method: "GET",
 }).handler(async (): Promise<User | null> => {
+  // 个性化响应依赖当前会话，禁止任何缓存（登出/换号后不该吃到旧 user）
+  setResponseHeader("Cache-Control", "no-store");
+
   const session = await useAppSession();
   const userId = session.data.userId;
 
