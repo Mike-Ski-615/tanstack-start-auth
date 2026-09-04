@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import type { Char } from "@prisma/orm-postgres/target/codec-types";
 import { db } from "#prisma/db";
 import { emailOnlySchema, resetPasswordSchema } from "#schemas/auth";
 import { useAppSession } from "#lib/session";

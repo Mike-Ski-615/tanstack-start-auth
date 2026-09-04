@@ -19,8 +19,7 @@ if (TEST_DATABASE_URL) {
 }
 
 // server-fn 的 mock 必须先于 server function 模块加载
-const { callServerFn, inRequest, parseSessionToken } =
-  await import("./server-fn");
+const { callServerFn, parseSessionToken } = await import("./server-fn");
 const { db } = await import("../src/prisma/db");
 const { login } = await import("../src/server/login.functions");
 const { register } = await import("../src/server/register.functions");

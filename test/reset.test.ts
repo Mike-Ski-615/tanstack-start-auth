@@ -106,8 +106,8 @@ describe.skipIf(!TEST_DATABASE_URL)("密码重置（集成测试）", () => {
       email: uniqueEmail("unknown"),
     });
 
-    expect(forKnown).toEqual({ ok: true });
-    expect(forUnknown).toEqual({ ok: true });
+    expect(forKnown).toEqual({ success: true });
+    expect(forUnknown).toEqual({ success: true });
   });
 
   test("resetPasswordFn 成功 → 改密 + 自动登录", async () => {
@@ -135,7 +135,7 @@ describe.skipIf(!TEST_DATABASE_URL)("密码重置（集成测试）", () => {
       password: newPassword,
     });
     expect(error).toBeUndefined();
-    expect(result).toEqual({ ok: true });
+    expect(result).toEqual({ success: true });
 
     // 自动登录的新会话有效
     expect(newCookie).not.toBeNull();
@@ -179,14 +179,14 @@ describe.skipIf(!TEST_DATABASE_URL)("密码重置（集成测试）", () => {
       token,
       password: "first-reset-123",
     });
-    expect(first).toEqual({ ok: true });
+    expect(first).toEqual({ success: true });
 
     const { result: second, error: secondError } = await callServerFn(
       resetPasswordFn,
       { token, password: "second-reset-123" },
     );
     expect(secondError).toBeUndefined();
-    expect(second).toEqual({ ok: true });
+    expect(second).toEqual({ success: true });
   });
 
   test("resetPasswordFn 篡改令牌 → invalid_token（验签兜底）", async () => {
