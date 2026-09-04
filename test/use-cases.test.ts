@@ -3,13 +3,12 @@
  *
  * 门控：仅在设置了 TEST_DATABASE_URL 时运行。
  * 会话为无状态加密 cookie（useAppSession）：
- * - 登录/注册成功 → Set-Cookie 下发密封会话，重放经 getUserFn 验证
- * - 登录成功与登出的 handler 以 throw redirect 结束，
- *   测试侧以 isRedirect 断言（客户端 RPC 同样原样抛回）
+ * - 登录/注册成功 → 返回 { success } + Set-Cookie 下发密封会话，
+ *   重放经 getUserFn 验证；登出返回 { success } + 过期 cookie
+ * - 凭据失败/重复注册以 throw 表达，测试经 callServerFn 的 error 捕获
  */
 import { afterAll, describe, expect, test } from "bun:test";
-import { isRedirect } from "@tanstack/react-router";
-import type { CurrentUser } from "../src/server/user.functions";
+import type { User } from "../src/server/user.functions";
 import type { Char } from "@prisma/orm-postgres/target/codec-types";
 
 const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL;
@@ -61,7 +60,7 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
   /** 重放会话 cookie，返回 getUserFn 的结果。 */
   async function whoami(setCookieHeader: string) {
     const sealed = parseSessionToken(setCookieHeader);
-    const { result } = await callServerFn<CurrentUser | null>(
+    const { result } = await callServerFn<User | null>(
       getUserFn,
       undefined,
       {
@@ -71,7 +70,7 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
     return result;
   }
 
-  test("login 凭据正确 → redirect + 会话 cookie 有效", async () => {
+  test("login 凭据正确 → success + 会话 cookie 有效", async () => {
     const { id, email } = await createUserWithPassword();
 
     const { result, error, setCookieHeader } = await callServerFn(login, {
@@ -79,8 +78,8 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
       password: TEST_PASSWORD,
     });
 
-    expect(result).toBeUndefined();
-    expect(isRedirect(error)).toBe(true);
+    expect(error).toBeUndefined();
+    expect(result).toEqual({ success: true });
     expect(setCookieHeader).not.toBeNull();
 
     const user = await whoami(setCookieHeader!);
@@ -88,7 +87,7 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
     expect(user?.email).toBe(email);
   });
 
-  test("login 密码错误 → 返回 error，无会话 cookie", async () => {
+  test("login 密码错误 → 抛错，无会话 cookie", async () => {
     const { email } = await createUserWithPassword();
 
     const { result, error, setCookieHeader } = await callServerFn(login, {
@@ -96,19 +95,19 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
       password: "wrong-password",
     });
 
-    expect(error).toBeUndefined();
-    expect(result).toEqual({ error: "Invalid email or password" });
+    expect(result).toBeUndefined();
+    expect(error?.message).toBe("Invalid email or password");
     expect(setCookieHeader).toBeNull();
   });
 
-  test("login 邮箱不存在 → 返回同一 error（防枚举）", async () => {
+  test("login 邮箱不存在 → 抛同一 error（防枚举）", async () => {
     const { result, error, setCookieHeader } = await callServerFn(login, {
       email: `nobody-${crypto.randomUUID()}@example.com`,
       password: TEST_PASSWORD,
     });
 
-    expect(error).toBeUndefined();
-    expect(result).toEqual({ error: "Invalid email or password" });
+    expect(result).toBeUndefined();
+    expect(error?.message).toBe("Invalid email or password");
     expect(setCookieHeader).toBeNull();
   });
 
@@ -140,7 +139,7 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
     expect(row?.bio).toBe("这个人很懒,什么也没有留下");
   });
 
-  test("register 邮箱占用 → 返回 error，不产生第二个用户", async () => {
+  test("register 邮箱占用 → 抛错，不产生第二个用户", async () => {
     const { email } = await createUserWithPassword();
 
     const { result, error } = await callServerFn(register, {
@@ -149,8 +148,8 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
       password: TEST_PASSWORD,
     });
 
-    expect(error).toBeUndefined();
-    expect(result).toEqual({ error: "User already exists" });
+    expect(result).toBeUndefined();
+    expect(error?.message).toBe("User already exists");
 
     const users = await db.orm.public.User.where({ email }).all();
     expect(users.length).toBe(1);
@@ -236,7 +235,7 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
     );
 
     // 无 cookie 请求 → 未登录
-    const { result: anonymous } = await callServerFn<CurrentUser | null>(
+    const { result: anonymous } = await callServerFn<User | null>(
       getUserFn,
     );
     expect(anonymous).toBeNull();

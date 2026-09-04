@@ -11,8 +11,7 @@
  * 旧会话 cookie 无法服务端撤销，自然过期前仍然有效。
  */
 import { afterAll, describe, expect, test } from "bun:test";
-import { isRedirect } from "@tanstack/react-router";
-import type { CurrentUser } from "../src/server/user.functions";
+import type { User } from "../src/server/user.functions";
 import type { Char } from "@prisma/orm-postgres/target/codec-types";
 
 const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL;
@@ -88,7 +87,7 @@ describe.skipIf(!TEST_DATABASE_URL)("密码重置（集成测试）", () => {
   /** 重放 Set-Cookie 中的会话，返回 getUserFn 的结果。 */
   async function whoami(setCookieHeader: string) {
     const sealed = parseSessionToken(setCookieHeader);
-    const { result } = await callServerFn<CurrentUser | null>(
+    const { result } = await callServerFn<User | null>(
       getUserFn,
       undefined,
       {
@@ -149,18 +148,22 @@ describe.skipIf(!TEST_DATABASE_URL)("密码重置（集成测试）", () => {
     const oldUser = await whoami(oldCookie!);
     expect(oldUser).not.toBeNull();
 
-    // 旧密码失效：返回 error（防枚举文案）
+    // 旧密码失效：抛错（防枚举文案），无新会话
     const { result: oldPassword, error: oldPasswordError } = await callServerFn(
       login,
       { email, password: TEST_PASSWORD },
     );
-    expect(oldPasswordError).toBeUndefined();
-    expect(oldPassword).toEqual({ error: "Invalid email or password" });
+    expect(oldPassword).toBeUndefined();
+    expect(oldPasswordError?.message).toBe("Invalid email or password");
 
-    // 新密码生效：登录成功抛 redirect 并下发新会话
-    const { error: newPasswordRedirect, setCookieHeader: newPasswordCookie } =
-      await callServerFn(login, { email, password: newPassword });
-    expect(isRedirect(newPasswordRedirect)).toBe(true);
+    // 新密码生效：登录成功返回 success 并下发新会话
+    const {
+      result: newLogin,
+      error: newLoginError,
+      setCookieHeader: newPasswordCookie,
+    } = await callServerFn(login, { email, password: newPassword });
+    expect(newLoginError).toBeUndefined();
+    expect(newLogin).toEqual({ success: true });
     expect(newPasswordCookie).not.toBeNull();
   });
 

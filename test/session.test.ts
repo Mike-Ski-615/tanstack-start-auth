@@ -27,12 +27,11 @@ describe.skipIf(!process.env.SESSION_SECRET)(
         const session = await useAppSession();
         const updated = await session.update({
           userId: "u-1" as Char<36>,
-          email: "a@b.c",
         });
         return updated.data;
       });
 
-      expect(result).toMatchObject({ userId: "u-1", email: "a@b.c" });
+      expect(result).toMatchObject({ userId: "u-1" });
 
       expect(setCookieHeader).not.toBeNull();
       const attrs = setCookieHeader!.toLowerCase();
