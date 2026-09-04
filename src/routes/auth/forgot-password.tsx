@@ -6,9 +6,11 @@ import { Button } from "#components/ui/button";
 import {
   Field,
   FieldDescription,
+  FieldError,
   FieldGroup,
+  FieldLabel,
 } from "#components/ui/field";
-import { TextField } from "#components/form/text-field";
+import { Input } from "#components/ui/input";
 import { toast } from "sonner";
 import { emailOnlySchema, EmailOnlyValues } from "#schemas/auth";
 import { requestPasswordResetFn } from "../../server/reset.functions";
@@ -65,14 +67,35 @@ function ForgotPasswordPage() {
           </FieldDescription>
         </div>
 
-        <TextField
-          form={form}
-          name="email"
-          label="邮箱"
-          type="email"
-          placeholder="name@example.com"
-          autoComplete="email"
-        />
+        <form.Field name="email">
+          {(emailField) => {
+            const invalid =
+              emailField.state.meta.isTouched &&
+              !emailField.state.meta.isValid;
+            return (
+              <Field data-invalid={invalid}>
+                <FieldLabel htmlFor={emailField.name}>邮箱</FieldLabel>
+                <Input
+                  id={emailField.name}
+                  name={emailField.name}
+                  type="email"
+                  value={emailField.state.value}
+                  onBlur={emailField.handleBlur}
+                  onChange={(event) =>
+                    emailField.handleChange(event.target.value)
+                  }
+                  aria-invalid={invalid}
+                  placeholder="name@example.com"
+                  autoComplete="email"
+                  required
+                />
+                {invalid && (
+                  <FieldError errors={emailField.state.meta.errors} />
+                )}
+              </Field>
+            );
+          }}
+        </form.Field>
 
         <Field>
           <Button type="submit" disabled={resetMutation.isPending}>

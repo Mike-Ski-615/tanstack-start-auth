@@ -4,8 +4,14 @@ import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { GalleryVerticalEnd } from "lucide-react";
 import { Button } from "#components/ui/button";
-import { Field, FieldDescription, FieldGroup } from "#components/ui/field";
-import { TextField } from "#components/form/text-field";
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "#components/ui/field";
+import { Input } from "#components/ui/input";
 import { toast } from "sonner";
 import { resetPasswordSchema } from "#schemas/auth";
 import { resetPasswordFn } from "../../server/reset.functions";
@@ -81,14 +87,35 @@ function ResetPage() {
           <FieldDescription>重置成功后即可直接登录。</FieldDescription>
         </div>
 
-        <TextField
-          form={form}
-          name="password"
-          label="新密码"
-          type="password"
-          placeholder="请输入新密码"
-          autoComplete="new-password"
-        />
+        <form.Field name="password">
+          {(passwordField) => {
+            const invalid =
+              passwordField.state.meta.isTouched &&
+              !passwordField.state.meta.isValid;
+            return (
+              <Field data-invalid={invalid}>
+                <FieldLabel htmlFor={passwordField.name}>新密码</FieldLabel>
+                <Input
+                  id={passwordField.name}
+                  name={passwordField.name}
+                  type="password"
+                  value={passwordField.state.value}
+                  onBlur={passwordField.handleBlur}
+                  onChange={(event) =>
+                    passwordField.handleChange(event.target.value)
+                  }
+                  aria-invalid={invalid}
+                  placeholder="请输入新密码"
+                  autoComplete="new-password"
+                  required
+                />
+                {invalid && (
+                  <FieldError errors={passwordField.state.meta.errors} />
+                )}
+              </Field>
+            );
+          }}
+        </form.Field>
 
         <Field>
           <Button type="submit" disabled={resetMutation.isPending}>
