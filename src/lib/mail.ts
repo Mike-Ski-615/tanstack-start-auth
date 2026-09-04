@@ -1,8 +1,6 @@
 /**
- * 密码重置邮件：发送逻辑与内容（主题/正文）都收口在本函数，用例只传收件人和含令牌的链接。
- *
- * 当前实现：控制台输出（开发与生产同行为，见 grill-with-docs 决策）。
- * 将来 SMTP 参数确定后，只改这里的输出实现，interface 与用例不动。
+ * 通用邮件发送（当前演示实现：控制台输出，见 grill-with-docs 决策）。
+ * 将来接 SMTP 时只改这里，interface 与调用方不变。
  */
 export async function sendMail(
   to: string,

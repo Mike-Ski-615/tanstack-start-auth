@@ -10,7 +10,6 @@ import type { Char } from "@prisma/orm-postgres/target/codec-types";
  */
 const SESSION_KEY = new TextEncoder().encode(process.env.SESSION_SECRET!);
 
-/** 令牌有效期。 */
 const TTL = "15m";
 
 /** 签一枚 TTL 有效、sub 指向该 userId 的无状态 JWT。 */
@@ -23,7 +22,7 @@ export async function signUserToken(userId: Char<36>): Promise<string> {
     .sign(SESSION_KEY);
 }
 
-/** 验签（HS256，固定算法防降级）+ 时效。tokens 自动核实 exp；无效/过期返回 null。 */
+/** 验签（HS256，固定算法防降级）。jose 自动校验 exp → 无效/过期返回 null。 */
 export async function readUserToken(
   token: string,
 ): Promise<Char<36> | null> {

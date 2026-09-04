@@ -1,8 +1,6 @@
 import { argon2id, argon2Verify } from "hash-wasm";
 
-/**
- * Argon2id 密码哈希。
- */
+/** Argon2id：哈希密码（编码型，自带随机盐）。 */
 export async function hashPassword(password: string): Promise<string> {
   return argon2id({
     password,
@@ -17,9 +15,7 @@ export async function hashPassword(password: string): Promise<string> {
   });
 }
 
-/**
- * 校验密码是否匹配 Argon2id 哈希。
- */
+/** 用存储的哈希校验明文密码。 */
 export async function verifyPassword(
   passwordHash: string,
   password: string,

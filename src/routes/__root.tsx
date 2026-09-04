@@ -44,7 +44,10 @@ function NotFound() {
     <main className="flex min-h-svh flex-col items-center justify-center gap-4 bg-background p-6">
       <h1 className="text-2xl font-semibold text-foreground">页面未找到</h1>
       <p className="text-muted-foreground">你访问的地址不存在或已被移动。</p>
-      <Link to="/" className="text-sm font-medium underline underline-offset-4 hover:no-underline">
+      <Link
+        to="/"
+        className="text-sm font-medium underline underline-offset-4 hover:no-underline"
+      >
         回到首页
       </Link>
     </main>
@@ -54,8 +57,7 @@ function NotFound() {
 function RootComponent() {
   return (
     <RootDocument>
-      {/* 当前登录用户由 _authenticated 守卫经 route context 提供（useRouteContext），
-          此处不再用 AuthProvider 重复拉取 getUserFn（单一数据源在守卫端） */}
+      {/* 当前用户单源在 _authenticated 守卫（useRouteContext），不在此处重复拉取。 */}
       <Outlet />
     </RootDocument>
   );

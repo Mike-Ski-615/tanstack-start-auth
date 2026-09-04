@@ -13,6 +13,5 @@ export const logout = createServerFn({
   const session = await useAppSession();
   await session.clear();
 
-  // 成功仅返回值，由客户端 onSuccess/点击后自行导航
   return { success: true };
 });

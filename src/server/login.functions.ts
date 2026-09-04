@@ -24,13 +24,10 @@ export const login = createServerFn({
       throw new Error("Invalid email or password");
     }
 
-    // 创建会话：userId 与 email 加密进 cookie
     const session = await useAppSession();
-
     await session.update({
       userId: user.id,
     });
 
-    // 成功仅返回值，由客户端 onSuccess 导航（目标来自 search.redirect）
     return { success: true };
   });
