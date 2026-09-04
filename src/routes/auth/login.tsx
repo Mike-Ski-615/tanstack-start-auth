@@ -21,24 +21,13 @@ import { loginSchema, LoginValues } from "#schemas/auth";
 import { getUserFn } from "../../server/user.functions";
 import { login } from "../../server/login.functions";
 import { toast } from "sonner";
-import { z } from "zod";
-
-// 重定向目标校验：仅允许站内相对路径，防止开放重定向攻击
-const loginSearchSchema = z.object({
-  redirect: z
-    .string()
-    .refine((url) => url.startsWith("/") && !url.startsWith("//"))
-    .default("/")
-    .catch("/"),
-});
 
 export const Route = createFileRoute("/auth/login")({
-  validateSearch: loginSearchSchema,
-  beforeLoad: async ({ search }) => {
+  beforeLoad: async () => {
     const user = await getUserFn();
 
     if (user) {
-      throw redirect({ to: search.redirect });
+      throw redirect({ to: "/dashboard" });
     }
   },
   component: LoginPage,
@@ -46,13 +35,12 @@ export const Route = createFileRoute("/auth/login")({
 
 function LoginPage() {
   const navigate = useNavigate();
-  const search = Route.useSearch();
 
   const loginMutation = useMutation({
     mutationFn: (data: LoginValues) => login({ data }),
     onSuccess: () => {
       toast.success("登录成功，欢迎回来");
-      navigate({ to: search.redirect });
+      navigate({ to: "/dashboard" });
     },
     // 凭据失败或网络异常统一走这里，文案刻意笼统（防枚举）
     onError: () => {
