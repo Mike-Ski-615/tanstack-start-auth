@@ -27,31 +27,11 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
     },
   });
 
-  const Post = model("Post", {
-    fields: {
-      id: field.id.uuidv7String(),
-      title: field.text(),
-      content: field.text().optional(),
-      authorId: field.uuidString(),
-      createdAt: field.temporal.createdAtString(),
-      updatedAt: field.temporal.updatedAtString(),
-    },
-  });
-
   return {
     models: {
       User: User.relations({
-        posts: rel.hasMany(Post, {
-          by: "authorId",
-        }),
         tokens: rel.hasMany(Token, {
           by: "userId",
-        }),
-      }),
-      Post: Post.relations({
-        author: rel.belongsTo(User, {
-          from: "authorId",
-          to: "id",
         }),
       }),
       Token: Token.relations({

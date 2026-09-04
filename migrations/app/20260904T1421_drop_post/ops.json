@@ -1,0 +1,39 @@
+[
+  {
+    "id": "dropTable.Post",
+    "label": "Drop table \"Post\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "Post"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"Post\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Post\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop table \"Post\"",
+        "sql": "DROP TABLE \"public\".\"Post\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"Post\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Post\""
+        ]
+      }
+    ]
+  }
+]
