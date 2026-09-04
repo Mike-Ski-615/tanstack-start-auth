@@ -28,7 +28,7 @@ const { login } = await import("../src/server/login.functions");
 const { requestPasswordResetFn, resetPasswordFn } =
   await import("../src/server/reset.functions");
 const { getUserFn } = await import("../src/server/user.functions");
-const { hashPassword } = await import("../src/server/password");
+const { hashPassword } = await import("../src/lib/password");
 
 const SESSION_COOKIE = "app-session";
 const TEST_PASSWORD = "correct-horse-battery";
@@ -86,13 +86,9 @@ describe.skipIf(!TEST_DATABASE_URL)("密码重置（集成测试）", () => {
   /** 重放 Set-Cookie 中的会话，返回 getUserFn 的结果。 */
   async function whoami(setCookieHeader: string) {
     const sealed = parseSessionToken(setCookieHeader);
-    const { result } = await callServerFn<User | null>(
-      getUserFn,
-      undefined,
-      {
-        cookie: `${SESSION_COOKIE}=${sealed}`,
-      },
-    );
+    const { result } = await callServerFn<User | null>(getUserFn, undefined, {
+      cookie: `${SESSION_COOKIE}=${sealed}`,
+    });
     return result;
   }
 

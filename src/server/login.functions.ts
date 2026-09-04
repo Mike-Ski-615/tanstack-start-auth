@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { db } from "#prisma/db";
 import { loginSchema } from "#schemas/auth";
 import { useAppSession } from "#lib/session";
-import { verifyPassword } from "./password";
+import { verifyPassword } from "../lib/password";
 
 /**
  * 登录用例（文档模式）：校验凭据 → 写入会话 → 返回成功。

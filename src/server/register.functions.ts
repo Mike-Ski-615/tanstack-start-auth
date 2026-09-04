@@ -4,7 +4,7 @@ import { db } from "#prisma/db";
 import { registerSchema } from "#schemas/auth";
 
 import { useAppSession } from "#lib/session";
-import { hashPassword } from "./password";
+import { hashPassword } from "../lib/password";
 
 /**
  * 注册开户用例（文档模式）：查重 → 建用户 → 写入会话（注册即登录）。

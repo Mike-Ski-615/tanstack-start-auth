@@ -3,8 +3,8 @@ import { db } from "#prisma/db";
 import { emailOnlySchema, resetPasswordSchema } from "#schemas/auth";
 import { useAppSession } from "#lib/session";
 import { signUserToken, readUserToken } from "#lib/jwt";
-import { hashPassword } from "./password";
-import { sendMail } from "./mail";
+import { hashPassword } from "../lib/password";
+import { sendMail } from "../lib/mail";
 
 /**
  * 密码重置用例（无状态版）：令牌为一枚 HS256 JWT { sub: userId, exp }，

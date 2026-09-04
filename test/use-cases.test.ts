@@ -25,7 +25,7 @@ const { login } = await import("../src/server/login.functions");
 const { register } = await import("../src/server/register.functions");
 const { logout } = await import("../src/server/logout.functions");
 const { getUserFn } = await import("../src/server/user.functions");
-const { hashPassword } = await import("../src/server/password");
+const { hashPassword } = await import("../src/lib/password");
 
 const SESSION_COOKIE = "app-session";
 const TEST_PASSWORD = "correct-horse-battery";
@@ -58,13 +58,9 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
   /** 重放会话 cookie，返回 getUserFn 的结果。 */
   async function whoami(setCookieHeader: string) {
     const sealed = parseSessionToken(setCookieHeader);
-    const { result } = await callServerFn<User | null>(
-      getUserFn,
-      undefined,
-      {
-        cookie: `${SESSION_COOKIE}=${sealed}`,
-      },
-    );
+    const { result } = await callServerFn<User | null>(getUserFn, undefined, {
+      cookie: `${SESSION_COOKIE}=${sealed}`,
+    });
     return result;
   }
 
@@ -163,18 +159,12 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
         success?: true;
         error?: string;
         user?: { id: Char<36> };
-      }>(
-        register,
-        { name: "甲", email, password: TEST_PASSWORD },
-      ),
+      }>(register, { name: "甲", email, password: TEST_PASSWORD }),
       callServerFn<{
         success?: true;
         error?: string;
         user?: { id: Char<36> };
-      }>(
-        register,
-        { name: "乙", email, password: TEST_PASSWORD },
-      ),
+      }>(register, { name: "乙", email, password: TEST_PASSWORD }),
     ]);
 
     const fulfilled = [r1, r2].filter(
@@ -218,11 +208,13 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
     });
     const sealed = parseSessionToken(setCookieHeader!);
 
-    const { result, error, setCookieHeader: clearHeader } = await callServerFn(
-      logout,
-      undefined,
-      { cookie: `${SESSION_COOKIE}=${sealed}` },
-    );
+    const {
+      result,
+      error,
+      setCookieHeader: clearHeader,
+    } = await callServerFn(logout, undefined, {
+      cookie: `${SESSION_COOKIE}=${sealed}`,
+    });
 
     expect(error).toBeUndefined();
     expect(result).toEqual({ success: true });
@@ -233,9 +225,7 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
     );
 
     // 无 cookie 请求 → 未登录
-    const { result: anonymous } = await callServerFn<User | null>(
-      getUserFn,
-    );
+    const { result: anonymous } = await callServerFn<User | null>(getUserFn);
     expect(anonymous).toBeNull();
   });
 });
