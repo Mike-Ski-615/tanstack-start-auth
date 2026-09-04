@@ -13,7 +13,6 @@
     ],
     "paths": {
       "#lib/*": ["./src/lib/*.ts"],
-      "#hooks/*": ["./src/hooks/*.ts"],
       "#prisma/*": ["./src/prisma/*.ts"],
       "#schemas/*": ["./src/schemas/*.ts"],
       "#provider/*": ["./src/provider/*"],
