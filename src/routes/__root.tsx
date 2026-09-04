@@ -10,7 +10,6 @@ import appCss from "../styles/app.css?url";
 import { QueryClient } from "@tanstack/react-query";
 import { Toaster } from "#components/ui/sonner";
 import { ThemeProvider } from "#provider/theme-provider";
-import { AuthProvider } from "#provider/auth-provider.js";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
@@ -41,9 +40,9 @@ export const Route = createRootRouteWithContext<{
 function RootComponent() {
   return (
     <RootDocument>
-      <AuthProvider>
-        <Outlet />
-      </AuthProvider>
+      {/* 当前登录用户由 _authenticated 守卫经 route context 提供（useRouteContext），
+          此处不再用 AuthProvider 重复拉取 getUserFn（单一数据源在守卫端） */}
+      <Outlet />
     </RootDocument>
   );
 }
