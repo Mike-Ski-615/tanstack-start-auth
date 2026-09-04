@@ -1,114 +1,47 @@
-import crypto from "node:crypto";
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestUrl } from "@tanstack/react-start/server";
 import type { Char } from "@prisma/orm-postgres/target/codec-types";
+import { jwtVerify, SignJWT } from "jose";
 import { db } from "#prisma/db";
-
 import { emailOnlySchema, resetPasswordSchema } from "#schemas/auth";
-
 import { useAppSession } from "#lib/session";
 import { hashPassword } from "./password";
 import { sendMail } from "./mail";
 
 /**
- * 密码重置用例。用例逻辑内联在各 server function 的 handler 中；
- * 令牌机制（生成/哈希/冷却/邮件）为模块私有基建。
- *
- * 不变量：
- * - 单一性——每用户至多一个活令牌（签发新令牌先删旧的）
- * - 一次性——令牌命中即消费（删除）
+ * 密码重置用例（无状态版）：令牌为一枚 HS256 JWT { sub: userId, exp }，
+ * 复用 SESSION_SECRET 签名，不落库；验签即验身份与时效。
+ * 与登录会话的无状态 cookie 同一哲学（见 session.ts 注释）。
  */
 
-export type ResetPasswordResult = { ok: true };
+// 复用会话密钥。jose 只接受字节数组/KeyObject 作 key（KeyInput），不接受裸字符串，
+// 故用 TextEncoder 把 SESSION_SECRET 转字节；HS256 密钥不宜短于 32 字节。
+const SESSION_KEY = new TextEncoder().encode(process.env.SESSION_SECRET!);
 
-const TOKEN_PURPOSE = "reset_password";
-const TOKEN_TTL_SECONDS = 60 * 60;
-const RESEND_COOLDOWN_SECONDS = 60;
-
-function generateToken(): string {
-  return crypto.randomBytes(32).toString("base64url");
+/** 签一枚 15 分钟有效、指向该 userId 的 JWT。 */
+async function buildToken(userId: Char<36>): Promise<string> {
+  return new SignJWT({})
+    .setProtectedHeader({ alg: "HS256" })
+    .setSubject(userId)
+    .setIssuedAt()
+    .setExpirationTime("15m")
+    .sign(SESSION_KEY);
 }
 
-function hashToken(token: string): string {
-  return crypto.createHash("sha256").update(token).digest("hex");
-}
-
-function buildLink(token: string): string {
-  // 从当前请求推导 origin（测试的最小请求上下文为 http://localhost）
-  const origin = new URL(getRequestUrl()).origin;
-  return `${origin}/auth/reset?token=${token}`;
-}
-
-/**
- * 为用户签发重置令牌并发邮件。
- *
- * 单一性：事务内先删该用户的旧令牌再建新行。
- * 返回 false 表示处于重发冷却期（静默跳过，不更新不发送）。
- */
-async function issueToken(userId: Char<36>, email: string): Promise<boolean> {
-  const existing = await db.orm.public.Token.where({
-    userId,
-    purpose: TOKEN_PURPOSE,
-  }).first();
-
-  if (existing) {
-    const elapsed = Date.now() - new Date(existing.lastSentAt).getTime();
-    if (elapsed < RESEND_COOLDOWN_SECONDS * 1000) {
-      return false;
-    }
-  }
-
-  const token = generateToken();
-  const tokenHash = hashToken(token);
-  const now = new Date();
-  const expiresAt = new Date(
-    now.getTime() + TOKEN_TTL_SECONDS * 1000,
-  ).toISOString();
-
-  await db.transaction(async (tx) => {
-    await tx.orm.public.Token.where({
-      userId,
-      purpose: TOKEN_PURPOSE,
-    }).delete();
-    await tx.orm.public.Token.create({
-      tokenHash,
-      purpose: TOKEN_PURPOSE,
-      userId,
-      expiresAt,
-      lastSentAt: now.toISOString(),
+/** 验签（HS256，固定算法防降级）+ 时效。jose 自动校验 exp；无效返回 null。 */
+async function readToken(token: string): Promise<Char<36> | null> {
+  try {
+    const { payload } = await jwtVerify(token, SESSION_KEY, {
+      algorithms: ["HS256"],
     });
-  });
-
-  await sendMail(
-    email,
-    "重置你的密码",
-    [
-      `点击下面的链接重置密码（${TOKEN_TTL_SECONDS / 3600} 小时内有效，仅可使用一次）：`,
-      "",
-      buildLink(token),
-      "",
-      "如果你没有发起此请求，可以安全地忽略这封邮件。",
-    ].join("\n"),
-  );
-
-  return true;
-}
-
-/** 按明文令牌查找未过期的活令牌行。 */
-async function findLiveToken(token: string) {
-  const row = await db.orm.public.Token.where({
-    tokenHash: hashToken(token),
-    purpose: TOKEN_PURPOSE,
-  }).first();
-
-  if (!row) return null;
-  if (new Date(row.expiresAt) <= new Date()) return null;
-
-  return row;
+    const { sub } = payload;
+    return typeof sub === "string" ? (sub as Char<36>) : null;
+  } catch {
+    return null;
+  }
 }
 
 /**
- * 请求密码重置。防枚举：无论邮箱是否存在，恒返回 ok 与同一客户端提示。
+ * 请求密码重置。防枚举：无论邮箱是否存在，恒返回同一响应。
  */
 export const requestPasswordResetFn = createServerFn({
   method: "POST",
@@ -118,39 +51,40 @@ export const requestPasswordResetFn = createServerFn({
     const user = await db.orm.public.User.where({ email }).first();
 
     if (user) {
-      await issueToken(user.id, email);
+      const token = await buildToken(user.id);
+      await sendMail(
+        email,
+        "重置你的密码",
+        [
+          "点击下面的链接重置你的密码（15 分钟内有效）：",
+          "",
+          `${process.env.APP_URL}/auth/reset?token=${token}`,
+          "",
+          "如果你没有发起此请求，可以安全地忽略这封邮件。",
+        ].join("\n"),
+      );
     }
 
-    return { ok: true };
+    return { success: true };
   });
 
 /**
- * 重置密码：消费令牌 → 改密 → 写入新会话（自动登录）。
- *
- * 注意：无状态加密 cookie 会话无法服务端撤销，
- * 旧浏览器里的旧会话 cookie 在自然过期前仍然有效。
+ * 重置密码：验签令牌 → 改密 → 写入新会话（自动登录）。
  */
 export const resetPasswordFn = createServerFn({
   method: "POST",
 })
   .validator(resetPasswordSchema)
-  .handler(
-    async ({ data: { token, password } }): Promise<ResetPasswordResult> => {
-      const row = await findLiveToken(token);
-      if (!row) throw new Error("invalid_token");
+  .handler(async ({ data: { token, password } }) => {
+    const userId = await readToken(token);
+    if (!userId) throw new Error("invalid_token");
 
-      const passwordHash = await hashPassword(password);
+    await db.orm.public.User.where({ id: userId }).update({
+      passwordHash: await hashPassword(password),
+    });
 
-      await db.transaction(async (tx) => {
-        await tx.orm.public.User.where({ id: row.userId }).update({
-          passwordHash,
-        });
-        await tx.orm.public.Token.where({ id: row.id }).delete();
-      });
+    const session = await useAppSession();
+    await session.update({ userId });
 
-      const session = await useAppSession();
-      await session.update({ userId: row.userId });
-
-      return { ok: true };
-    },
-  );
+    return { success: true };
+  });

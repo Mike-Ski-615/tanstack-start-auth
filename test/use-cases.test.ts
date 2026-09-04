@@ -51,7 +51,6 @@ describe.skipIf(!TEST_DATABASE_URL)("auth 用例（集成测试）", () => {
   }
 
   afterAll(async () => {
-    // Token 外键为 cascade，删用户即清理
     for (const id of createdUserIds) {
       await db.orm.public.User.where({ id }).delete();
     }

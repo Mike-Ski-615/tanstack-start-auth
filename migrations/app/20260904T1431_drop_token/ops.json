@@ -1,0 +1,39 @@
+[
+  {
+    "id": "dropTable.Token",
+    "label": "Drop table \"Token\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "Token"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"Token\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Token\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop table \"Token\"",
+        "sql": "DROP TABLE \"public\".\"Token\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"Token\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Token\""
+        ]
+      }
+    ]
+  }
+]

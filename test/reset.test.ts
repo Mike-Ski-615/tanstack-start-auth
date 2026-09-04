@@ -1,11 +1,11 @@
 /**
- * 密码重置集成测试。
+ * 密码重置集成测试（无状态版）。
  *
  * 门控：仅在设置了 TEST_DATABASE_URL 时运行。
  * 用例已内联进各 server function 的 handler，测试经 callServerFn
  * （__executeServer + runWithStartContext）在最小请求上下文中运行。
  * 重置令牌的获取：测试内捕获 console（sendMail 的控制台实现），
- * 从邮件正文中提取链接里的 token。
+ * 从邮件正文中提取链接里的 token；为自包含 HMAC 签名串，不落库。
  *
  * 会话语义（无状态加密 cookie）：重置成功下发新会话 cookie 自动登录；
  * 旧会话 cookie 无法服务端撤销，自然过期前仍然有效。
@@ -51,7 +51,7 @@ async function captureMail<T>(
 }
 
 function extractToken(mail: string): string {
-  const match = mail.match(/token=([A-Za-z0-9_-]+)/);
+  const match = mail.match(/token=([^&\s]+)/);
   if (!match) throw new Error("邮件中没有找到令牌链接");
   return match[1]!;
 }
@@ -79,7 +79,6 @@ describe.skipIf(!TEST_DATABASE_URL)("密码重置（集成测试）", () => {
 
   afterAll(async () => {
     for (const id of createdUserIds) {
-      // Token 外键为 cascade，删用户即清理
       await db.orm.public.User.where({ id }).delete();
     }
   });
@@ -167,7 +166,7 @@ describe.skipIf(!TEST_DATABASE_URL)("密码重置（集成测试）", () => {
     expect(newPasswordCookie).not.toBeNull();
   });
 
-  test("resetPasswordFn 已用令牌 → invalid_token（一次性）", async () => {
+  test("resetPasswordFn 有效期内令牌可重放（无状态取舍）", async () => {
     const email = await createUser();
 
     const { mail } = await captureMail(() =>
@@ -175,18 +174,40 @@ describe.skipIf(!TEST_DATABASE_URL)("密码重置（集成测试）", () => {
     );
     const token = extractToken(mail);
 
+    // 无状态令牌丢弃“一次性”：同一链接在 TTL 内可再次成功
     const { result: first } = await callServerFn(resetPasswordFn, {
       token,
       password: "first-reset-123",
     });
     expect(first).toEqual({ ok: true });
 
-    const { error: secondError, setCookieHeader } = await callServerFn(
+    const { result: second, error: secondError } = await callServerFn(
       resetPasswordFn,
       { token, password: "second-reset-123" },
     );
-    expect(secondError).toBeDefined();
-    expect(secondError?.message).toBe("invalid_token");
+    expect(secondError).toBeUndefined();
+    expect(second).toEqual({ ok: true });
+  });
+
+  test("resetPasswordFn 篡改令牌 → invalid_token（验签兜底）", async () => {
+    const email = await createUser();
+
+    const { mail } = await captureMail(() =>
+      callServerFn(requestPasswordResetFn, { email }),
+    );
+    const token = extractToken(mail);
+    // 篡改载荷段（JWT 中段）而不动签名 → 验签必失败
+    const [header, payload, signature] = token.split(".");
+    const flippedPayload =
+      payload![0] === "e" ? "f" + payload!.slice(1) : "e" + payload!.slice(1);
+    const tampered = `${header}.${flippedPayload}.${signature}`;
+
+    const { error, setCookieHeader } = await callServerFn(resetPasswordFn, {
+      token: tampered,
+      password: "whatever-123",
+    });
+    expect(error).toBeDefined();
+    expect(error?.message).toBe("invalid_token");
     expect(setCookieHeader).toBeNull();
   });
 

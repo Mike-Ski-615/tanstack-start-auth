@@ -1,6 +1,6 @@
 import { defineContract } from "@prisma/orm-postgres/contract-builder";
 
-export const contract = defineContract({}, ({ field, model, rel }) => {
+export const contract = defineContract({}, ({ field, model }) => {
   const User = model("User", {
     fields: {
       id: field.id.uuidv7String(),
@@ -14,38 +14,7 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
     },
   });
 
-  const Token = model("Token", {
-    fields: {
-      id: field.id.uuidv7String(),
-      tokenHash: field.text().unique(),
-      purpose: field.text(),
-      userId: field.uuidString(),
-      expiresAt: field.temporal.timestamptzString(),
-      lastSentAt: field.temporal.timestamptzString(),
-      createdAt: field.temporal.createdAtString(),
-      updatedAt: field.temporal.updatedAtString(),
-    },
-  });
-
   return {
-    models: {
-      User: User.relations({
-        tokens: rel.hasMany(Token, {
-          by: "userId",
-        }),
-      }),
-      Token: Token.relations({
-        user: rel
-          .belongsTo(User, {
-            from: "userId",
-            to: "id",
-          })
-          .sql({
-            fk: {
-              onDelete: "cascade",
-            },
-          }),
-      }),
-    },
+    models: { User },
   };
 });
