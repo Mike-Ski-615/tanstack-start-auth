@@ -4,13 +4,19 @@ import {
   Outlet,
   HeadContent,
   Scripts,
-  Link,
   createRootRouteWithContext,
+  useRouter,
 } from "@tanstack/react-router";
 import appCss from "../styles/app.css?url";
 import { QueryClient } from "@tanstack/react-query";
 import { Toaster } from "#components/ui/sonner";
+import { LoadingPage } from "#components/status/__root/loading";
+import { ErrorPage } from "#components/status/__root/error";
+import { NotFoundPage } from "#components/status/__root/not-found";
 import { ThemeProvider } from "#provider/theme-provider";
+import { TanStackDevtools } from "@tanstack/react-devtools";
+import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
@@ -35,24 +41,10 @@ export const Route = createRootRouteWithContext<{
     links: [{ rel: "stylesheet", href: appCss }],
   }),
   component: RootComponent,
-  notFoundComponent: NotFound,
+  pendingComponent: LoadingPage,
+  errorComponent: ErrorPage,
+  notFoundComponent: NotFoundPage,
 });
-
-/** 全局 404：给回首页的退路，而非死胡同。 */
-function NotFound() {
-  return (
-    <main className="flex min-h-svh flex-col items-center justify-center gap-4 bg-background p-6">
-      <h1 className="text-2xl font-semibold text-foreground">页面未找到</h1>
-      <p className="text-muted-foreground">你访问的地址不存在或已被移动。</p>
-      <Link
-        to="/"
-        className="text-sm font-medium underline underline-offset-4 hover:no-underline"
-      >
-        回到首页
-      </Link>
-    </main>
-  );
-}
 
 function RootComponent() {
   return (
@@ -64,6 +56,9 @@ function RootComponent() {
 }
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
+  const router = useRouter();
+  const { queryClient } = Route.useRouteContext();
+
   return (
     <html lang="zh-CN" suppressHydrationWarning>
       <head>
@@ -74,6 +69,20 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
           <Toaster />
           {children}
           <Scripts />
+          <TanStackDevtools
+            plugins={[
+              {
+                id: "router",
+                name: "TanStack Router",
+                render: <TanStackRouterDevtoolsPanel router={router} />,
+              },
+              {
+                id: "query",
+                name: "TanStack Query",
+                render: <ReactQueryDevtoolsPanel client={queryClient} />,
+              },
+            ]}
+          />
         </ThemeProvider>
       </body>
     </html>

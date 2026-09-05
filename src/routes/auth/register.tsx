@@ -15,8 +15,14 @@ import { Input } from "#components/ui/input";
 import { toast } from "sonner";
 import { registerSchema, RegisterValues } from "#schemas/auth";
 import { register } from "../../server/register.functions";
+import { LoadingPage } from "#components/status/auth/register/loading";
+import { ErrorPage } from "#components/status/auth/register/error";
+import { NotFoundPage } from "#components/status/auth/register/not-found";
 
 export const Route = createFileRoute("/auth/register")({
+  pendingComponent: LoadingPage,
+  errorComponent: ErrorPage,
+  notFoundComponent: NotFoundPage,
   component: RegisterPage,
 });
 

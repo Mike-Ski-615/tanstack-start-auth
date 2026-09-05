@@ -1,8 +1,14 @@
 import { Button } from "#components/ui/button";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { logout } from "../../server/logout.functions";
+import { LoadingPage } from "#components/status/_authenticated/dashboard/loading";
+import { ErrorPage } from "#components/status/_authenticated/dashboard/error";
+import { NotFoundPage } from "#components/status/_authenticated/dashboard/not-found";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
+  pendingComponent: LoadingPage,
+  errorComponent: ErrorPage,
+  notFoundComponent: NotFoundPage,
   component: DashboardPage,
 });
 

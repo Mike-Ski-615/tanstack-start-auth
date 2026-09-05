@@ -21,8 +21,14 @@ import { loginSchema, LoginValues } from "#schemas/auth";
 import { getUserFn } from "../../server/user.functions";
 import { login } from "../../server/login.functions";
 import { toast } from "sonner";
+import { LoadingPage } from "#components/status/auth/login/loading";
+import { ErrorPage } from "#components/status/auth/login/error";
+import { NotFoundPage } from "#components/status/auth/login/not-found";
 
 export const Route = createFileRoute("/auth/login")({
+  pendingComponent: LoadingPage,
+  errorComponent: ErrorPage,
+  notFoundComponent: NotFoundPage,
   beforeLoad: async () => {
     const user = await getUserFn();
 

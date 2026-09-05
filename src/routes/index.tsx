@@ -1,7 +1,13 @@
 import { Button } from "#components/ui/button";
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { LoadingPage } from "#components/status/index/loading";
+import { ErrorPage } from "#components/status/index/error";
+import { NotFoundPage } from "#components/status/index/not-found";
 
 export const Route = createFileRoute("/")({
+  pendingComponent: LoadingPage,
+  errorComponent: ErrorPage,
+  notFoundComponent: NotFoundPage,
   component: Home,
 });
 

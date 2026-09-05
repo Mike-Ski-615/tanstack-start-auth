@@ -14,8 +14,14 @@ import { Input } from "#components/ui/input";
 import { toast } from "sonner";
 import { emailOnlySchema, EmailOnlyValues } from "#schemas/auth";
 import { requestPasswordResetFn } from "../../server/reset.functions";
+import { LoadingPage } from "#components/status/auth/forgot-password/loading";
+import { ErrorPage } from "#components/status/auth/forgot-password/error";
+import { NotFoundPage } from "#components/status/auth/forgot-password/not-found";
 
 export const Route = createFileRoute("/auth/forgot-password")({
+  pendingComponent: LoadingPage,
+  errorComponent: ErrorPage,
+  notFoundComponent: NotFoundPage,
   component: ForgotPasswordPage,
 });
 

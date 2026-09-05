@@ -1,6 +1,12 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { LoadingPage } from "#components/status/auth/loading";
+import { ErrorPage } from "#components/status/auth/error";
+import { NotFoundPage } from "#components/status/auth/not-found";
 
 export const Route = createFileRoute("/auth")({
+  pendingComponent: LoadingPage,
+  errorComponent: ErrorPage,
+  notFoundComponent: NotFoundPage,
   component: AuthLayout,
 });
 

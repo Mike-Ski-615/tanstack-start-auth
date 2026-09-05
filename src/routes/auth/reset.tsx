@@ -15,12 +15,18 @@ import { Input } from "#components/ui/input";
 import { toast } from "sonner";
 import { resetPasswordSchema } from "#schemas/auth";
 import { resetPasswordFn } from "../../server/reset.functions";
+import { LoadingPage } from "#components/status/auth/reset/loading";
+import { ErrorPage } from "#components/status/auth/reset/error";
+import { NotFoundPage } from "#components/status/auth/reset/not-found";
 
 const resetSearchSchema = z.object({
   token: z.string().catch(""),
 });
 
 export const Route = createFileRoute("/auth/reset")({
+  pendingComponent: LoadingPage,
+  errorComponent: ErrorPage,
+  notFoundComponent: NotFoundPage,
   validateSearch: resetSearchSchema,
   component: ResetPage,
 });
