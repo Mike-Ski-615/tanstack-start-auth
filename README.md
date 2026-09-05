@@ -91,7 +91,7 @@ src/
 ├── routes/
 │   ├── __root.tsx              # 根路由（布局、Toaster、主题）
 │   ├── index.tsx               # 首页（中性落地页）
-│   ├── auth.tsx                # /auth 布局壳（居中 + 宽度，不含内容）
+│   ├── auth.tsx                # /auth 布局壳（已登录 redirect → /dashboard，未登录居中 + 宽度）
 │   ├── auth/                   # 登录 / 注册 / 忘记密码 / 重置密码（公开）
 │   ├── _authenticated.tsx      # 鉴权布局（pathless layout route，beforeLoad 拦截）
 │   └── _authenticated/

@@ -1,11 +1,6 @@
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
-import {
-  Link,
-  createFileRoute,
-  redirect,
-  useNavigate,
-} from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { GalleryVerticalEnd, Apple } from "lucide-react";
 import { Button } from "#components/ui/button";
 import {
@@ -18,8 +13,7 @@ import {
 } from "#components/ui/field";
 import { Input } from "#components/ui/input";
 import { loginSchema, LoginValues } from "#schemas/auth";
-import { getUserFn } from "../../server/user.functions";
-import { login } from "../../server/login.functions";
+import { login } from "#server/login.functions";
 import { toast } from "sonner";
 import { LoadingPage } from "#components/status/auth/login/loading";
 import { ErrorPage } from "#components/status/auth/login/error";
@@ -29,13 +23,6 @@ export const Route = createFileRoute("/auth/login")({
   pendingComponent: LoadingPage,
   errorComponent: ErrorPage,
   notFoundComponent: NotFoundPage,
-  beforeLoad: async () => {
-    const user = await getUserFn();
-
-    if (user) {
-      throw redirect({ to: "/dashboard" });
-    }
-  },
   component: LoginPage,
 });
 
@@ -91,8 +78,7 @@ function LoginPage() {
         <form.Field name="email">
           {(emailField) => {
             const invalid =
-              emailField.state.meta.isTouched &&
-              !emailField.state.meta.isValid;
+              emailField.state.meta.isTouched && !emailField.state.meta.isValid;
             return (
               <Field data-invalid={invalid}>
                 <FieldLabel htmlFor={emailField.name}>邮箱</FieldLabel>
