@@ -14,7 +14,7 @@ import {
 import { Input } from "#components/ui/input";
 import { toast } from "sonner";
 import { registerSchema, RegisterValues } from "#schemas/auth";
-import { register } from "../../server/register.functions";
+import { register } from "#server/register.functions";
 import { LoadingPage } from "#components/status/auth/register/loading";
 import { ErrorPage } from "#components/status/auth/register/error";
 import { NotFoundPage } from "#components/status/auth/register/not-found";
@@ -96,9 +96,7 @@ function RegisterPage() {
                   autoComplete="name"
                   required
                 />
-                {invalid && (
-                  <FieldError errors={nameField.state.meta.errors} />
-                )}
+                {invalid && <FieldError errors={nameField.state.meta.errors} />}
               </Field>
             );
           }}

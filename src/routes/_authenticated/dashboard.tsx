@@ -1,6 +1,6 @@
 import { Button } from "#components/ui/button";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { logout } from "../../server/logout.functions";
+import { logout } from "#server/logout.functions";
 import { LoadingPage } from "#components/status/_authenticated/dashboard/loading";
 import { ErrorPage } from "#components/status/_authenticated/dashboard/error";
 import { NotFoundPage } from "#components/status/_authenticated/dashboard/not-found";
@@ -17,7 +17,7 @@ function DashboardPage() {
   const navigate = useNavigate();
 
   return (
-    <main className="p-6">
+    <>
       <h1 className="text-2xl font-bold">Dashboard</h1>
 
       <p className="mt-2">Welcome, {user.name ?? user.email}</p>
@@ -31,6 +31,6 @@ function DashboardPage() {
       >
         登出
       </Button>
-    </main>
+    </>
   );
 }

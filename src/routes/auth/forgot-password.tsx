@@ -13,7 +13,7 @@ import {
 import { Input } from "#components/ui/input";
 import { toast } from "sonner";
 import { emailOnlySchema, EmailOnlyValues } from "#schemas/auth";
-import { requestPasswordResetFn } from "../../server/reset.functions";
+import { requestPasswordResetFn } from "#server/reset.functions";
 import { LoadingPage } from "#components/status/auth/forgot-password/loading";
 import { ErrorPage } from "#components/status/auth/forgot-password/error";
 import { NotFoundPage } from "#components/status/auth/forgot-password/not-found";
@@ -27,8 +27,7 @@ export const Route = createFileRoute("/auth/forgot-password")({
 
 function ForgotPasswordPage() {
   const resetMutation = useMutation({
-    mutationFn: (data: EmailOnlyValues) =>
-      requestPasswordResetFn({ data }),
+    mutationFn: (data: EmailOnlyValues) => requestPasswordResetFn({ data }),
     // 防枚举：无论邮箱是否存在，服务端恒返回 ok，客户端恒显示同一提示
     onSuccess: () => {
       toast.info("若该邮箱已注册，重置邮件已发送，请查收");
@@ -76,8 +75,7 @@ function ForgotPasswordPage() {
         <form.Field name="email">
           {(emailField) => {
             const invalid =
-              emailField.state.meta.isTouched &&
-              !emailField.state.meta.isValid;
+              emailField.state.meta.isTouched && !emailField.state.meta.isValid;
             return (
               <Field data-invalid={invalid}>
                 <FieldLabel htmlFor={emailField.name}>邮箱</FieldLabel>

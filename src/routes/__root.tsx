@@ -1,5 +1,4 @@
 // src/routes/__root.tsx
-import type { ReactNode } from "react";
 import {
   Outlet,
   HeadContent,
@@ -17,6 +16,7 @@ import { ThemeProvider } from "#provider/theme-provider";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools";
+import { TooltipProvider } from "#components/ui/tooltip";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
@@ -47,15 +47,6 @@ export const Route = createRootRouteWithContext<{
 });
 
 function RootComponent() {
-  return (
-    <RootDocument>
-      {/* 当前用户单源在 _authenticated 守卫（useRouteContext），不在此处重复拉取。 */}
-      <Outlet />
-    </RootDocument>
-  );
-}
-
-function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   const router = useRouter();
   const { queryClient } = Route.useRouteContext();
 
@@ -67,7 +58,9 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       <body>
         <ThemeProvider defaultTheme="system" storageKey="theme">
           <Toaster />
-          {children}
+          <TooltipProvider>
+            <Outlet />
+          </TooltipProvider>
           <Scripts />
           <TanStackDevtools
             plugins={[
