@@ -17,12 +17,7 @@ function DashboardPage() {
   const navigate = useNavigate();
 
   return (
-    <>
-      <h1 className="text-2xl font-bold">Dashboard</h1>
-
-      <p className="mt-2">Welcome, {user.name ?? user.email}</p>
-
-      <p className="text-sm text-muted-foreground">{user.email}</p>
+    <section className="flex gap-6 py-6 px-2 md:py-10 md:px-6">
       <Button
         onClick={async () => {
           await logout();
@@ -31,6 +26,12 @@ function DashboardPage() {
       >
         登出
       </Button>
-    </>
+
+      <div>
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <p className="mt-2">Welcome, {user.name ?? user.email}</p>
+        <p className="text-sm text-muted-foreground">{user.email}</p>
+      </div>
+    </section>
   );
 }
