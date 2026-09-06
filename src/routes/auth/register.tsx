@@ -32,9 +32,9 @@ function RegisterPage() {
   const registerMutation = useMutation({
     mutationFn: (data: RegisterValues) => register({ data }),
     onSuccess: () => {
-      // 注册即登录：会话 cookie 已随响应下发，直接进仪表盘
+      // 注册即登录：会话 cookie 已随响应下发，直接进入角色首页
       toast.success("注册成功，欢迎加入");
-      navigate({ to: "/dashboard" });
+      navigate({ to: "/authenticated" });
     },
     onError: () => {
       toast.error("注册失败，请检查信息后重试");

@@ -12,6 +12,21 @@
   "domain": {
     "namespaces": {
       "public": {
+        "enum": {
+          "Role": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "teacher",
+                "value": "teacher"
+              },
+              {
+                "name": "student",
+                "value": "student"
+              }
+            ]
+          }
+        },
         "models": {
           "User": {
             "fields": {
@@ -67,6 +82,19 @@
                   "kind": "scalar"
                 }
               },
+              "role": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "Role",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
               "updatedAt": {
                 "nullable": false,
                 "type": {
@@ -99,6 +127,9 @@
                 "passwordHash": {
                   "column": "passwordHash"
                 },
+                "role": {
+                  "column": "role"
+                },
                 "updatedAt": {
                   "column": "updatedAt"
                 }
@@ -117,6 +148,13 @@
         "entries": {
           "table": {
             "User": {
+              "checks": [
+                {
+                  "expression": "\"role\" IN ('teacher', 'student')",
+                  "name": "User_role_check_37b6aaf4",
+                  "prefix": "User_role_check"
+                }
+              ],
               "columns": {
                 "bio": {
                   "codecId": "pg/text@1",
@@ -160,6 +198,21 @@
                   "nativeType": "text",
                   "nullable": false
                 },
+                "role": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "student"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "Role",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
                 "updatedAt": {
                   "codecId": "pg/timestamptz-string@1",
                   "nativeType": "timestamptz",
@@ -181,13 +234,22 @@
                 }
               ]
             }
+          },
+          "valueSet": {
+            "Role": {
+              "kind": "valueSet",
+              "values": [
+                "teacher",
+                "student"
+              ]
+            }
           }
         },
         "id": "public",
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "f8a15c98ae4ecd0bda75710414acf8bc626d8cac26d171e1c1cb789ef1030590"
+    "storageHash": "569d897070f01c7c38060d9399805607290021d3c2f15d98594c1349a75015a9"
   },
   "execution": {
     "executionHash": "bb122419c629e9ffabe6711039a34ec80473cbbf7765b1f26b7769771a7733cd",

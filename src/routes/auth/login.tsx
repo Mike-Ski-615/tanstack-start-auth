@@ -33,7 +33,7 @@ function LoginPage() {
     mutationFn: (data: LoginValues) => login({ data }),
     onSuccess: () => {
       toast.success("登录成功，欢迎回来");
-      navigate({ to: "/dashboard" });
+      navigate({ to: "/authenticated" });
     },
     // 凭据失败或网络异常统一走这里，文案刻意笼统（防枚举）
     onError: () => {

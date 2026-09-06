@@ -1,0 +1,86 @@
+[
+  {
+    "id": "column.public.User.role",
+    "label": "Add column \"role\" to \"User\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "role",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"role\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "role"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"role\"",
+        "sql": "ALTER TABLE \"public\".\"User\" ADD COLUMN \"role\" text DEFAULT 'student' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"role\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "role"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.User.User_role_check_37b6aaf4",
+    "label": "Add check constraint \"User_role_check_37b6aaf4\" on \"User\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "User_role_check_37b6aaf4",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"User_role_check_37b6aaf4\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "User_role_check_37b6aaf4",
+          "public",
+          "\"public\".\"User\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"User_role_check_37b6aaf4\"",
+        "sql": "ALTER TABLE \"public\".\"User\" ADD CONSTRAINT \"User_role_check_37b6aaf4\" CHECK (\"role\" IN ('teacher', 'student'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"User_role_check_37b6aaf4\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "User_role_check_37b6aaf4",
+          "public",
+          "\"public\".\"User\""
+        ]
+      }
+    ]
+  }
+]

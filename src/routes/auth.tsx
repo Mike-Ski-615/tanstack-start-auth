@@ -12,7 +12,7 @@ export const Route = createFileRoute("/auth")({
     const user = await getUserFn();
 
     if (user) {
-      throw redirect({ to: "/dashboard" });
+      throw redirect({ to: "/authenticated" });
     }
   },
   component: AuthLayout,

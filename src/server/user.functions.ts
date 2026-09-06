@@ -16,6 +16,7 @@ export type User = {
   name: string;
   image: string;
   bio: string;
+  role: "teacher" | "student";
 };
 
 /**
@@ -36,7 +37,7 @@ export const getUserFn = createServerFn({
   if (!userId) return null;
 
   const user = await db.orm.public.User.where({ id: userId })
-    .select("id", "email", "name", "image", "bio")
+    .select("id", "email", "name", "image", "bio", "role")
     .first();
 
   if (!user) return null;

@@ -40,7 +40,7 @@ function ResetPage() {
       resetPasswordFn({ data: { token, password } }),
     onSuccess: () => {
       toast.success("密码重置成功，欢迎回来");
-      navigate({ to: "/dashboard" });
+      navigate({ to: "/authenticated" });
     },
     onError: () => {
       toast.error("重置失败，请稍后重试");

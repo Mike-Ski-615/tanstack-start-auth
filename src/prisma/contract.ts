@@ -1,6 +1,13 @@
-import { defineContract } from "@prisma/orm-postgres/contract-builder";
+import { defineContract, enumType, member } from "@prisma/orm-postgres/contract-builder";
 
 export const contract = defineContract({}, ({ field, model }) => {
+  const Role = enumType(
+    "Role",
+    { codecId: "pg/text@1", nativeType: "text" },
+    member("teacher"),
+    member("student"),
+  );
+
   const User = model("User", {
     fields: {
       id: field.id.uuidv7String(),
@@ -9,6 +16,7 @@ export const contract = defineContract({}, ({ field, model }) => {
       passwordHash: field.text(),
       image: field.text(),
       bio: field.text(),
+      role: field.namedType(Role).default("student"),
       createdAt: field.temporal.createdAtString(),
       updatedAt: field.temporal.updatedAtString(),
     },
@@ -16,5 +24,6 @@ export const contract = defineContract({}, ({ field, model }) => {
 
   return {
     models: { User },
+    enums: { Role },
   };
 });

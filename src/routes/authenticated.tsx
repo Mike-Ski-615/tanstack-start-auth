@@ -7,15 +7,23 @@ import { SidebarProvider } from "#components/ui/sidebar";
 import { AppSidebar } from "#components/app-sidebar";
 import { SidebarTrigger } from "#components/sidebar-trigger";
 
-export const Route = createFileRoute("/_authenticated")({
+export const Route = createFileRoute("/authenticated")({
   pendingComponent: LoadingPage,
   errorComponent: ErrorPage,
   notFoundComponent: NotFoundPage,
-  beforeLoad: async () => {
+  beforeLoad: async ({ location }) => {
     const user = await getUserFn();
 
     if (!user) {
       throw redirect({ to: "/auth/login" });
+    }
+
+    if (user.role === "teacher" && location.pathname !== "/authenticated/teacher") {
+      throw redirect({ to: "/authenticated/teacher" });
+    }
+
+    if (user.role === "student" && location.pathname !== "/authenticated/student") {
+      throw redirect({ to: "/authenticated/student" });
     }
 
     return {
