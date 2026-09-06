@@ -29,8 +29,8 @@ function AuthenticatedLayout() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <main className="grid min-h-full grid-cols-[auto_1fr]">
-        <SidebarTrigger className="ml-1 self-center" />
+      <SidebarTrigger />
+      <main className="min-w-0 flex-1">
         <Outlet />
       </main>
     </SidebarProvider>

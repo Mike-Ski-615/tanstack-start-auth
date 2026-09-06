@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
+import { animate, motion, useMotionValue, type MotionValue } from "motion/react";
 import { cn } from "cn";
 import { Slot } from "radix-ui";
 
@@ -30,6 +31,7 @@ const SIDEBAR_WIDTH = "16rem";
 const SIDEBAR_WIDTH_MOBILE = "18rem";
 const SIDEBAR_WIDTH_ICON = "3rem";
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
+export const SIDEBAR_WIDTH_PX = 256; // 16rem, the settled max width
 
 type SidebarContextProps = {
   state: "expanded" | "collapsed";
@@ -39,6 +41,7 @@ type SidebarContextProps = {
   setOpenMobile: (open: boolean) => void;
   isMobile: boolean;
   toggleSidebar: () => void;
+  width: MotionValue<number>;
 };
 
 const SidebarContext = React.createContext<SidebarContextProps | null>(null);
@@ -72,6 +75,7 @@ function SidebarProvider({
   // We use openProp and setOpenProp for control from outside the component.
   const [_open, _setOpen] = React.useState(defaultOpen);
   const open = openProp ?? _open;
+  const width = useMotionValue(open ? SIDEBAR_WIDTH_PX : 0);
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
       const openState = typeof value === "function" ? value(open) : value;
@@ -86,6 +90,16 @@ function SidebarProvider({
     },
     [setOpenProp, open],
   );
+
+  // Animate the sidebar width whenever the settled open state changes
+  // (toggle, keyboard shortcut, or external control).
+  React.useEffect(() => {
+    animate(width, open ? SIDEBAR_WIDTH_PX : 0, {
+      type: "spring",
+      stiffness: 400,
+      damping: 30,
+    });
+  }, [open, width]);
 
   // Helper to toggle the sidebar.
   const toggleSidebar = React.useCallback(() => {
@@ -121,8 +135,9 @@ function SidebarProvider({
       openMobile,
       setOpenMobile,
       toggleSidebar,
+      width,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar],
+    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar, width],
   );
 
   return (
@@ -148,6 +163,26 @@ function SidebarProvider({
   );
 }
 
+type SidebarProps = Omit<
+  React.ComponentProps<"div">,
+  // These DOM handlers collide with motion's own handlers, so drop them.
+  | "onAnimationStart"
+  | "onAnimationEnd"
+  | "onAnimationIteration"
+  | "onDrag"
+  | "onDragStart"
+  | "onDragEnd"
+  | "onDragEnter"
+  | "onDragExit"
+  | "onDragLeave"
+  | "onDragOver"
+  | "onDrop"
+> & {
+  side?: "left" | "right";
+  variant?: "sidebar" | "floating" | "inset";
+  collapsible?: "offcanvas" | "icon" | "none";
+};
+
 function Sidebar({
   side = "left",
   variant = "sidebar",
@@ -156,12 +191,8 @@ function Sidebar({
   children,
   dir,
   ...props
-}: React.ComponentProps<"div"> & {
-  side?: "left" | "right";
-  variant?: "sidebar" | "floating" | "inset";
-  collapsible?: "offcanvas" | "icon" | "none";
-}) {
-  const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+}: SidebarProps) {
+  const { isMobile, state, openMobile, setOpenMobile, width } = useSidebar();
 
   if (collapsible === "none") {
     return (
@@ -205,48 +236,27 @@ function Sidebar({
   }
 
   return (
-    <div
-      className="group peer hidden text-sidebar-foreground md:block"
+    <motion.aside
+      className={cn(
+        "group sticky top-0 hidden h-svh shrink-0 self-start overflow-hidden bg-sidebar text-sidebar-foreground md:block",
+        className,
+      )}
       data-state={state}
       data-collapsible={state === "collapsed" ? collapsible : ""}
       data-variant={variant}
       data-side={side}
       data-slot="sidebar"
+      style={{ width }}
+      {...props}
     >
-      {/* This is what handles the sidebar gap on desktop */}
       <div
-        data-slot="sidebar-gap"
-        className={cn(
-          "relative w-(--sidebar-width) bg-transparent transition-[width] duration-300 ease-[cubic-bezier(0.2,0,0,1)]",
-          "group-data-[collapsible=offcanvas]:w-0",
-          "group-data-[side=right]:rotate-180",
-          variant === "floating" || variant === "inset"
-            ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]"
-            : "group-data-[collapsible=icon]:w-(--sidebar-width-icon)",
-        )}
-      />
-      <div
-        data-slot="sidebar-container"
-        data-side={side}
-        className={cn(
-          "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-300 ease-[cubic-bezier(0.2,0,0,1)] data-[side=left]:left-0 data-[side=left]:group-data-[collapsible=offcanvas]:-left-(--sidebar-width) data-[side=right]:right-0 data-[side=right]:group-data-[collapsible=offcanvas]:-right-(--sidebar-width) md:flex",
-          // Adjust the padding for floating and inset variants.
-          variant === "floating" || variant === "inset"
-            ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]"
-            : "group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-r group-data-[side=right]:border-l",
-          className,
-        )}
-        {...props}
+        data-sidebar="sidebar"
+        data-slot="sidebar-inner"
+        className="flex size-full flex-col"
       >
-        <div
-          data-sidebar="sidebar"
-          data-slot="sidebar-inner"
-          className="flex size-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:shadow-sm group-data-[variant=floating]:ring-1 group-data-[variant=floating]:ring-sidebar-border"
-        >
-          {children}
-        </div>
+        {children}
       </div>
-    </div>
+    </motion.aside>
   );
 }
 
