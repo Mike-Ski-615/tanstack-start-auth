@@ -1,0 +1,9 @@
+node_modules/
+.git/
+.output/
+.tanstack/
+.vite/
+.scratch/
+.env
+.env.*.local
+*.log
