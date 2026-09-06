@@ -60,29 +60,7 @@ bun run dev
 | `bun run dev` | 启动开发服务器（端口 3000） |
 | `bun run build` | 生产构建 |
 | `bun run start` | 预览生产构建 |
-| `bun test` | 运行测试（`session.test.ts` 需 `SESSION_SECRET`；其余集成测试需 `TEST_DATABASE_URL`，缺失时自动跳过） |
 | `bun run contract:emit` | 修改 `src/prisma/contract.ts` 后重新生成契约（`contract.json` / `contract.d.ts`） |
-
-## 测试
-
-测试文件位于 `test/` 目录：
-
-- `test/server-fn.ts` —— 测试助手：`mock.module` 拦截 `createServerFn`，让 bun 测试能在最小请求上下文（`__executeServer` + `runWithStartContext`）中直调 server function，等价于真实请求路径
-- `test/session.test.ts` —— 会话模块集成测试（无状态 cookie 的 write/read/clear 与篡改防护），**无数据库依赖**，门控为 `SESSION_SECRET`
-- `test/use-cases.test.ts` —— 登录 / 注册 / 登出用例集成测试，需 `TEST_DATABASE_URL`
-- `test/current-user.test.ts` —— `getUserFn` 集成测试：公开形态投影（`passwordHash` 永不外泄）+ 无会话/篡改/用户不存在返回 `null`，需 `TEST_DATABASE_URL`
-- `test/reset.test.ts` —— 密码重置集成测试（从邮件正文捕获重置链接、验签、改密、自动登录），需 `TEST_DATABASE_URL`
-
-配置集成测试库（一次性）：
-
-```bash
-# 创建独立测试库（勿用开发库）并初始化表结构
-createdb tanstack_auth_test   # 或 psql -c "CREATE DATABASE tanstack_auth_test"
-DATABASE_URL="postgresql://user:password@localhost:5432/tanstack_auth_test" bun prisma db init
-
-# 在 .env 中追加（或运行时传入）：
-# TEST_DATABASE_URL="postgresql://user:password@localhost:5432/tanstack_auth_test"
-```
 
 ## 项目结构
 
