@@ -3,9 +3,10 @@ import { getUserFn } from "#server/user.functions";
 import { LoadingPage } from "#components/status/_authenticated/loading";
 import { ErrorPage } from "#components/status/_authenticated/error";
 import { NotFoundPage } from "#components/status/_authenticated/not-found";
-import { SidebarProvider } from "#components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "#components/ui/sidebar";
 import { AppSidebar } from "#components/app-sidebar";
 import { SidebarTrigger } from "#components/sidebar-trigger";
+import { Header } from "#components/header/index";
 
 export const Route = createFileRoute("/authenticated")({
   pendingComponent: LoadingPage,
@@ -45,10 +46,14 @@ function AuthenticatedLayout() {
   return (
     <SidebarProvider>
       <AppSidebar user={user} />
-      <SidebarTrigger />
-      <main className="min-w-0 flex-1">
-        <Outlet />
-      </main>
+
+      <SidebarInset>
+        <SidebarTrigger />
+        <Header />
+        <main className="min-w-0 flex-1">
+          <Outlet />
+        </main>
+      </SidebarInset>
     </SidebarProvider>
   );
 }

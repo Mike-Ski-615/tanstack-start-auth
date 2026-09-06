@@ -1,7 +1,10 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { ScriptOnce } from "@tanstack/react-router";
 
-type Theme = "dark" | "light" | "system";
+type Theme = "dark" | "light";
+
+// Ctrl/Cmd + J toggles the theme between light and dark
+const THEME_KEYBOARD_SHORTCUT = "j";
 
 type ThemeProviderProps = {
   children: React.ReactNode;
@@ -18,32 +21,24 @@ function getThemeScript(storageKey: string, defaultTheme: Theme) {
   const key = JSON.stringify(storageKey);
   const fallback = JSON.stringify(defaultTheme);
 
-  return `(function(){try{var t=localStorage.getItem(${key});if(t!=='light'&&t!=='dark'&&t!=='system'){t=${fallback}}var d=matchMedia('(prefers-color-scheme: dark)').matches;var r=t==='system'?(d?'dark':'light'):t;var e=document.documentElement;e.classList.add(r);e.style.colorScheme=r}catch(e){}})();`;
+  return `(function(){try{var t=localStorage.getItem(${key});if(t!=='light'&&t!=='dark'){t=${fallback}}var e=document.documentElement;e.classList.add(t);e.style.colorScheme=t}catch(e){}})();`;
 }
 
 const ThemeProviderContext = createContext<ThemeProviderState>({
-  theme: "system",
+  theme: "light",
   setTheme: () => {},
 });
 
 function applyTheme(theme: Theme) {
   const root = document.documentElement;
   root.classList.remove("light", "dark");
-
-  const resolved =
-    theme === "system"
-      ? window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light"
-      : theme;
-
-  root.classList.add(resolved);
-  root.style.colorScheme = resolved;
+  root.classList.add(theme);
+  root.style.colorScheme = theme;
 }
 
 export function ThemeProvider({
   children,
-  defaultTheme = "system",
+  defaultTheme = "light",
   storageKey = "theme",
 }: ThemeProviderProps) {
   const [theme, setThemeState] = useState<Theme>(defaultTheme);
@@ -52,9 +47,7 @@ export function ThemeProvider({
   useEffect(() => {
     const stored = localStorage.getItem(storageKey);
     setThemeState(
-      stored === "light" || stored === "dark" || stored === "system"
-        ? stored
-        : defaultTheme,
+      stored === "light" || stored === "dark" ? stored : defaultTheme,
     );
     setMounted(true);
   }, [defaultTheme, storageKey]);
@@ -64,19 +57,28 @@ export function ThemeProvider({
     applyTheme(theme);
   }, [theme, mounted]);
 
+  const setTheme = useCallback(
+    (next: Theme) => {
+      localStorage.setItem(storageKey, next);
+      setThemeState(next);
+    },
+    [storageKey],
+  );
+
   useEffect(() => {
-    if (!mounted || theme !== "system") return;
-
-    const media = window.matchMedia("(prefers-color-scheme: dark)");
-    const onChange = () => applyTheme("system");
-    media.addEventListener("change", onChange);
-    return () => media.removeEventListener("change", onChange);
-  }, [theme, mounted]);
-
-  const setTheme = (next: Theme) => {
-    localStorage.setItem(storageKey, next);
-    setThemeState(next);
-  };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (
+        event.key !== THEME_KEYBOARD_SHORTCUT ||
+        (!event.metaKey && !event.ctrlKey)
+      ) {
+        return;
+      }
+      event.preventDefault();
+      setTheme(theme === "dark" ? "light" : "dark");
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [theme, setTheme]);
 
   return (
     <ThemeProviderContext value={{ theme, setTheme }}>

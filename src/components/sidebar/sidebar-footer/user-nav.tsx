@@ -26,7 +26,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
-export function UserInfo({ user }: { user: User }) {
+export function UserNav({ user }: { user: User }) {
   const { isMobile } = useSidebar();
   const navigate = useNavigate();
 

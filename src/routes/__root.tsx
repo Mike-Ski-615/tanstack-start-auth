@@ -56,7 +56,7 @@ function RootComponent() {
         <HeadContent />
       </head>
       <body>
-        <ThemeProvider defaultTheme="system" storageKey="theme">
+        <ThemeProvider defaultTheme="light" storageKey="theme">
           <Toaster />
           <TooltipProvider>
             <Outlet />
