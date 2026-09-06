@@ -6,6 +6,7 @@ dist/
 out/
 build/
 *.tgz
+.output/
 
 # TanStack Start / Vite 临时目录与缓存
 .tanstack/
