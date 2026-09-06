@@ -252,7 +252,7 @@ function Sidebar({
       <div
         data-sidebar="sidebar"
         data-slot="sidebar-inner"
-        className="flex size-full flex-col"
+        className="flex h-full w-(--sidebar-width) flex-col"
       >
         {children}
       </div>

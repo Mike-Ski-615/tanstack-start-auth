@@ -50,7 +50,6 @@ export function SidebarTrigger({
         });
         setOpen(next);
       }}
-      onTap={() => setOpen(!open)}
       onKeyDown={(event) => {
         if (event.key === "ArrowLeft" || event.key === "Home") setOpen(false);
         if (event.key === "ArrowRight" || event.key === "End") setOpen(true);
