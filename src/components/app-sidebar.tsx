@@ -1,18 +1,17 @@
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-} from "#components/ui/sidebar";
+import { Sidebar } from "#components/ui/sidebar";
+import { AppSidebarHeader } from "#components/sidebar/sidebar-header";
+import { AppSidebarContent } from "#components/sidebar/sidebar-content";
+import { AppSidebarFooter } from "#components/sidebar/sidebar-footer";
+import { User } from "#server/user.functions";
 
-export function AppSidebar() {
+export function AppSidebar({ user }: { user: User }) {
   return (
     <Sidebar>
-      <SidebarContent>
-        <SidebarGroup />
-        <SidebarGroup />
-      </SidebarContent>
-      <SidebarFooter />
+      <AppSidebarHeader />
+
+      <AppSidebarContent />
+
+      <AppSidebarFooter user={user} />
     </Sidebar>
   );
 }

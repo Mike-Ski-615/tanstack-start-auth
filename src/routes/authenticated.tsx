@@ -18,11 +18,17 @@ export const Route = createFileRoute("/authenticated")({
       throw redirect({ to: "/auth/login" });
     }
 
-    if (user.role === "teacher" && location.pathname !== "/authenticated/teacher") {
+    if (
+      user.role === "teacher" &&
+      location.pathname !== "/authenticated/teacher"
+    ) {
       throw redirect({ to: "/authenticated/teacher" });
     }
 
-    if (user.role === "student" && location.pathname !== "/authenticated/student") {
+    if (
+      user.role === "student" &&
+      location.pathname !== "/authenticated/student"
+    ) {
       throw redirect({ to: "/authenticated/student" });
     }
 
@@ -34,9 +40,11 @@ export const Route = createFileRoute("/authenticated")({
 });
 
 function AuthenticatedLayout() {
+  const { user } = Route.useRouteContext();
+
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar user={user} />
       <SidebarTrigger />
       <main className="min-w-0 flex-1">
         <Outlet />
