@@ -149,7 +149,7 @@ export function HookSidebar({
       {label && (
         <span
           data-slot="hook-sidebar-label"
-          className="pb-3 pl-0.5 pr-2 font-sans text-sm font-medium uppercase tracking-wide text-foreground"
+          className="pb-3 pl-0.5 pr-2 font-sans text-base font-medium uppercase tracking-wide text-foreground"
         >
           {label}
         </span>
