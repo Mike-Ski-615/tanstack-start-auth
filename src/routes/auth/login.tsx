@@ -1,6 +1,5 @@
 import { useForm } from "@tanstack/react-form";
-import { useMutation } from "@tanstack/react-query";
-import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { GalleryVerticalEnd, Apple } from "lucide-react";
 import { Button } from "#components/ui/button";
 import {
@@ -12,9 +11,8 @@ import {
   FieldSeparator,
 } from "#components/ui/field";
 import { Input } from "#components/ui/input";
-import { loginSchema, LoginValues } from "#schemas/auth";
-import { login } from "#server/login.functions";
-import { toast } from "sonner";
+import { loginSchema } from "#schemas/auth";
+import { useLoginMutation } from "#hooks/use-auth-mutations";
 import { LoadingPage } from "#components/status/auth/login/loading";
 import { ErrorPage } from "#components/status/auth/login/error";
 import { NotFoundPage } from "#components/status/auth/login/not-found";
@@ -27,19 +25,7 @@ export const Route = createFileRoute("/auth/login")({
 });
 
 function LoginPage() {
-  const navigate = useNavigate();
-
-  const loginMutation = useMutation({
-    mutationFn: (data: LoginValues) => login({ data }),
-    onSuccess: () => {
-      toast.success("登录成功，欢迎回来");
-      navigate({ to: "/authenticated" });
-    },
-    // 凭据失败或网络异常统一走这里，文案刻意笼统（防枚举）
-    onError: () => {
-      toast.error("登录失败，请检查邮箱或密码");
-    },
-  });
+  const loginMutation = useLoginMutation();
 
   const form = useForm({
     defaultValues: {

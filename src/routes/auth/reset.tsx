@@ -1,6 +1,5 @@
 import { useForm } from "@tanstack/react-form";
-import { useMutation } from "@tanstack/react-query";
-import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { GalleryVerticalEnd } from "lucide-react";
 import { Button } from "#components/ui/button";
@@ -12,9 +11,8 @@ import {
   FieldLabel,
 } from "#components/ui/field";
 import { Input } from "#components/ui/input";
-import { toast } from "sonner";
 import { resetPasswordSchema } from "#schemas/auth";
-import { resetPasswordFn } from "#server/reset.functions";
+import { useResetPasswordMutation } from "#hooks/use-auth-mutations";
 import { LoadingPage } from "#components/status/auth/reset/loading";
 import { ErrorPage } from "#components/status/auth/reset/error";
 import { NotFoundPage } from "#components/status/auth/reset/not-found";
@@ -33,19 +31,7 @@ export const Route = createFileRoute("/auth/reset")({
 
 function ResetPage() {
   const { token } = Route.useSearch();
-  const navigate = useNavigate();
-
-  const resetMutation = useMutation({
-    mutationFn: (password: string) =>
-      resetPasswordFn({ data: { token, password } }),
-    onSuccess: () => {
-      toast.success("密码重置成功，欢迎回来");
-      navigate({ to: "/authenticated" });
-    },
-    onError: () => {
-      toast.error("重置失败，请稍后重试");
-    },
-  });
+  const resetMutation = useResetPasswordMutation(token);
 
   const form = useForm({
     defaultValues: {

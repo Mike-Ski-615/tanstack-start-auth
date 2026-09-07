@@ -21,7 +21,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "#components/ui/sidebar";
-import { logout } from "#server/logout.functions";
+import { useLogoutMutation } from "#hooks/use-auth-mutations";
 import { useNavigate } from "@tanstack/react-router";
 import { User } from "#server/user.functions";
 import {
@@ -39,6 +39,7 @@ export function UserNav({ user }: { user: User }) {
   const { isMobile } = useSidebar();
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
+  const logoutMutation = useLogoutMutation();
 
   return (
     <SidebarMenu>
@@ -125,14 +126,11 @@ export function UserNav({ user }: { user: User }) {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               variant="destructive"
-              onClick={async () => {
-                await logout();
-                navigate({ to: "/" });
-              }}
+              onClick={() => logoutMutation.mutate()}
             >
               <LogOut />
               登出
-              <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+              <DropdownMenuShortcut>Ctrl+Shift+L</DropdownMenuShortcut>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

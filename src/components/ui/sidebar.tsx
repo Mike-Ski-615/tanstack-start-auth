@@ -12,6 +12,7 @@ import { cn } from "cn";
 import { Slot } from "radix-ui";
 
 import { useIsMobile } from "#hooks/use-mobile";
+import { useHotkeys } from "react-hotkeys-hook";
 import { Button } from "#components/ui/button";
 import { Input } from "#components/ui/input";
 import { Separator } from "#components/ui/separator";
@@ -34,7 +35,6 @@ const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = "16rem";
 const SIDEBAR_WIDTH_MOBILE = "18rem";
-const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 export const SIDEBAR_WIDTH_PX = 256; // 16rem, the settled max width
 
 type SidebarContextProps = {
@@ -110,21 +110,8 @@ function SidebarProvider({
     return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
   }, [isMobile, setOpen, setOpenMobile]);
 
-  // Adds a keyboard shortcut to toggle the sidebar.
-  React.useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (
-        event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
-        (event.metaKey || event.ctrlKey)
-      ) {
-        event.preventDefault();
-        toggleSidebar();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [toggleSidebar]);
+  // Toggle the sidebar with Ctrl + B.
+  useHotkeys("ctrl+b", toggleSidebar, { preventDefault: true });
 
   // We add a state so that we can do data-state="expanded" or "collapsed".
   // This makes it easier to style the sidebar with Tailwind classes.

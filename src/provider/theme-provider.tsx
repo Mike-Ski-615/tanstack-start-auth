@@ -1,10 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { ScriptOnce } from "@tanstack/react-router";
+import { useHotkeys } from "react-hotkeys-hook";
 
 type Theme = "dark" | "light";
-
-// Ctrl/Cmd + J toggles the theme between light and dark
-const THEME_KEYBOARD_SHORTCUT = "j";
 
 type ThemeProviderProps = {
   children: React.ReactNode;
@@ -65,20 +63,14 @@ export function ThemeProvider({
     [storageKey],
   );
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (
-        event.key !== THEME_KEYBOARD_SHORTCUT ||
-        (!event.metaKey && !event.ctrlKey)
-      ) {
-        return;
-      }
-      event.preventDefault();
+  // Ctrl + J toggles the theme between light and dark
+  useHotkeys(
+    "ctrl+j",
+    () => {
       setTheme(theme === "dark" ? "light" : "dark");
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [theme, setTheme]);
+    },
+    { preventDefault: true },
+  );
 
   return (
     <ThemeProviderContext value={{ theme, setTheme }}>

@@ -1,5 +1,4 @@
 import { useForm } from "@tanstack/react-form";
-import { useMutation } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { GalleryVerticalEnd } from "lucide-react";
 import { Button } from "#components/ui/button";
@@ -11,9 +10,8 @@ import {
   FieldLabel,
 } from "#components/ui/field";
 import { Input } from "#components/ui/input";
-import { toast } from "sonner";
-import { emailOnlySchema, EmailOnlyValues } from "#schemas/auth";
-import { requestPasswordResetFn } from "#server/reset.functions";
+import { emailOnlySchema } from "#schemas/auth";
+import { useRequestPasswordResetMutation } from "#hooks/use-auth-mutations";
 import { LoadingPage } from "#components/status/auth/forgot-password/loading";
 import { ErrorPage } from "#components/status/auth/forgot-password/error";
 import { NotFoundPage } from "#components/status/auth/forgot-password/not-found";
@@ -26,16 +24,7 @@ export const Route = createFileRoute("/auth/forgot-password")({
 });
 
 function ForgotPasswordPage() {
-  const resetMutation = useMutation({
-    mutationFn: (data: EmailOnlyValues) => requestPasswordResetFn({ data }),
-    // 防枚举：无论邮箱是否存在，服务端恒返回 ok，客户端恒显示同一提示
-    onSuccess: () => {
-      toast.info("若该邮箱已注册，重置邮件已发送，请查收");
-    },
-    onError: () => {
-      toast.error("请求失败，请稍后重试");
-    },
-  });
+  const resetMutation = useRequestPasswordResetMutation();
 
   const form = useForm({
     defaultValues: {

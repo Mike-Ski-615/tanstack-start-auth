@@ -1,6 +1,5 @@
 import { useForm } from "@tanstack/react-form";
-import { useMutation } from "@tanstack/react-query";
-import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { GalleryVerticalEnd, Apple } from "lucide-react";
 import { Button } from "#components/ui/button";
 import {
@@ -12,9 +11,8 @@ import {
   FieldSeparator,
 } from "#components/ui/field";
 import { Input } from "#components/ui/input";
-import { toast } from "sonner";
-import { registerSchema, RegisterValues } from "#schemas/auth";
-import { register } from "#server/register.functions";
+import { registerSchema } from "#schemas/auth";
+import { useRegisterMutation } from "#hooks/use-auth-mutations";
 import { LoadingPage } from "#components/status/auth/register/loading";
 import { ErrorPage } from "#components/status/auth/register/error";
 import { NotFoundPage } from "#components/status/auth/register/not-found";
@@ -27,19 +25,7 @@ export const Route = createFileRoute("/auth/register")({
 });
 
 function RegisterPage() {
-  const navigate = useNavigate();
-
-  const registerMutation = useMutation({
-    mutationFn: (data: RegisterValues) => register({ data }),
-    onSuccess: () => {
-      // 注册即登录：会话 cookie 已随响应下发，直接进入角色首页
-      toast.success("注册成功，欢迎加入");
-      navigate({ to: "/authenticated" });
-    },
-    onError: () => {
-      toast.error("注册失败，请检查信息后重试");
-    },
-  });
+  const registerMutation = useRegisterMutation();
 
   const form = useForm({
     defaultValues: {

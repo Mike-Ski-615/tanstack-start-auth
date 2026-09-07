@@ -25,6 +25,7 @@ import {
 } from "#components/ui/command";
 import { cn } from "#lib/utils";
 import { Kbd, KbdGroup } from "#components/ui/kbd";
+import { useHotkeys } from "react-hotkeys-hook";
 
 type CommandSection = {
   id: string;
@@ -52,6 +53,12 @@ const NAV_ITEMS: CommandSection[] = [
 export function CommandPalette({ className }: { className?: string }) {
   const [open, setOpen] = useState(false);
 
+  useHotkeys(
+    "ctrl+k",
+    () => setOpen((open) => !open),
+    { enableOnFormTags: true, preventDefault: true },
+  );
+
   return (
     <>
       <Button
@@ -68,7 +75,7 @@ export function CommandPalette({ className }: { className?: string }) {
         <KbdGroup className="ml-auto hidden xl:flex">
           <Kbd>Ctrl</Kbd>
           <span>+</span>
-          <Kbd>B</Kbd>
+          <Kbd>K</Kbd>
         </KbdGroup>
       </Button>
 
