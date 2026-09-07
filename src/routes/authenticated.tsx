@@ -42,15 +42,17 @@ function AuthenticatedLayout() {
   const { user } = Route.useRouteContext();
 
   return (
-    <SidebarProvider>
+    <SidebarProvider className="h-svh overflow-hidden">
       <AppSidebar user={user} />
 
       <SidebarInset>
         <SidebarTrigger />
         <Header />
-        <main className="min-w-0 flex-1">
-          <Outlet />
-        </main>
+        <div className="min-h-0 min-w-0 flex-1">
+          <div className="mx-auto h-full w-full max-w-7xl px-6 py-8">
+            <Outlet />
+          </div>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

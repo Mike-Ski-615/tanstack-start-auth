@@ -8,6 +8,7 @@ import {
   Library,
   LogOut,
   PanelsLeftRight,
+  Search,
   UserCircle,
   UserRound,
   Users,
@@ -22,6 +23,8 @@ import {
   CommandItem,
   CommandList,
 } from "#components/ui/command";
+import { cn } from "#lib/utils";
+import { Kbd, KbdGroup } from "#components/ui/kbd";
 
 type CommandSection = {
   id: string;
@@ -46,18 +49,27 @@ const NAV_ITEMS: CommandSection[] = [
   { id: "extension", title: "拓展", icon: <Compass /> },
 ];
 
-export function CommandPalette() {
+export function CommandPalette({ className }: { className?: string }) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
       <Button
         variant="secondary"
-        className="bg-sidebar text-foreground w-46 justify-start"
+        className={cn(
+          `bg-sidebar text-foreground justify-start sm:w-40 lg:w-56 xl:w-72 w-32`,
+          className,
+        )}
         onClick={() => setOpen(true)}
       >
+        <Search />
         <span className="hidden xl:inline-flex">搜索文档...</span>
         <span className="inline-flex xl:hidden">搜索...</span>
+        <KbdGroup className="ml-auto hidden xl:flex">
+          <Kbd>Ctrl</Kbd>
+          <span>+</span>
+          <Kbd>B</Kbd>
+        </KbdGroup>
       </Button>
 
       <CommandDialog

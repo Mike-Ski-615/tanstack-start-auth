@@ -2,7 +2,12 @@
 
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { animate, motion, useMotionValue, type MotionValue } from "motion/react";
+import {
+  animate,
+  motion,
+  useMotionValue,
+  type MotionValue,
+} from "motion/react";
 import { cn } from "cn";
 import { Slot } from "radix-ui";
 
@@ -136,7 +141,16 @@ function SidebarProvider({
       toggleSidebar,
       width,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar, width],
+    [
+      state,
+      open,
+      setOpen,
+      isMobile,
+      openMobile,
+      setOpenMobile,
+      toggleSidebar,
+      width,
+    ],
   );
 
   return (
@@ -150,7 +164,7 @@ function SidebarProvider({
           } as React.CSSProperties
         }
         className={cn(
-          "group/sidebar-wrapper flex min-h-svh w-full has-data-[variant=inset]:bg-sidebar",
+          "group/sidebar-wrapper flex w-full has-data-[variant=inset]:bg-sidebar",
           className,
         )}
         {...props}
@@ -236,7 +250,7 @@ function Sidebar({
   return (
     <motion.aside
       className={cn(
-        "group sticky top-0 hidden h-svh shrink-0 self-start overflow-hidden bg-sidebar text-sidebar-foreground md:block",
+        "group hidden shrink-0 overflow-hidden bg-sidebar text-sidebar-foreground md:block",
         className,
       )}
       data-state={state}

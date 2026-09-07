@@ -16,7 +16,9 @@ import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-pas
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthResetRouteImport } from './routes/auth/reset'
+import { Route as AuthenticatedBellRouteImport } from './routes/authenticated/bell'
 import { Route as AuthenticatedHelpRouteImport } from './routes/authenticated/help'
+import { Route as AuthenticatedProfileRouteImport } from './routes/authenticated/profile'
 import { Route as AuthenticatedStudentRouteImport } from './routes/authenticated/student'
 import { Route as AuthenticatedTeacherRouteImport } from './routes/authenticated/teacher'
 
@@ -55,9 +57,19 @@ const AuthResetRoute = AuthResetRouteImport.update({
   path: '/reset',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthenticatedBellRoute = AuthenticatedBellRouteImport.update({
+  id: '/bell',
+  path: '/bell',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedHelpRoute = AuthenticatedHelpRouteImport.update({
   id: '/help',
   path: '/help',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedStudentRoute = AuthenticatedStudentRouteImport.update({
@@ -79,7 +91,9 @@ export interface FileRoutesByFullPath {
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset': typeof AuthResetRoute
+  '/authenticated/bell': typeof AuthenticatedBellRoute
   '/authenticated/help': typeof AuthenticatedHelpRoute
+  '/authenticated/profile': typeof AuthenticatedProfileRoute
   '/authenticated/student': typeof AuthenticatedStudentRoute
   '/authenticated/teacher': typeof AuthenticatedTeacherRoute
 }
@@ -91,7 +105,9 @@ export interface FileRoutesByTo {
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset': typeof AuthResetRoute
+  '/authenticated/bell': typeof AuthenticatedBellRoute
   '/authenticated/help': typeof AuthenticatedHelpRoute
+  '/authenticated/profile': typeof AuthenticatedProfileRoute
   '/authenticated/student': typeof AuthenticatedStudentRoute
   '/authenticated/teacher': typeof AuthenticatedTeacherRoute
 }
@@ -104,7 +120,9 @@ export interface FileRoutesById {
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset': typeof AuthResetRoute
+  '/authenticated/bell': typeof AuthenticatedBellRoute
   '/authenticated/help': typeof AuthenticatedHelpRoute
+  '/authenticated/profile': typeof AuthenticatedProfileRoute
   '/authenticated/student': typeof AuthenticatedStudentRoute
   '/authenticated/teacher': typeof AuthenticatedTeacherRoute
 }
@@ -118,7 +136,9 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/register'
     | '/auth/reset'
+    | '/authenticated/bell'
     | '/authenticated/help'
+    | '/authenticated/profile'
     | '/authenticated/student'
     | '/authenticated/teacher'
   fileRoutesByTo: FileRoutesByTo
@@ -130,7 +150,9 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/register'
     | '/auth/reset'
+    | '/authenticated/bell'
     | '/authenticated/help'
+    | '/authenticated/profile'
     | '/authenticated/student'
     | '/authenticated/teacher'
   id:
@@ -142,7 +164,9 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/register'
     | '/auth/reset'
+    | '/authenticated/bell'
     | '/authenticated/help'
+    | '/authenticated/profile'
     | '/authenticated/student'
     | '/authenticated/teacher'
   fileRoutesById: FileRoutesById
@@ -204,11 +228,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthResetRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/authenticated/bell': {
+      id: '/authenticated/bell'
+      path: '/bell'
+      fullPath: '/authenticated/bell'
+      preLoaderRoute: typeof AuthenticatedBellRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/authenticated/help': {
       id: '/authenticated/help'
       path: '/help'
       fullPath: '/authenticated/help'
       preLoaderRoute: typeof AuthenticatedHelpRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/authenticated/profile': {
+      id: '/authenticated/profile'
+      path: '/profile'
+      fullPath: '/authenticated/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/authenticated/student': {
@@ -245,13 +283,17 @@ const AuthRouteChildren: AuthRouteChildren = {
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedBellRoute: typeof AuthenticatedBellRoute
   AuthenticatedHelpRoute: typeof AuthenticatedHelpRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedStudentRoute: typeof AuthenticatedStudentRoute
   AuthenticatedTeacherRoute: typeof AuthenticatedTeacherRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedBellRoute: AuthenticatedBellRoute,
   AuthenticatedHelpRoute: AuthenticatedHelpRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedStudentRoute: AuthenticatedStudentRoute,
   AuthenticatedTeacherRoute: AuthenticatedTeacherRoute,
 }

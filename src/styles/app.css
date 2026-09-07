@@ -128,7 +128,7 @@
   }
 
   html {
-    @apply min-h-screen font-geist;
+    @apply font-geist;
   }
 
   body {

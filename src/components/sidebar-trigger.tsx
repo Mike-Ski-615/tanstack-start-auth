@@ -55,7 +55,7 @@ export function SidebarTrigger({
         if (event.key === "ArrowRight" || event.key === "End") setOpen(true);
       }}
       className={cn(
-        "group absolute left-2 top-1/2 -translate-y-1/2 hidden lg:flex w-2.5 cursor-ew-resize touch-none select-none focus-visible:outline-none",
+        "group absolute left-2 top-1/2 -translate-y-1/2 hidden xl:flex w-2.5 cursor-ew-resize touch-none select-none focus-visible:outline-none",
         className,
       )}
       {...props}
