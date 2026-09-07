@@ -5,7 +5,14 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "#components/ui/dropdown-menu";
 import {
@@ -17,11 +24,21 @@ import {
 import { logout } from "#server/logout.functions";
 import { useNavigate } from "@tanstack/react-router";
 import { User } from "#server/user.functions";
-import { Bell, ChevronsUpDown, LogOut, SquareUserRound } from "lucide-react";
+import {
+  Bell,
+  ChevronsUpDown,
+  LogOut,
+  MoonIcon,
+  PaletteIcon,
+  SquareUserRound,
+  SunIcon,
+} from "lucide-react";
+import { useTheme } from "#provider/theme-provider";
 
 export function UserNav({ user }: { user: User }) {
   const { isMobile } = useSidebar();
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
 
   return (
     <SidebarMenu>
@@ -64,6 +81,34 @@ export function UserNav({ user }: { user: User }) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <PaletteIcon />
+                  主题
+                </DropdownMenuSubTrigger>
+                <DropdownMenuPortal>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuGroup>
+                      <DropdownMenuLabel>主题切换</DropdownMenuLabel>
+                      <DropdownMenuRadioGroup
+                        value={theme}
+                        onValueChange={(value) =>
+                          setTheme(value === "dark" ? "dark" : "light")
+                        }
+                      >
+                        <DropdownMenuRadioItem value="light">
+                          <SunIcon />
+                          亮色主题
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="dark">
+                          <MoonIcon />
+                          暗色主题
+                        </DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuGroup>
+                  </DropdownMenuSubContent>
+                </DropdownMenuPortal>
+              </DropdownMenuSub>
               <DropdownMenuItem
                 onClick={() => navigate({ to: "/authenticated/profile" })}
               >
@@ -79,6 +124,7 @@ export function UserNav({ user }: { user: User }) {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem
+              variant="destructive"
               onClick={async () => {
                 await logout();
                 navigate({ to: "/" });
@@ -86,6 +132,7 @@ export function UserNav({ user }: { user: User }) {
             >
               <LogOut />
               登出
+              <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

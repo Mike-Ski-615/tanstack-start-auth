@@ -42,7 +42,7 @@ function AuthenticatedLayout() {
   const { user } = Route.useRouteContext();
 
   return (
-    <SidebarProvider className="h-svh overflow-hidden">
+    <SidebarProvider>
       <AppSidebar user={user} />
 
       <SidebarInset>
