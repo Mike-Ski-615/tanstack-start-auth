@@ -19,18 +19,16 @@ export const Route = createFileRoute("/authenticated")({
       throw redirect({ to: "/auth/login" });
     }
 
-    if (
-      user.role === "teacher" &&
-      location.pathname !== "/authenticated/teacher"
-    ) {
-      throw redirect({ to: "/authenticated/teacher" });
+    if (location.pathname === "/authenticated" && user.role === "teacher") {
+      throw redirect({
+        to: "/authenticated/teacher",
+      });
     }
 
-    if (
-      user.role === "student" &&
-      location.pathname !== "/authenticated/student"
-    ) {
-      throw redirect({ to: "/authenticated/student" });
+    if (location.pathname === "/authenticated" && user.role === "student") {
+      throw redirect({
+        to: "/authenticated/student",
+      });
     }
 
     return {

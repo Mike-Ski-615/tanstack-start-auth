@@ -6,7 +6,7 @@ import { User } from "#server/user.functions";
 
 export function AppSidebar({ user }: { user: User }) {
   return (
-    <Sidebar variant="floating">
+    <Sidebar>
       <AppSidebarHeader />
 
       <AppSidebarContent />

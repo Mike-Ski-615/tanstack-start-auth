@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.3.0",
+    "@fontsource-variable/geist-mono": "^5.3.0",
     "@prisma/orm-postgres": "^8.0.0-rc.7",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/react-form": "^1.33.5",

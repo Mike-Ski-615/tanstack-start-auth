@@ -16,6 +16,7 @@ import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-pas
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthResetRouteImport } from './routes/auth/reset'
+import { Route as AuthenticatedHelpRouteImport } from './routes/authenticated/help'
 import { Route as AuthenticatedStudentRouteImport } from './routes/authenticated/student'
 import { Route as AuthenticatedTeacherRouteImport } from './routes/authenticated/teacher'
 
@@ -54,6 +55,11 @@ const AuthResetRoute = AuthResetRouteImport.update({
   path: '/reset',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthenticatedHelpRoute = AuthenticatedHelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedStudentRoute = AuthenticatedStudentRouteImport.update({
   id: '/student',
   path: '/student',
@@ -73,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset': typeof AuthResetRoute
+  '/authenticated/help': typeof AuthenticatedHelpRoute
   '/authenticated/student': typeof AuthenticatedStudentRoute
   '/authenticated/teacher': typeof AuthenticatedTeacherRoute
 }
@@ -84,6 +91,7 @@ export interface FileRoutesByTo {
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset': typeof AuthResetRoute
+  '/authenticated/help': typeof AuthenticatedHelpRoute
   '/authenticated/student': typeof AuthenticatedStudentRoute
   '/authenticated/teacher': typeof AuthenticatedTeacherRoute
 }
@@ -96,6 +104,7 @@ export interface FileRoutesById {
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset': typeof AuthResetRoute
+  '/authenticated/help': typeof AuthenticatedHelpRoute
   '/authenticated/student': typeof AuthenticatedStudentRoute
   '/authenticated/teacher': typeof AuthenticatedTeacherRoute
 }
@@ -109,6 +118,7 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/register'
     | '/auth/reset'
+    | '/authenticated/help'
     | '/authenticated/student'
     | '/authenticated/teacher'
   fileRoutesByTo: FileRoutesByTo
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/register'
     | '/auth/reset'
+    | '/authenticated/help'
     | '/authenticated/student'
     | '/authenticated/teacher'
   id:
@@ -131,6 +142,7 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/register'
     | '/auth/reset'
+    | '/authenticated/help'
     | '/authenticated/student'
     | '/authenticated/teacher'
   fileRoutesById: FileRoutesById
@@ -192,6 +204,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthResetRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/authenticated/help': {
+      id: '/authenticated/help'
+      path: '/help'
+      fullPath: '/authenticated/help'
+      preLoaderRoute: typeof AuthenticatedHelpRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/authenticated/student': {
       id: '/authenticated/student'
       path: '/student'
@@ -226,11 +245,13 @@ const AuthRouteChildren: AuthRouteChildren = {
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedHelpRoute: typeof AuthenticatedHelpRoute
   AuthenticatedStudentRoute: typeof AuthenticatedStudentRoute
   AuthenticatedTeacherRoute: typeof AuthenticatedTeacherRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedHelpRoute: AuthenticatedHelpRoute,
   AuthenticatedStudentRoute: AuthenticatedStudentRoute,
   AuthenticatedTeacherRoute: AuthenticatedTeacherRoute,
 }
