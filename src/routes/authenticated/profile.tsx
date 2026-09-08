@@ -2,7 +2,7 @@ import Heatmap from "#components/profile/heatmap";
 import ThisWeek from "#components/profile/week";
 import { Separator } from "#components/ui/separator";
 import { createFileRoute } from "@tanstack/react-router";
-import { daysSince, formatLastSeen } from "#lib/format";
+import { daysSince, formatPresence } from "#lib/format";
 
 export const Route = createFileRoute("/authenticated/profile")({
   component: RouteComponent,
@@ -42,7 +42,7 @@ function RouteComponent() {
               className="mt-0.5 text-xs text-muted-foreground"
               title={`上线 ${user.connectedAt ? new Date(user.connectedAt).toLocaleString() : "—"} · 下线 ${user.disconnectedAt ? new Date(user.disconnectedAt).toLocaleString() : "—"}`}
             >
-              {formatLastSeen(user)}{" "}
+              {formatPresence(user)}
             </p>
           </div>
         </header>

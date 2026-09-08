@@ -22,10 +22,14 @@ export default defineWebSocketHandler({
 
   async open(peer) {
     const userId = peer.context.userId as Char<36>;
+    const now = new Date().toISOString();
 
-    await db.orm.public.User.where({ id: userId }).update({
+    await db.orm.public.User.where({
+      id: userId,
+    }).update({
       status: "online",
-      connectedAt: new Date().toISOString(),
+      connectedAt: now,
+      disconnectedAt: undefined,
     });
 
     console.log(`[WS] ${userId} 上线了`);
@@ -33,10 +37,13 @@ export default defineWebSocketHandler({
 
   async close(peer, details) {
     const userId = peer.context.userId as Char<36>;
+    const now = new Date().toISOString();
 
-    await db.orm.public.User.where({ id: userId }).update({
+    await db.orm.public.User.where({
+      id: userId,
+    }).update({
       status: "offline",
-      disconnectedAt: new Date().toISOString(),
+      disconnectedAt: now,
     });
 
     console.log(`[WS] ${userId} 下线了 (${details.code})`);
