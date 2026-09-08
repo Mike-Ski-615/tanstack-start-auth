@@ -33,9 +33,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'f85d3bfabefb52c4dd19aeac229e18e4cde65bfe6d545da0afebf81fb7f0fa4c'>;
+  StorageHashBase<'2e9ad5e9672a5cf24da08a2a20f3ef66faf37714034ad2a8be662526b9c3d8bf'>;
 export type ExecutionHash =
-  ExecutionHashBase<'bb122419c629e9ffabe6711039a34ec80473cbbf7765b1f26b7769771a7733cd'>;
+  ExecutionHashBase<'55ffbb24881e0b1c6e961ea3c869853843eae61efe9dc7917aebb5fb10e7b192'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -241,6 +241,14 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
 
 export type FieldOutputTypes = {
   readonly public: {
+    readonly Connection: {
+      readonly id: Char<36>;
+      readonly userid: Char<36>;
+      readonly duration: CodecTypes['pg/int4@1']['output'];
+      readonly connectedAt: CodecTypes['pg/timestamptz-string@1']['output'];
+      readonly disconnectedAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
+      readonly active: CodecTypes['pg/bool@1']['output'];
+    };
     readonly User: {
       readonly id: Char<36>;
       readonly email: CodecTypes['pg/text@1']['output'];
@@ -249,9 +257,6 @@ export type FieldOutputTypes = {
       readonly image: CodecTypes['pg/text@1']['output'];
       readonly bio: CodecTypes['pg/text@1']['output'];
       readonly role: 'teacher' | 'student';
-      readonly status: 'online' | 'offline';
-      readonly connectedAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
-      readonly disconnectedAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
     };
@@ -259,6 +264,14 @@ export type FieldOutputTypes = {
 };
 export type FieldInputTypes = {
   readonly public: {
+    readonly Connection: {
+      readonly id: CodecTypes['sql/char@1']['input'];
+      readonly userid: CodecTypes['sql/char@1']['input'];
+      readonly duration: CodecTypes['pg/int4@1']['input'];
+      readonly connectedAt: CodecTypes['pg/timestamptz-string@1']['input'];
+      readonly disconnectedAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
+      readonly active: CodecTypes['pg/bool@1']['input'];
+    };
     readonly User: {
       readonly id: CodecTypes['sql/char@1']['input'];
       readonly email: CodecTypes['pg/text@1']['input'];
@@ -267,9 +280,6 @@ export type FieldInputTypes = {
       readonly image: CodecTypes['pg/text@1']['input'];
       readonly bio: CodecTypes['pg/text@1']['input'];
       readonly role: 'teacher' | 'student';
-      readonly status: 'online' | 'offline';
-      readonly connectedAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
-      readonly disconnectedAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
     };
@@ -277,36 +287,46 @@ export type FieldInputTypes = {
 };
 export type StorageColumnTypes = {
   readonly public: {
+    readonly Connection: {
+      readonly active: CodecTypes['pg/bool@1']['output'];
+      readonly connectedAt: CodecTypes['pg/timestamptz-string@1']['output'];
+      readonly disconnectedAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
+      readonly duration: CodecTypes['pg/int4@1']['output'];
+      readonly id: Char<36>;
+      readonly userid: Char<36>;
+    };
     readonly User: {
       readonly bio: CodecTypes['pg/text@1']['output'];
-      readonly connectedAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
-      readonly disconnectedAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
       readonly email: CodecTypes['pg/text@1']['output'];
       readonly id: Char<36>;
       readonly image: CodecTypes['pg/text@1']['output'];
       readonly name: CodecTypes['pg/text@1']['output'];
       readonly passwordHash: CodecTypes['pg/text@1']['output'];
       readonly role: 'teacher' | 'student';
-      readonly status: 'online' | 'offline';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
     };
   };
 };
 export type StorageColumnInputTypes = {
   readonly public: {
+    readonly Connection: {
+      readonly active: CodecTypes['pg/bool@1']['input'];
+      readonly connectedAt: CodecTypes['pg/timestamptz-string@1']['input'];
+      readonly disconnectedAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
+      readonly duration: CodecTypes['pg/int4@1']['input'];
+      readonly id: CodecTypes['sql/char@1']['input'];
+      readonly userid: CodecTypes['sql/char@1']['input'];
+    };
     readonly User: {
       readonly bio: CodecTypes['pg/text@1']['input'];
-      readonly connectedAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
-      readonly disconnectedAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
       readonly email: CodecTypes['pg/text@1']['input'];
       readonly id: CodecTypes['sql/char@1']['input'];
       readonly image: CodecTypes['pg/text@1']['input'];
       readonly name: CodecTypes['pg/text@1']['input'];
       readonly passwordHash: CodecTypes['pg/text@1']['input'];
       readonly role: 'teacher' | 'student';
-      readonly status: 'online' | 'offline';
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
     };
   };
@@ -329,6 +349,46 @@ type ContractBase = Omit<
         readonly kind: 'postgres-schema';
         readonly entries: {
           readonly table: {
+            readonly Connection: {
+              columns: {
+                readonly id: {
+                  readonly nativeType: 'character';
+                  readonly codecId: 'sql/char@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly length: 36 };
+                };
+                readonly userid: {
+                  readonly nativeType: 'character';
+                  readonly codecId: 'sql/char@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly length: 36 };
+                };
+                readonly duration: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                };
+                readonly connectedAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                  readonly nullable: false;
+                };
+                readonly disconnectedAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                  readonly nullable: true;
+                };
+                readonly active: {
+                  readonly nativeType: 'bool';
+                  readonly codecId: 'pg/bool@1';
+                  readonly nullable: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['userid'] }];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
             readonly User: {
               columns: {
                 readonly id: {
@@ -371,25 +431,6 @@ type ContractBase = Omit<
                     readonly value: DefaultLiteralValue<'pg/text@1', 'student'>;
                   };
                 };
-                readonly status: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/text@1', 'offline'>;
-                  };
-                };
-                readonly connectedAt: {
-                  readonly nativeType: 'timestamptz';
-                  readonly codecId: 'pg/timestamptz-string@1';
-                  readonly nullable: true;
-                };
-                readonly disconnectedAt: {
-                  readonly nativeType: 'timestamptz';
-                  readonly codecId: 'pg/timestamptz-string@1';
-                  readonly nullable: true;
-                };
                 readonly createdAt: {
                   readonly nativeType: 'timestamptz';
                   readonly codecId: 'pg/timestamptz-string@1';
@@ -409,10 +450,6 @@ type ContractBase = Omit<
             };
           };
           readonly valueSet: {
-            readonly OnlineStatus: {
-              readonly kind: 'valueSet';
-              readonly values: readonly ['online', 'offline'];
-            };
             readonly Role: {
               readonly kind: 'valueSet';
               readonly values: readonly ['teacher', 'student'];
@@ -429,11 +466,79 @@ type ContractBase = Omit<
   readonly targetFamily: 'sql';
   readonly roots: {
     readonly User: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
+    readonly Connection: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'Connection';
+    };
   };
   readonly domain: {
     readonly namespaces: {
       readonly public: {
         readonly models: {
+          readonly Connection: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'sql/char@1';
+                  readonly typeParams: { readonly length: 36 };
+                };
+              };
+              readonly userid: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'sql/char@1';
+                  readonly typeParams: { readonly length: 36 };
+                };
+              };
+              readonly duration: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly connectedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                };
+              };
+              readonly disconnectedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                };
+              };
+              readonly active: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
+              };
+            };
+            readonly relations: {
+              readonly user: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
+                readonly cardinality: 'N:1';
+                readonly on: {
+                  readonly localFields: readonly ['userid'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'Connection';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly userid: { readonly column: 'userid' };
+                readonly duration: { readonly column: 'duration' };
+                readonly connectedAt: { readonly column: 'connectedAt' };
+                readonly disconnectedAt: { readonly column: 'disconnectedAt' };
+                readonly active: { readonly column: 'active' };
+              };
+            };
+          };
           readonly User: {
             readonly fields: {
               readonly id: {
@@ -468,24 +573,6 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
-              readonly status: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly connectedAt: {
-                readonly nullable: true;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-string@1';
-                };
-              };
-              readonly disconnectedAt: {
-                readonly nullable: true;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-string@1';
-                };
-              };
               readonly createdAt: {
                 readonly nullable: false;
                 readonly type: {
@@ -501,7 +588,19 @@ type ContractBase = Omit<
                 };
               };
             };
-            readonly relations: Record<string, never>;
+            readonly relations: {
+              readonly connection: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Connection';
+                };
+                readonly cardinality: '1:1';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['userid'];
+                };
+              };
+            };
             readonly storage: {
               readonly table: 'User';
               readonly namespaceId: 'public';
@@ -513,9 +612,6 @@ type ContractBase = Omit<
                 readonly image: { readonly column: 'image' };
                 readonly bio: { readonly column: 'bio' };
                 readonly role: { readonly column: 'role' };
-                readonly status: { readonly column: 'status' };
-                readonly connectedAt: { readonly column: 'connectedAt' };
-                readonly disconnectedAt: { readonly column: 'disconnectedAt' };
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
               };
@@ -528,13 +624,6 @@ type ContractBase = Omit<
             readonly members: readonly [
               { readonly name: 'teacher'; readonly value: 'teacher' },
               { readonly name: 'student'; readonly value: 'student' },
-            ];
-          };
-          readonly OnlineStatus: {
-            readonly codecId: 'pg/text@1';
-            readonly members: readonly [
-              { readonly name: 'online'; readonly value: 'online' },
-              { readonly name: 'offline'; readonly value: 'offline' },
             ];
           };
         };
@@ -564,6 +653,14 @@ type ContractBase = Omit<
     readonly executionHash: ExecutionHash;
     readonly mutations: {
       readonly defaults: readonly [
+        {
+          readonly ref: {
+            readonly namespace: 'public';
+            readonly table: 'Connection';
+            readonly column: 'id';
+          };
+          readonly onCreate: { readonly kind: 'generator'; readonly id: 'uuidv7' };
+        },
         {
           readonly ref: {
             readonly namespace: 'public';

@@ -1,9 +1,15 @@
-// src/lib/auth/get-user-id-from-request.ts
+import { getSession, H3Event } from "h3-v2";
 
-import { getSessionFromRequest } from "#lib/auth/get-session-from-request";
+import type { Char } from "@prisma/orm-postgres/target/codec-types";
 
-export async function getUserIdFromRequest(request: Request) {
-  const session = await getSessionFromRequest(request);
+import { appSessionConfig, type SessionData } from "#lib/auth/session";
 
-  return session;
+export async function getUserIdFromRequest(
+  request: Request,
+): Promise<Char<36> | null> {
+  const event = new H3Event(request);
+
+  const session = await getSession<SessionData>(event, appSessionConfig);
+
+  return session.data.userId ?? null;
 }

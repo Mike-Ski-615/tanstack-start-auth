@@ -1,5 +1,7 @@
-import { getUserIdFromRequest } from "#lib/auth/get-user-id-from-request";
 import { defineWebSocketHandler } from "nitro";
+import { getUserIdFromRequest } from "#lib/auth/get-user-id-from-request";
+import { db } from "#prisma/db";
+import type { Char } from "@prisma/orm-postgres/target/codec-types";
 
 export default defineWebSocketHandler({
   async upgrade(request) {
@@ -18,21 +20,26 @@ export default defineWebSocketHandler({
     };
   },
 
-  open(peer) {
-    console.log("[WS] OPEN", peer.id, "userId:", peer.context.userId);
-    peer.send("Hello from Nitro WebSocket");
+  async open(peer) {
+    const userId = peer.context.userId as Char<36>;
+
+    await db.orm.public.User.where({ id: userId }).update({
+      status: "online",
+      connectedAt: new Date().toISOString(),
+    });
+
+    console.log(`[WS] ${userId} 上线了`);
   },
 
-  message(peer, message) {
-    const text = message.text();
+  async close(peer, details) {
+    const userId = peer.context.userId as Char<36>;
 
-    console.log("[WS] MESSAGE", text, "userId:", peer.context.userId);
+    await db.orm.public.User.where({ id: userId }).update({
+      status: "offline",
+      disconnectedAt: new Date().toISOString(),
+    });
 
-    peer.send(`Echo: ${text}`);
-  },
-
-  close(peer, details) {
-    console.log("[WS] CLOSE", peer.id, details.code, details.reason);
+    console.log(`[WS] ${userId} 下线了 (${details.code})`);
   },
 
   error(peer, error) {

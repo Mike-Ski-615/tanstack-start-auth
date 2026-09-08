@@ -1,0 +1,125 @@
+[
+  {
+    "id": "table.Connection",
+    "label": "Create table \"Connection\"",
+    "summary": "Creates table \"Connection\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "Connection"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"Connection\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Connection\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"Connection\"",
+        "sql": "CREATE TABLE \"public\".\"Connection\" (\n  \"active\" bool NOT NULL,\n  \"connectedAt\" timestamptz NOT NULL,\n  \"disconnectedAt\" timestamptz,\n  \"duration\" int4 NOT NULL,\n  \"id\" character(36) NOT NULL,\n  \"userid\" character(36) NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"Connection\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Connection\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.Connection.Connection_userid_key",
+    "label": "Add unique constraint on \"Connection\" (userid)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "Connection_userid_key",
+        "table": "Connection"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Connection_userid_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Connection_userid_key",
+          "public",
+          "\"public\".\"Connection\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"Connection_userid_key\"",
+        "sql": "ALTER TABLE \"public\".\"Connection\" ADD CONSTRAINT \"Connection_userid_key\" UNIQUE (\"userid\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"Connection_userid_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Connection_userid_key",
+          "public",
+          "\"public\".\"Connection\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.Connection.Connection_userid_fkey",
+    "label": "Add foreign key \"Connection_userid_fkey\" on \"Connection\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Connection_userid_fkey",
+        "table": "Connection"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"Connection_userid_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Connection_userid_fkey",
+          "public",
+          "\"public\".\"Connection\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"Connection_userid_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Connection\"\nADD CONSTRAINT \"Connection_userid_fkey\"\nFOREIGN KEY (\"userid\")\nREFERENCES \"public\".\"User\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"Connection_userid_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Connection_userid_fkey",
+          "public",
+          "\"public\".\"Connection\""
+        ]
+      }
+    ]
+  }
+]

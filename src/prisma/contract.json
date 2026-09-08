@@ -13,6 +13,19 @@
     "namespaces": {
       "public": {
         "enum": {
+          "OnlineStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "online",
+                "value": "online"
+              },
+              {
+                "name": "offline",
+                "value": "offline"
+              }
+            ]
+          },
           "Role": {
             "codecId": "pg/text@1",
             "members": [
@@ -37,8 +50,22 @@
                   "kind": "scalar"
                 }
               },
+              "connectedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
               "createdAt": {
                 "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "disconnectedAt": {
+                "nullable": true,
                 "type": {
                   "codecId": "pg/timestamptz-string@1",
                   "kind": "scalar"
@@ -95,6 +122,19 @@
                   "plane": "domain"
                 }
               },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "OnlineStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
               "updatedAt": {
                 "nullable": false,
                 "type": {
@@ -109,8 +149,14 @@
                 "bio": {
                   "column": "bio"
                 },
+                "connectedAt": {
+                  "column": "connectedAt"
+                },
                 "createdAt": {
                   "column": "createdAt"
+                },
+                "disconnectedAt": {
+                  "column": "disconnectedAt"
                 },
                 "email": {
                   "column": "email"
@@ -129,6 +175,9 @@
                 },
                 "role": {
                   "column": "role"
+                },
+                "status": {
+                  "column": "status"
                 },
                 "updatedAt": {
                   "column": "updatedAt"
@@ -153,6 +202,11 @@
                   "expression": "\"role\" IN ('teacher', 'student')",
                   "name": "User_role_check_37b6aaf4",
                   "prefix": "User_role_check"
+                },
+                {
+                  "expression": "\"status\" IN ('online', 'offline')",
+                  "name": "User_status_check_966c8304",
+                  "prefix": "User_status_check"
                 }
               ],
               "columns": {
@@ -160,6 +214,11 @@
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": false
+                },
+                "connectedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
                 },
                 "createdAt": {
                   "codecId": "pg/timestamptz-string@1",
@@ -169,6 +228,11 @@
                   },
                   "nativeType": "timestamptz",
                   "nullable": false
+                },
+                "disconnectedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
                 },
                 "email": {
                   "codecId": "pg/text@1",
@@ -213,6 +277,21 @@
                     "plane": "storage"
                   }
                 },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "offline"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "OnlineStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
                 "updatedAt": {
                   "codecId": "pg/timestamptz-string@1",
                   "nativeType": "timestamptz",
@@ -236,6 +315,13 @@
             }
           },
           "valueSet": {
+            "OnlineStatus": {
+              "kind": "valueSet",
+              "values": [
+                "online",
+                "offline"
+              ]
+            },
             "Role": {
               "kind": "valueSet",
               "values": [
@@ -249,7 +335,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "569d897070f01c7c38060d9399805607290021d3c2f15d98594c1349a75015a9"
+    "storageHash": "f85d3bfabefb52c4dd19aeac229e18e4cde65bfe6d545da0afebf81fb7f0fa4c"
   },
   "execution": {
     "executionHash": "bb122419c629e9ffabe6711039a34ec80473cbbf7765b1f26b7769771a7733cd",

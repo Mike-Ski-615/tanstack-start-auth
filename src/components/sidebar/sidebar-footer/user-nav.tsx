@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback, AvatarImage } from "#components/ui/avatar";
+import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from "#components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,6 +52,12 @@ export function UserNav({ user }: { user: User }) {
                 <AvatarFallback className="rounded-lg">
                   {user.name.charAt(0)}
                 </AvatarFallback>
+                <AvatarBadge
+                  title={user.status === "online" ? "在线" : "离线"}
+                  className={
+                    user.status === "online" ? "bg-emerald-500" : "bg-destructive"
+                  }
+                />
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user.name}</span>
@@ -73,6 +79,14 @@ export function UserNav({ user }: { user: User }) {
                   <AvatarFallback className="rounded-lg">
                     {user.name.charAt(0)}
                   </AvatarFallback>
+                  <AvatarBadge
+                    title={user.status === "online" ? "在线" : "离线"}
+                    className={
+                      user.status === "online"
+                        ? "bg-emerald-500"
+                        : "bg-destructive"
+                    }
+                  />
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user.name}</span>

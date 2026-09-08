@@ -17,6 +17,10 @@ export type User = {
   image: string;
   bio: string;
   role: "teacher" | "student";
+  createdAt: string;
+  status: "online" | "offline";
+  connectedAt: string | null;
+  disconnectedAt: string | null;
 };
 
 /**
@@ -37,7 +41,18 @@ export const getUserFn = createServerFn({
   if (!userId) return null;
 
   const user = await db.orm.public.User.where({ id: userId })
-    .select("id", "email", "name", "image", "bio", "role")
+    .select(
+      "id",
+      "email",
+      "name",
+      "image",
+      "bio",
+      "role",
+      "createdAt",
+      "status",
+      "connectedAt",
+      "disconnectedAt",
+    )
     .first();
 
   if (!user) return null;
