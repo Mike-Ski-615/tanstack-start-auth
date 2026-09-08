@@ -9,14 +9,21 @@ export default defineConfig({
   server: {
     port: 3000,
   },
-  resolve: {
-    tsconfigPaths: true,
-  },
   plugins: [
     devtools(),
     tanstackStart(),
     viteReact(),
     tailwindcss(),
-    nitro({ preset: "bun" }),
+    nitro({
+      preset: "bun",
+      serverDir: "./src/websocket",
+      features: {
+        runtimeHooks: true,
+        websocket: true,
+      },
+    }),
   ],
+  resolve: {
+    tsconfigPaths: true,
+  },
 });

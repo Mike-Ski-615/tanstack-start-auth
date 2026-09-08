@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { useAppSession } from "#lib/session";
+import { useAppSession } from "#lib/auth/session";
 
 /**
  * 登出用例（文档模式）：清除会话，由客户端导航到首页。

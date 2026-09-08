@@ -1,8 +1,7 @@
 import { SidebarFooter } from "#components/ui/sidebar";
 import { HelpDocumentation } from "#components/sidebar/sidebar-footer/help-documentation";
 import { UserNav } from "#components/sidebar/sidebar-footer/user-nav";
-import { User } from "#server/user.functions";
-
+import type { User } from "#server/user.functions";
 export function AppSidebarFooter({ user }: { user: User }) {
   return (
     <SidebarFooter>

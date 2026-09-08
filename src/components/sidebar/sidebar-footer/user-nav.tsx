@@ -23,7 +23,7 @@ import {
 } from "#components/ui/sidebar";
 import { useLogoutMutation } from "#hooks/use-auth-mutations";
 import { useNavigate } from "@tanstack/react-router";
-import { User } from "#server/user.functions";
+import type { User } from "#server/user.functions";
 import {
   Bell,
   ChevronsUpDown,

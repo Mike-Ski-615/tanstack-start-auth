@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { setResponseHeader } from "@tanstack/react-start/server";
 import type { Char } from "@prisma/orm-postgres/target/codec-types";
 import { db } from "#prisma/db";
-import { useAppSession } from "#lib/session";
+import { useAppSession } from "#lib/auth/session";
 
 /**
  * 当前登录用户的唯一公开形态：投影发生在源头，passwordHash 不出本模块。
