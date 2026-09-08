@@ -18,9 +18,14 @@ import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthResetRouteImport } from './routes/auth/reset'
 import { Route as AuthenticatedBellRouteImport } from './routes/authenticated/bell'
 import { Route as AuthenticatedHelpRouteImport } from './routes/authenticated/help'
-import { Route as AuthenticatedProfileRouteImport } from './routes/authenticated/profile'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/authenticated/settings'
 import { Route as AuthenticatedStudentRouteImport } from './routes/authenticated/student'
 import { Route as AuthenticatedTeacherRouteImport } from './routes/authenticated/teacher'
+import { Route as AuthenticatedSettingsBellRouteImport } from './routes/authenticated/settings/bell'
+import { Route as AuthenticatedSettingsHomeRouteImport } from './routes/authenticated/settings/home'
+import { Route as AuthenticatedSettingsPasswordRouteImport } from './routes/authenticated/settings/password'
+import { Route as AuthenticatedSettingsProfileRouteImport } from './routes/authenticated/settings/profile'
+import { Route as AuthenticatedUsersUserIdRouteImport } from './routes/authenticated/users/$userId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -67,9 +72,9 @@ const AuthenticatedHelpRoute = AuthenticatedHelpRouteImport.update({
   path: '/help',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedStudentRoute = AuthenticatedStudentRouteImport.update({
@@ -82,6 +87,36 @@ const AuthenticatedTeacherRoute = AuthenticatedTeacherRouteImport.update({
   path: '/teacher',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedSettingsBellRoute =
+  AuthenticatedSettingsBellRouteImport.update({
+    id: '/bell',
+    path: '/bell',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsHomeRoute =
+  AuthenticatedSettingsHomeRouteImport.update({
+    id: '/home',
+    path: '/home',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsPasswordRoute =
+  AuthenticatedSettingsPasswordRouteImport.update({
+    id: '/password',
+    path: '/password',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsProfileRoute =
+  AuthenticatedSettingsProfileRouteImport.update({
+    id: '/profile',
+    path: '/profile',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedUsersUserIdRoute =
+  AuthenticatedUsersUserIdRouteImport.update({
+    id: '/users/$userId',
+    path: '/users/$userId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -93,9 +128,14 @@ export interface FileRoutesByFullPath {
   '/auth/reset': typeof AuthResetRoute
   '/authenticated/bell': typeof AuthenticatedBellRoute
   '/authenticated/help': typeof AuthenticatedHelpRoute
-  '/authenticated/profile': typeof AuthenticatedProfileRoute
+  '/authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/authenticated/student': typeof AuthenticatedStudentRoute
   '/authenticated/teacher': typeof AuthenticatedTeacherRoute
+  '/authenticated/settings/bell': typeof AuthenticatedSettingsBellRoute
+  '/authenticated/settings/home': typeof AuthenticatedSettingsHomeRoute
+  '/authenticated/settings/password': typeof AuthenticatedSettingsPasswordRoute
+  '/authenticated/settings/profile': typeof AuthenticatedSettingsProfileRoute
+  '/authenticated/users/$userId': typeof AuthenticatedUsersUserIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -107,9 +147,14 @@ export interface FileRoutesByTo {
   '/auth/reset': typeof AuthResetRoute
   '/authenticated/bell': typeof AuthenticatedBellRoute
   '/authenticated/help': typeof AuthenticatedHelpRoute
-  '/authenticated/profile': typeof AuthenticatedProfileRoute
+  '/authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/authenticated/student': typeof AuthenticatedStudentRoute
   '/authenticated/teacher': typeof AuthenticatedTeacherRoute
+  '/authenticated/settings/bell': typeof AuthenticatedSettingsBellRoute
+  '/authenticated/settings/home': typeof AuthenticatedSettingsHomeRoute
+  '/authenticated/settings/password': typeof AuthenticatedSettingsPasswordRoute
+  '/authenticated/settings/profile': typeof AuthenticatedSettingsProfileRoute
+  '/authenticated/users/$userId': typeof AuthenticatedUsersUserIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -122,9 +167,14 @@ export interface FileRoutesById {
   '/auth/reset': typeof AuthResetRoute
   '/authenticated/bell': typeof AuthenticatedBellRoute
   '/authenticated/help': typeof AuthenticatedHelpRoute
-  '/authenticated/profile': typeof AuthenticatedProfileRoute
+  '/authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/authenticated/student': typeof AuthenticatedStudentRoute
   '/authenticated/teacher': typeof AuthenticatedTeacherRoute
+  '/authenticated/settings/bell': typeof AuthenticatedSettingsBellRoute
+  '/authenticated/settings/home': typeof AuthenticatedSettingsHomeRoute
+  '/authenticated/settings/password': typeof AuthenticatedSettingsPasswordRoute
+  '/authenticated/settings/profile': typeof AuthenticatedSettingsProfileRoute
+  '/authenticated/users/$userId': typeof AuthenticatedUsersUserIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -138,9 +188,14 @@ export interface FileRouteTypes {
     | '/auth/reset'
     | '/authenticated/bell'
     | '/authenticated/help'
-    | '/authenticated/profile'
+    | '/authenticated/settings'
     | '/authenticated/student'
     | '/authenticated/teacher'
+    | '/authenticated/settings/bell'
+    | '/authenticated/settings/home'
+    | '/authenticated/settings/password'
+    | '/authenticated/settings/profile'
+    | '/authenticated/users/$userId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -152,9 +207,14 @@ export interface FileRouteTypes {
     | '/auth/reset'
     | '/authenticated/bell'
     | '/authenticated/help'
-    | '/authenticated/profile'
+    | '/authenticated/settings'
     | '/authenticated/student'
     | '/authenticated/teacher'
+    | '/authenticated/settings/bell'
+    | '/authenticated/settings/home'
+    | '/authenticated/settings/password'
+    | '/authenticated/settings/profile'
+    | '/authenticated/users/$userId'
   id:
     | '__root__'
     | '/'
@@ -166,9 +226,14 @@ export interface FileRouteTypes {
     | '/auth/reset'
     | '/authenticated/bell'
     | '/authenticated/help'
-    | '/authenticated/profile'
+    | '/authenticated/settings'
     | '/authenticated/student'
     | '/authenticated/teacher'
+    | '/authenticated/settings/bell'
+    | '/authenticated/settings/home'
+    | '/authenticated/settings/password'
+    | '/authenticated/settings/profile'
+    | '/authenticated/users/$userId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -242,11 +307,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHelpRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/authenticated/profile': {
-      id: '/authenticated/profile'
-      path: '/profile'
-      fullPath: '/authenticated/profile'
-      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+    '/authenticated/settings': {
+      id: '/authenticated/settings'
+      path: '/settings'
+      fullPath: '/authenticated/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/authenticated/student': {
@@ -261,6 +326,41 @@ declare module '@tanstack/react-router' {
       path: '/teacher'
       fullPath: '/authenticated/teacher'
       preLoaderRoute: typeof AuthenticatedTeacherRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/authenticated/settings/bell': {
+      id: '/authenticated/settings/bell'
+      path: '/bell'
+      fullPath: '/authenticated/settings/bell'
+      preLoaderRoute: typeof AuthenticatedSettingsBellRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/authenticated/settings/home': {
+      id: '/authenticated/settings/home'
+      path: '/home'
+      fullPath: '/authenticated/settings/home'
+      preLoaderRoute: typeof AuthenticatedSettingsHomeRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/authenticated/settings/password': {
+      id: '/authenticated/settings/password'
+      path: '/password'
+      fullPath: '/authenticated/settings/password'
+      preLoaderRoute: typeof AuthenticatedSettingsPasswordRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/authenticated/settings/profile': {
+      id: '/authenticated/settings/profile'
+      path: '/profile'
+      fullPath: '/authenticated/settings/profile'
+      preLoaderRoute: typeof AuthenticatedSettingsProfileRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/authenticated/users/$userId': {
+      id: '/authenticated/users/$userId'
+      path: '/users/$userId'
+      fullPath: '/authenticated/users/$userId'
+      preLoaderRoute: typeof AuthenticatedUsersUserIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
   }
@@ -282,20 +382,41 @@ const AuthRouteChildren: AuthRouteChildren = {
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
+interface AuthenticatedSettingsRouteChildren {
+  AuthenticatedSettingsBellRoute: typeof AuthenticatedSettingsBellRoute
+  AuthenticatedSettingsHomeRoute: typeof AuthenticatedSettingsHomeRoute
+  AuthenticatedSettingsPasswordRoute: typeof AuthenticatedSettingsPasswordRoute
+  AuthenticatedSettingsProfileRoute: typeof AuthenticatedSettingsProfileRoute
+}
+
+const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
+  AuthenticatedSettingsBellRoute: AuthenticatedSettingsBellRoute,
+  AuthenticatedSettingsHomeRoute: AuthenticatedSettingsHomeRoute,
+  AuthenticatedSettingsPasswordRoute: AuthenticatedSettingsPasswordRoute,
+  AuthenticatedSettingsProfileRoute: AuthenticatedSettingsProfileRoute,
+}
+
+const AuthenticatedSettingsRouteWithChildren =
+  AuthenticatedSettingsRoute._addFileChildren(
+    AuthenticatedSettingsRouteChildren,
+  )
+
 interface AuthenticatedRouteChildren {
   AuthenticatedBellRoute: typeof AuthenticatedBellRoute
   AuthenticatedHelpRoute: typeof AuthenticatedHelpRoute
-  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
   AuthenticatedStudentRoute: typeof AuthenticatedStudentRoute
   AuthenticatedTeacherRoute: typeof AuthenticatedTeacherRoute
+  AuthenticatedUsersUserIdRoute: typeof AuthenticatedUsersUserIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedBellRoute: AuthenticatedBellRoute,
   AuthenticatedHelpRoute: AuthenticatedHelpRoute,
-  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
   AuthenticatedStudentRoute: AuthenticatedStudentRoute,
   AuthenticatedTeacherRoute: AuthenticatedTeacherRoute,
+  AuthenticatedUsersUserIdRoute: AuthenticatedUsersUserIdRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

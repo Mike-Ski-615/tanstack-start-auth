@@ -4,32 +4,52 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
 } from "#components/ui/sidebar";
-import { Resources } from "#components/sidebar/sidebar-content/resources";
-import { Lessons } from "#components/sidebar/sidebar-content/lessons";
-import { Collaboration } from "#components/sidebar/sidebar-content/collaboration";
-import { Exhibition } from "#components/sidebar/sidebar-content/exhibition";
-import { Extension } from "#components/sidebar/sidebar-content/extension";
+import { NAV_ITEMS } from "#data/nav";
 
 export function AppSidebarContent() {
   return (
     <SidebarContent>
       <SidebarGroup>
         <SidebarGroupLabel>学习资源</SidebarGroupLabel>
+
         <SidebarGroupContent>
           <SidebarMenu>
-            <Resources />
-            <Lessons />
+            {NAV_ITEMS.slice(0, 2).map((item) => {
+              return (
+                <SidebarMenuItem key={item.id}>
+                  <SidebarMenuButton asChild>
+                    <a href={item.to}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
+
       <SidebarGroup>
         <SidebarGroupLabel>课堂活动</SidebarGroupLabel>
+
         <SidebarGroupContent>
           <SidebarMenu>
-            <Collaboration />
-            <Exhibition />
-            <Extension />
+            {NAV_ITEMS.slice(2).map((item) => {
+              return (
+                <SidebarMenuItem key={item.id}>
+                  <SidebarMenuButton asChild>
+                    <a href={item.to}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>

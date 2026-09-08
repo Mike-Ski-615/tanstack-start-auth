@@ -1,16 +1,10 @@
-import Heatmap from "#components/profile/heatmap";
-import ThisWeek from "#components/profile/week";
+import Heatmap from "./heatmap";
+import ThisWeek from "./week";
 import { Separator } from "#components/ui/separator";
-import { createFileRoute } from "@tanstack/react-router";
+import type { User } from "#server/user.functions";
 import { daysSince, formatPresence } from "#lib/format";
 
-export const Route = createFileRoute("/authenticated/profile")({
-  component: RouteComponent,
-});
-
-function RouteComponent() {
-  const { user } = Route.useRouteContext();
-
+export function UserView({ user }: { user: User }) {
   return (
     <main className="min-h-full min-w-0">
       <div className=" mx-auto flex w-full max-w-7xl min-w-0 flex-col gap-4 p-4 sm:gap-5 sm:p-6 lg:gap-6 lg:p-8">

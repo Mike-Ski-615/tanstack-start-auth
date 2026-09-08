@@ -1,4 +1,9 @@
-import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from "#components/ui/avatar";
+import {
+  Avatar,
+  AvatarBadge,
+  AvatarFallback,
+  AvatarImage,
+} from "#components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,9 +32,12 @@ import type { User } from "#server/user.functions";
 import {
   Bell,
   ChevronsUpDown,
+  Home,
+  KeyRound,
   LogOut,
   MoonIcon,
   PaletteIcon,
+  Settings,
   SquareUserRound,
   SunIcon,
 } from "lucide-react";
@@ -42,39 +50,13 @@ export function UserNav({ user }: { user: User }) {
   const logoutMutation = useLogoutMutation();
 
   return (
-    <SidebarMenu>
-      <SidebarMenuItem>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton size="lg">
-              <Avatar>
-                <AvatarImage src={user.image} alt={user.name} />
-                <AvatarFallback className="rounded-lg">
-                  {user.name.charAt(0)}
-                </AvatarFallback>
-                <AvatarBadge
-                  title={user.status === "online" ? "在线" : "离线"}
-                  className={
-                    user.status === "online" ? "bg-emerald-500" : "bg-destructive"
-                  }
-                />
-              </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
-                <span className="truncate text-xs">{user.email}</span>
-              </div>
-              <ChevronsUpDown className="ml-auto size-4" />
-            </SidebarMenuButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-            side={isMobile ? "bottom" : "right"}
-            align="end"
-            sideOffset={4}
-          >
-            <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
+    <>
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <SidebarMenuButton size="lg">
+                <Avatar>
                   <AvatarImage src={user.image} alt={user.name} />
                   <AvatarFallback className="rounded-lg">
                     {user.name.charAt(0)}
@@ -92,63 +74,128 @@ export function UserNav({ user }: { user: User }) {
                   <span className="truncate font-medium">{user.name}</span>
                   <span className="truncate text-xs">{user.email}</span>
                 </div>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  <PaletteIcon />
-                  主题
-                </DropdownMenuSubTrigger>
-                <DropdownMenuPortal>
-                  <DropdownMenuSubContent>
-                    <DropdownMenuGroup>
-                      <DropdownMenuLabel>主题切换</DropdownMenuLabel>
-                      <DropdownMenuRadioGroup
-                        value={theme}
-                        onValueChange={(value) =>
-                          setTheme(value === "dark" ? "dark" : "light")
-                        }
-                      >
-                        <DropdownMenuRadioItem value="light">
-                          <SunIcon />
-                          亮色主题
-                        </DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="dark">
-                          <MoonIcon />
-                          暗色主题
-                        </DropdownMenuRadioItem>
-                      </DropdownMenuRadioGroup>
-                    </DropdownMenuGroup>
-                  </DropdownMenuSubContent>
-                </DropdownMenuPortal>
-              </DropdownMenuSub>
-              <DropdownMenuItem
-                onClick={() => navigate({ to: "/authenticated/profile" })}
-              >
-                <SquareUserRound />
-                个人中心
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => navigate({ to: "/authenticated/bell" })}
-              >
-                <Bell />
-                通知
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              variant="destructive"
-              onClick={() => logoutMutation.mutate()}
+                <ChevronsUpDown className="ml-auto size-4" />
+              </SidebarMenuButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+              side={isMobile ? "bottom" : "right"}
+              align="end"
+              sideOffset={4}
             >
-              <LogOut />
-              登出
-              <DropdownMenuShortcut>Ctrl+Shift+L</DropdownMenuShortcut>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </SidebarMenuItem>
-    </SidebarMenu>
+              <DropdownMenuLabel className="p-0 font-normal">
+                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                  <Avatar className="h-8 w-8 rounded-lg">
+                    <AvatarImage src={user.image} alt={user.name} />
+                    <AvatarFallback className="rounded-lg">
+                      {user.name.charAt(0)}
+                    </AvatarFallback>
+                    <AvatarBadge
+                      title={user.status === "online" ? "在线" : "离线"}
+                      className={
+                        user.status === "online"
+                          ? "bg-emerald-500"
+                          : "bg-destructive"
+                      }
+                    />
+                  </Avatar>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium">{user.name}</span>
+                    <span className="truncate text-xs">{user.email}</span>
+                  </div>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <PaletteIcon />
+                    主题
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuGroup>
+                        <DropdownMenuLabel>主题切换</DropdownMenuLabel>
+                        <DropdownMenuRadioGroup
+                          value={theme}
+                          onValueChange={(value) =>
+                            setTheme(value === "dark" ? "dark" : "light")
+                          }
+                        >
+                          <DropdownMenuRadioItem value="light">
+                            <SunIcon />
+                            亮色主题
+                          </DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="dark">
+                            <MoonIcon />
+                            暗色主题
+                          </DropdownMenuRadioItem>
+                        </DropdownMenuRadioGroup>
+                      </DropdownMenuGroup>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Settings />
+                    设置
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuGroup>
+                        <DropdownMenuLabel>设置</DropdownMenuLabel>
+                        <DropdownMenuItem
+                          onSelect={() =>
+                            navigate({
+                              to: "/authenticated/settings/home",
+                            })
+                          }
+                        >
+                          <Home />
+                          设置主页
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onSelect={() =>
+                            navigate({ to: "/authenticated/settings/bell" })
+                          }
+                        >
+                          <Bell />
+                          通知
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onSelect={() =>
+                            navigate({ to: "/authenticated/settings/password" })
+                          }
+                        >
+                          <KeyRound />
+                          修改密码
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onSelect={() =>
+                            navigate({ to: "/authenticated/settings/profile" })
+                          }
+                        >
+                          <SquareUserRound />
+                          修改个人信息
+                        </DropdownMenuItem>
+                      </DropdownMenuGroup>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant="destructive"
+                onSelect={() => logoutMutation.mutate()}
+              >
+                <LogOut />
+                登出
+                <DropdownMenuShortcut>Ctrl+Shift+L</DropdownMenuShortcut>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    </>
   );
 }

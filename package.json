@@ -10,6 +10,7 @@
   },
   "imports": {
     "#lib/*": "./src/lib/*.ts",
+    "#data/*": "./src/data/*.ts",
     "#hooks/*": "./src/hooks/*.ts",
     "#prisma/*": "./src/prisma/*.ts",
     "#server/*": "./src/server/*.ts",
