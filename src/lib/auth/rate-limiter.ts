@@ -56,9 +56,11 @@ export async function rateLimit(
   }
 
   // 窗口过期或不存在：重置计数
+  // conflictOn 必填：RateLimit 无主键，只有 key 唯一约束
   const upserted = await db.orm.public.RateLimit.upsert({
     create: { key, count: 1, windowStart: now.toISOString(), expiresAt: expiresAt.toISOString() },
     update: { count: 1, windowStart: now.toISOString(), expiresAt: expiresAt.toISOString() },
+    conflictOn: { key },
   });
   return {
     allowed: true,
