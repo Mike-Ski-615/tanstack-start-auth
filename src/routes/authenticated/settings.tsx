@@ -1,3 +1,5 @@
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import {
   Link,
   Outlet,
@@ -5,7 +7,6 @@ import {
   createFileRoute,
   useRouter,
 } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { SETTINGS_NAV } from "#data/nav";
 
 import {
@@ -109,7 +110,7 @@ function SettingsLayout() {
                                 "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
                             }}
                           >
-                            <item.icon />
+                            <HugeiconsIcon icon={item.icon} />
                             <span>{item.title}</span>
                           </Link>
                         </SidebarMenuButton>
@@ -131,7 +132,7 @@ function SettingsLayout() {
                   size="icon"
                   onClick={() => router.history.back()}
                 >
-                  <ChevronLeft />
+                  <HugeiconsIcon icon={ArrowLeft01Icon} />
                 </Button>
 
                 <Button
@@ -139,7 +140,7 @@ function SettingsLayout() {
                   size="icon"
                   onClick={() => router.history.forward()}
                 >
-                  <ChevronRight />
+                  <HugeiconsIcon icon={ArrowRight01Icon} />
                 </Button>
               </div>
             </header>

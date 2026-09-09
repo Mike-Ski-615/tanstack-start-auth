@@ -1,9 +1,10 @@
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Book02Icon, LinkSquare01Icon } from "@hugeicons/core-free-icons";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "#components/ui/sidebar";
-import { BookText, ExternalLink } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 export function HelpDocumentation() {
@@ -12,9 +13,9 @@ export function HelpDocumentation() {
       <SidebarMenuItem>
         <SidebarMenuButton asChild>
           <Link to="/authenticated/help">
-            <BookText />
+            <HugeiconsIcon icon={Book02Icon} />
             <span className="flex-1">帮助文档</span>
-            <ExternalLink />
+            <HugeiconsIcon icon={LinkSquare01Icon} />
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>

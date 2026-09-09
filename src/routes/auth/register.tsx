@@ -1,6 +1,7 @@
+import { HugeiconsIcon } from "@hugeicons/react";
+import { AppleIcon, UserIcon } from "@hugeicons/core-free-icons";
 import { useForm } from "@tanstack/react-form";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { User, Apple } from "lucide-react";
 import { Button } from "#components/ui/button";
 import {
   Field,
@@ -52,7 +53,7 @@ function RegisterPage() {
         <div className="flex flex-col items-center gap-2 text-center">
           <Link to="/" className="flex flex-col items-center gap-2 font-medium">
             <div className="flex size-8 items-center justify-center rounded-md">
-              <User className="size-6" />
+              <HugeiconsIcon icon={UserIcon} className="size-6" />
             </div>
             <span className="sr-only">Demo</span>
           </Link>
@@ -157,12 +158,12 @@ function RegisterPage() {
 
         <Field className="grid gap-4 sm:grid-cols-2">
           <Button variant="outline" type="button">
-            <Apple />
+            <HugeiconsIcon icon={AppleIcon} />
             使用 Apple 注册
           </Button>
 
           <Button variant="outline" type="button">
-            <Apple />
+            <HugeiconsIcon icon={AppleIcon} />
             使用 Google 注册
           </Button>
         </Field>

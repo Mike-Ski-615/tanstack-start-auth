@@ -1,7 +1,8 @@
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Search01Icon } from "@hugeicons/core-free-icons";
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Button } from "#components/ui/button";
-import { Search } from "lucide-react";
 import {
   Command,
   CommandDialog,
@@ -32,7 +33,7 @@ export function CommandPalette({ className }: { className?: string }) {
         className={cn(`justify-start sm:w-40 lg:w-56 xl:w-72 w-32`, className)}
         onClick={() => setOpen(true)}
       >
-        <Search />
+        <HugeiconsIcon icon={Search01Icon} />
         <span className="hidden xl:inline-flex">搜索文档...</span>
         <span className="inline-flex xl:hidden">搜索...</span>
         <KbdGroup className="ml-auto hidden xl:flex">
@@ -55,7 +56,7 @@ export function CommandPalette({ className }: { className?: string }) {
             <CommandGroup heading="帮助主题">
               {HELP_SECTIONS.map((item) => (
                 <CommandItem key={item.id}>
-                  <item.icon />
+                  <HugeiconsIcon icon={item.icon} />
                   <span>{item.title}</span>
                 </CommandItem>
               ))}
@@ -63,7 +64,7 @@ export function CommandPalette({ className }: { className?: string }) {
             <CommandGroup heading="导航">
               {NAV_ITEMS.map((item) => (
                 <CommandItem key={item.id}>
-                  <item.icon />
+                  <HugeiconsIcon icon={item.icon} />
                   <span>{item.title}</span>
                 </CommandItem>
               ))}
@@ -77,7 +78,7 @@ export function CommandPalette({ className }: { className?: string }) {
                     setOpen(false);
                   }}
                 >
-                  <item.icon />
+                  <HugeiconsIcon icon={item.icon} />
                   <span>{item.title}</span>
                 </CommandItem>
               ))}

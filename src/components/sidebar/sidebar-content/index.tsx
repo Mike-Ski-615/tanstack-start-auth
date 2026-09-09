@@ -8,6 +8,7 @@ import {
   SidebarMenuItem,
 } from "#components/ui/sidebar";
 import { NAV_ITEMS } from "#data/nav";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 export function AppSidebarContent() {
   return (
@@ -22,7 +23,7 @@ export function AppSidebarContent() {
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton asChild>
                     <a href={item.to}>
-                      <item.icon />
+                      <HugeiconsIcon icon={item.icon} />
                       <span>{item.title}</span>
                     </a>
                   </SidebarMenuButton>
@@ -43,7 +44,7 @@ export function AppSidebarContent() {
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton asChild>
                     <a href={item.to}>
-                      <item.icon />
+                      <HugeiconsIcon icon={item.icon} />
                       <span>{item.title}</span>
                     </a>
                   </SidebarMenuButton>

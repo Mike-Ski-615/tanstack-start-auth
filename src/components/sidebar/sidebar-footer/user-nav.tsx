@@ -1,3 +1,5 @@
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowUpDownIcon, ColorPickerIcon, Home01Icon, Key02Icon, Logout01Icon, MoonIcon, Notification01Icon, Settings01Icon, Shield01Icon, Sun01Icon } from "@hugeicons/core-free-icons";
 import {
   Avatar,
   AvatarBadge,
@@ -29,18 +31,6 @@ import {
 import { useLogoutMutation } from "#hooks/use-auth-mutations";
 import { useNavigate } from "@tanstack/react-router";
 import type { User } from "#server/user.functions";
-import {
-  Bell,
-  ChevronsUpDown,
-  Home,
-  KeyRound,
-  LogOut,
-  MoonIcon,
-  PaletteIcon,
-  Settings,
-  Shield,
-  SunIcon,
-} from "lucide-react";
 import { useTheme } from "#provider/theme-provider";
 
 export function UserNav({ user }: { user: User }) {
@@ -74,7 +64,7 @@ export function UserNav({ user }: { user: User }) {
                   <span className="truncate font-medium">{user.name}</span>
                   <span className="truncate text-xs">{user.email}</span>
                 </div>
-                <ChevronsUpDown className="ml-auto size-4" />
+                <HugeiconsIcon icon={ArrowUpDownIcon} className="ml-auto size-4" />
               </SidebarMenuButton>
             </DropdownMenuTrigger>
             <DropdownMenuContent
@@ -109,7 +99,7 @@ export function UserNav({ user }: { user: User }) {
               <DropdownMenuGroup>
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>
-                    <PaletteIcon />
+                    <HugeiconsIcon icon={ColorPickerIcon} />
                     主题
                   </DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
@@ -123,11 +113,11 @@ export function UserNav({ user }: { user: User }) {
                           }
                         >
                           <DropdownMenuRadioItem value="light">
-                            <SunIcon />
+                            <HugeiconsIcon icon={Sun01Icon} />
                             亮色主题
                           </DropdownMenuRadioItem>
                           <DropdownMenuRadioItem value="dark">
-                            <MoonIcon />
+                            <HugeiconsIcon icon={MoonIcon} />
                             暗色主题
                           </DropdownMenuRadioItem>
                         </DropdownMenuRadioGroup>
@@ -137,7 +127,7 @@ export function UserNav({ user }: { user: User }) {
                 </DropdownMenuSub>
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>
-                    <Settings />
+                    <HugeiconsIcon icon={Settings01Icon} />
                     设置
                   </DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
@@ -151,7 +141,7 @@ export function UserNav({ user }: { user: User }) {
                             })
                           }
                         >
-                          <Home />
+                          <HugeiconsIcon icon={Home01Icon} />
                           设置主页
                         </DropdownMenuItem>
                         <DropdownMenuItem
@@ -159,7 +149,7 @@ export function UserNav({ user }: { user: User }) {
                             navigate({ to: "/authenticated/settings/bell" })
                           }
                         >
-                          <Bell />
+                          <HugeiconsIcon icon={Notification01Icon} />
                           通知
                         </DropdownMenuItem>
                         <DropdownMenuItem
@@ -167,7 +157,7 @@ export function UserNav({ user }: { user: User }) {
                             navigate({ to: "/authenticated/settings/password" })
                           }
                         >
-                          <KeyRound />
+                          <HugeiconsIcon icon={Key02Icon} />
                           修改密码
                         </DropdownMenuItem>
                         <DropdownMenuItem
@@ -175,7 +165,7 @@ export function UserNav({ user }: { user: User }) {
                             navigate({ to: "/authenticated/settings/profile" })
                           }
                         >
-                          <KeyRound />
+                          <HugeiconsIcon icon={Key02Icon} />
                           修改个人信息
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
@@ -186,7 +176,7 @@ export function UserNav({ user }: { user: User }) {
                             })
                           }
                         >
-                          <Shield />
+                          <HugeiconsIcon icon={Shield01Icon} />
                           隐私和安全
                         </DropdownMenuItem>
                       </DropdownMenuGroup>
@@ -199,7 +189,7 @@ export function UserNav({ user }: { user: User }) {
                 variant="destructive"
                 onSelect={() => logoutMutation.mutate()}
               >
-                <LogOut />
+                <HugeiconsIcon icon={Logout01Icon} />
                 登出
                 <DropdownMenuShortcut>Ctrl+Shift+L</DropdownMenuShortcut>
               </DropdownMenuItem>

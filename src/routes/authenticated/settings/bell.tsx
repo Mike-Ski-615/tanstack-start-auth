@@ -1,10 +1,10 @@
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Notification01Icon } from "@hugeicons/core-free-icons";
 import { createFileRoute } from "@tanstack/react-router";
 import { LoadingPage } from "#components/status/authenticated/settings/bell/loading";
 import { ErrorPage } from "#components/status/authenticated/settings/bell/error";
 import { NotFoundPage } from "#components/status/authenticated/settings/bell/not-found";
 import { Skeleton } from "#components/ui/skeleton";
-import { Bell } from "lucide-react";
-
 export const Route = createFileRoute("/authenticated/settings/bell")({
   pendingComponent: LoadingPage,
   errorComponent: ErrorPage,
@@ -18,7 +18,7 @@ function SettingsBellPage() {
     <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col gap-6">
       <header>
         <div className="flex items-center gap-2">
-          <Bell className="size-5 text-muted-foreground" />
+          <HugeiconsIcon icon={Notification01Icon} className="size-5 text-muted-foreground" />
           <h1 className="text-xl font-semibold">通知</h1>
         </div>
         <p className="mt-1 text-sm text-muted-foreground">

@@ -14,6 +14,7 @@ import {
   UserIcon,
   UserGroupIcon,
 } from "@hugeicons/core-free-icons";
+
 import type { IconSvgElement } from "@hugeicons/react";
 
 export type NavItem = {

@@ -1,10 +1,10 @@
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Shield01Icon } from "@hugeicons/core-free-icons";
 import { createFileRoute } from "@tanstack/react-router";
 import { LoadingPage } from "#components/status/authenticated/settings/privacy-security/loading";
 import { ErrorPage } from "#components/status/authenticated/settings/privacy-security/error";
 import { NotFoundPage } from "#components/status/authenticated/settings/privacy-security/not-found";
 import { Skeleton } from "#components/ui/skeleton";
-import { Shield } from "lucide-react";
-
 export const Route = createFileRoute(
   "/authenticated/settings/privacy-security",
 )({
@@ -20,7 +20,7 @@ function SettingsPrivacySecurityPage() {
     <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col gap-6">
       <header>
         <div className="flex items-center gap-2">
-          <Shield className="size-5 text-muted-foreground" />
+          <HugeiconsIcon icon={Shield01Icon} className="size-5 text-muted-foreground" />
           <h1 className="text-xl font-semibold">隐私与安全</h1>
         </div>
         <p className="mt-1 text-sm text-muted-foreground">

@@ -1,3 +1,5 @@
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Notification01Icon } from "@hugeicons/core-free-icons";
 import {
   Popover,
   PopoverContent,
@@ -6,8 +8,6 @@ import {
   PopoverTrigger,
 } from "#components/ui/popover";
 import { Button } from "#components/ui/button";
-import { Bell } from "lucide-react";
-
 const notifications = [
   {
     id: 1,
@@ -44,7 +44,7 @@ export function HeaderBell() {
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon">
-          <Bell />
+          <HugeiconsIcon icon={Notification01Icon} />
         </Button>
       </PopoverTrigger>
 

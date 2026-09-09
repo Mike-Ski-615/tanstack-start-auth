@@ -1,8 +1,10 @@
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Key02Icon } from "@hugeicons/core-free-icons";
 import { createFileRoute } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { KeyRound, ShieldCheck } from "lucide-react";
+import { ShieldCheckIcon } from "@hugeicons/core-free-icons";
 import { Button } from "#components/ui/button";
 import {
   Field,
@@ -62,7 +64,10 @@ function SettingsPasswordPage() {
       />
       <header>
         <div className="flex items-center gap-2">
-          <KeyRound className="size-5 text-muted-foreground" />
+          <HugeiconsIcon
+            icon={Key02Icon}
+            className="size-5 text-muted-foreground"
+          />
           <h1 className="text-xl font-semibold">修改密码</h1>
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -109,7 +114,10 @@ function SettingsPasswordPage() {
                   autoComplete="new-password"
                 />
                 <FieldDescription>
-                  <ShieldCheck className="mr-1 inline size-4 align-[-3px]" />
+                  <HugeiconsIcon
+                    icon={ShieldCheckIcon}
+                    className="mr-1 inline size-4 align-[-3px]"
+                  />
                   修改密码需要验证当前密码
                 </FieldDescription>
                 {invalid && <FieldError errors={f.state.meta.errors} />}

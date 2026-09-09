@@ -1,6 +1,6 @@
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowDown01Icon, Tick01Icon } from "@hugeicons/core-free-icons";
 import * as React from "react";
-import { Check, ChevronDown } from "lucide-react";
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,14 +31,14 @@ export function SidebarBrand() {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <div className="flex aspect-square size-6 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                <selected.icon className="size-4" />
+                <HugeiconsIcon icon={selected.icon} className="size-4" />
               </div>
 
               <span className="truncate font-bold text-base">
                 {selected.title}
               </span>
 
-              <ChevronDown className="size-4 shrink-0" />
+              <HugeiconsIcon icon={ArrowDown01Icon} className="size-4 shrink-0" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
 
@@ -49,12 +49,12 @@ export function SidebarBrand() {
                   key={logo.title}
                   onSelect={() => setSelected(logo)}
                 >
-                  <logo.icon className="size-4" />
+                  <HugeiconsIcon icon={logo.icon} className="size-4" />
 
                   <span>{logo.title}</span>
 
                   {logo.title === selected.title && (
-                    <Check className="ml-auto size-4" />
+                    <HugeiconsIcon icon={Tick01Icon} className="ml-auto size-4" />
                   )}
                 </DropdownMenuItem>
               );
