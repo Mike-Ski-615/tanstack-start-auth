@@ -39,7 +39,6 @@ import {
   PaletteIcon,
   Settings,
   Shield,
-  SquareUserRound,
   SunIcon,
 } from "lucide-react";
 import { useTheme } from "#provider/theme-provider";
@@ -176,7 +175,7 @@ export function UserNav({ user }: { user: User }) {
                             navigate({ to: "/authenticated/settings/profile" })
                           }
                         >
-                          <SquareUserRound />
+                          <KeyRound />
                           修改个人信息
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />

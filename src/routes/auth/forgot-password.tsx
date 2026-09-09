@@ -1,6 +1,6 @@
 import { useForm } from "@tanstack/react-form";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { GalleryVerticalEnd } from "lucide-react";
+import { User } from "lucide-react";
 import { Button } from "#components/ui/button";
 import {
   Field,
@@ -49,7 +49,7 @@ function ForgotPasswordPage() {
         <div className="flex flex-col items-center gap-2 text-center">
           <Link to="/" className="flex flex-col items-center gap-2 font-medium">
             <div className="flex size-8 items-center justify-center rounded-md">
-              <GalleryVerticalEnd className="size-6" />
+              <User className="size-6" />
             </div>
             <span className="sr-only">Demo</span>
           </Link>
