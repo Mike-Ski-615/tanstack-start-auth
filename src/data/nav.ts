@@ -39,6 +39,12 @@ export const SETTINGS_NAV: NavItem[] = [
     to: "/authenticated/settings/home",
   },
   {
+    id: "account",
+    title: "账户",
+    icon: UserCircleIcon,
+    to: "/authenticated/settings/account",
+  },
+  {
     id: "profile",
     title: "个人信息",
     icon: UserIcon,
@@ -132,6 +138,12 @@ export const HELP_SECTIONS: NavItem[] = [
 
 export const INTRO: Intro[] = [
   {
+    title: "账户",
+    icon: UserCircleIcon,
+    to: "/authenticated/settings/account",
+    desc: "查看账户基本信息、验证状态和登录状态。",
+  },
+  {
     title: "个人信息",
     icon: UserIcon,
     to: "/authenticated/settings/profile",
@@ -153,6 +165,6 @@ export const INTRO: Intro[] = [
     title: "隐私与安全",
     icon: Shield01Icon,
     to: "/authenticated/settings/privacy-security",
-    desc: "查看账号安全概览与隐私设置。",
+    desc: "查看设备与会话详情，撤销全部会话。",
   },
 ];
