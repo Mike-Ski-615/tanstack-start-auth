@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ShieldCheck } from "lucide-react";
+import { KeyRound, ShieldCheck } from "lucide-react";
 import { Button } from "#components/ui/button";
 import {
   Field,
@@ -10,18 +10,24 @@ import {
   FieldError,
   FieldGroup,
   FieldLabel,
-  FieldLegend,
-  FieldSet,
 } from "#components/ui/field";
 import { Input } from "#components/ui/input";
+import { Separator } from "#components/ui/separator";
 import { changePasswordSchema, type ChangePasswordValues } from "#schemas/auth";
 import { changePasswordFn } from "#server/profile.functions";
+import { LoadingPage } from "#components/status/authenticated/settings/password/loading";
+import { ErrorPage } from "#components/status/authenticated/settings/password/error";
+import { NotFoundPage } from "#components/status/authenticated/settings/password/not-found";
 
 export const Route = createFileRoute("/authenticated/settings/password")({
+  pendingComponent: LoadingPage,
+  errorComponent: ErrorPage,
+  notFoundComponent: NotFoundPage,
   component: SettingsPasswordPage,
 });
 
 function SettingsPasswordPage() {
+  const { user } = Route.useRouteContext();
   const pwdMutation = useMutation({
     mutationFn: (v: ChangePasswordValues) => changePasswordFn({ data: v }),
     onSuccess: () => {
@@ -39,72 +45,86 @@ function SettingsPasswordPage() {
 
   return (
     <form
-      className="flex flex-1 flex-col items-center"
+      className="mx-auto flex min-h-full w-full max-w-3xl flex-col gap-6"
       onSubmit={(event) => {
         event.preventDefault();
         pwdForm.handleSubmit();
       }}
     >
-      <FieldGroup className="w-full max-w-xl flex-1">
-        <FieldSet className="flex-1">
-          <FieldLegend>修改密码</FieldLegend>
-          <FieldDescription>更新你的登录密码。</FieldDescription>
-          <FieldGroup>
-            <pwdForm.Field name="currentPassword">
-              {(f) => {
-                const invalid = f.state.meta.isTouched && !f.state.meta.isValid;
-                return (
-                  <Field data-invalid={invalid}>
-                    <FieldLabel htmlFor={f.name}>当前密码</FieldLabel>
-                    <Input
-                      id={f.name}
-                      type="password"
-                      value={f.state.value}
-                      onBlur={f.handleBlur}
-                      onChange={(e) => f.handleChange(e.target.value)}
-                      aria-invalid={invalid}
-                      autoComplete="current-password"
-                    />
-                    {invalid && <FieldError errors={f.state.meta.errors} />}
-                  </Field>
-                );
-              }}
-            </pwdForm.Field>
+      <input
+        type="text"
+        name="username"
+        autoComplete="username"
+        value={user.name}
+        readOnly
+        className="sr-only"
+        aria-hidden="true"
+        tabIndex={-1}
+      />
+      <header>
+        <div className="flex items-center gap-2">
+          <KeyRound className="size-5 text-muted-foreground" />
+          <h1 className="text-xl font-semibold">修改密码</h1>
+        </div>
+        <p className="mt-1 text-sm text-muted-foreground">
+          更新登录密码，需验证当前密码。
+        </p>
+      </header>
 
-            <pwdForm.Field name="newPassword">
-              {(f) => {
-                const invalid = f.state.meta.isTouched && !f.state.meta.isValid;
-                return (
-                  <Field data-invalid={invalid}>
-                    <FieldLabel htmlFor={f.name}>新密码</FieldLabel>
-                    <Input
-                      id={f.name}
-                      type="password"
-                      value={f.state.value}
-                      onBlur={f.handleBlur}
-                      onChange={(e) => f.handleChange(e.target.value)}
-                      aria-invalid={invalid}
-                      placeholder="6~32 位"
-                      autoComplete="new-password"
-                    />
-                    <FieldDescription>
-                      <ShieldCheck className="mr-1 inline size-4 align-[-3px]" />
-                      修改密码需要验证当前密码
-                    </FieldDescription>
-                    {invalid && <FieldError errors={f.state.meta.errors} />}
-                  </Field>
-                );
-              }}
-            </pwdForm.Field>
-          </FieldGroup>
-        </FieldSet>
+      <FieldGroup>
+        <pwdForm.Field name="currentPassword">
+          {(f) => {
+            const invalid = f.state.meta.isTouched && !f.state.meta.isValid;
+            return (
+              <Field data-invalid={invalid}>
+                <FieldLabel htmlFor={f.name}>当前密码</FieldLabel>
+                <Input
+                  id={f.name}
+                  type="password"
+                  value={f.state.value}
+                  onBlur={f.handleBlur}
+                  onChange={(e) => f.handleChange(e.target.value)}
+                  aria-invalid={invalid}
+                  autoComplete="current-password"
+                />
+                {invalid && <FieldError errors={f.state.meta.errors} />}
+              </Field>
+            );
+          }}
+        </pwdForm.Field>
 
-        <Field orientation="horizontal" className="mt-auto">
-          <Button type="submit" disabled={pwdMutation.isPending}>
-            {pwdMutation.isPending ? "提交中..." : "更新密码"}
-          </Button>
-        </Field>
+        <pwdForm.Field name="newPassword">
+          {(f) => {
+            const invalid = f.state.meta.isTouched && !f.state.meta.isValid;
+            return (
+              <Field data-invalid={invalid}>
+                <FieldLabel htmlFor={f.name}>新密码</FieldLabel>
+                <Input
+                  id={f.name}
+                  type="password"
+                  value={f.state.value}
+                  onBlur={f.handleBlur}
+                  onChange={(e) => f.handleChange(e.target.value)}
+                  aria-invalid={invalid}
+                  placeholder="6~32 位"
+                  autoComplete="new-password"
+                />
+                <FieldDescription>
+                  <ShieldCheck className="mr-1 inline size-4 align-[-3px]" />
+                  修改密码需要验证当前密码
+                </FieldDescription>
+                {invalid && <FieldError errors={f.state.meta.errors} />}
+              </Field>
+            );
+          }}
+        </pwdForm.Field>
       </FieldGroup>
+
+      <div className="flex justify-end">
+        <Button type="submit" disabled={pwdMutation.isPending}>
+          {pwdMutation.isPending ? "提交中..." : "更新密码"}
+        </Button>
+      </div>
     </form>
   );
 }

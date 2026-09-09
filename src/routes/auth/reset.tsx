@@ -50,7 +50,7 @@ function ResetPage() {
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-xl font-bold">重置链接无效</h1>
         <FieldDescription>
-          请重新发起{" "}
+          请重新发起
           <Link to="/auth/forgot-password" className="underline">
             密码重置
           </Link>

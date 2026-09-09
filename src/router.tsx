@@ -9,7 +9,6 @@ export function getRouter() {
 
   const router = createRouter({
     routeTree,
-    defaultPreload: "intent",
     context: { queryClient },
     defaultErrorComponent: () => <div>Internal Server Error</div>,
     defaultNotFoundComponent: () => <div>Not Found</div>,

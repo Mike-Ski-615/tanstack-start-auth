@@ -1,9 +1,9 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { getUserFn } from "#server/user.functions";
 import { useLogoutMutation } from "#hooks/use-auth-mutations";
-import { LoadingPage } from "#components/status/_authenticated/loading";
-import { ErrorPage } from "#components/status/_authenticated/error";
-import { NotFoundPage } from "#components/status/_authenticated/not-found";
+import { LoadingPage } from "#components/status/authenticated/loading";
+import { ErrorPage } from "#components/status/authenticated/error";
+import { NotFoundPage } from "#components/status/authenticated/not-found";
 import { SidebarInset, SidebarProvider } from "#components/ui/sidebar";
 import { AppSidebar } from "#components/app-sidebar";
 import { SidebarTrigger } from "#components/sidebar-trigger";

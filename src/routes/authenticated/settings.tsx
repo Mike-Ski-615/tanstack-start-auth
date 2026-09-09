@@ -1,19 +1,13 @@
 import {
-  createFileRoute,
   Link,
   Outlet,
-  useLocation,
   useNavigate,
+  createFileRoute,
+  useRouter,
 } from "@tanstack/react-router";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { SETTINGS_NAV } from "#data/nav";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "#components/ui/breadcrumb";
+
 import {
   Dialog,
   DialogContent,
@@ -30,15 +24,23 @@ import {
   SidebarMenuItem,
   SidebarProvider,
 } from "#components/ui/sidebar";
+import { LoadingPage } from "#components/status/authenticated/settings/loading";
+import { ErrorPage } from "#components/status/authenticated/settings/error";
+import { NotFoundPage } from "#components/status/authenticated/settings/not-found";
+import { Button } from "#components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "#components/ui/avatar";
 
 export const Route = createFileRoute("/authenticated/settings")({
+  pendingComponent: LoadingPage,
+  errorComponent: ErrorPage,
+  notFoundComponent: NotFoundPage,
   component: SettingsLayout,
 });
 
 function SettingsLayout() {
   const navigate = useNavigate();
-  const { pathname } = useLocation();
-  const current = SETTINGS_NAV.find((item) => item.to === pathname);
+  const router = useRouter();
+  const { user } = Route.useRouteContext();
 
   return (
     <Dialog
@@ -51,7 +53,7 @@ function SettingsLayout() {
         }
       }}
     >
-      <DialogContent className="overflow-hidden p-0 sm:max-w-175 lg:max-w-200 h-[min(80vh,500px)] max-h-[calc(100vh-2rem)]">
+      <DialogContent className="h-[min(80vh,500px)] max-h-[calc(100vh-2rem)] overflow-hidden p-0 sm:max-w-175 lg:max-w-200">
         <DialogTitle className="sr-only">Settings</DialogTitle>
 
         <DialogDescription className="sr-only">
@@ -67,6 +69,35 @@ function SettingsLayout() {
             <SidebarContent>
               <SidebarGroup className="p-2">
                 <SidebarGroupContent>
+                  {/* User */}
+                  <SidebarMenu className="mb-2">
+                    <SidebarMenuItem>
+                      <SidebarMenuButton className="h-auto">
+                        <div className="flex min-w-0 flex-1 items-center gap-3">
+                          {/* Avatar */}
+                          <Avatar>
+                            <AvatarImage src={user.image} alt={user.name} />
+                            <AvatarFallback>
+                              {user.name.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+
+                          {/* User info */}
+                          <div className="min-w-0 flex-1">
+                            <div className="truncate text-sm font-medium leading-5">
+                              {user.name}
+                            </div>
+
+                            <div className="truncate text-xs leading-4 text-muted-foreground">
+                              {user.email}
+                            </div>
+                          </div>
+                        </div>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+
+                  {/* Settings navigation */}
                   <SidebarMenu>
                     {SETTINGS_NAV.map((item) => (
                       <SidebarMenuItem key={item.title}>
@@ -91,32 +122,30 @@ function SettingsLayout() {
           </Sidebar>
 
           {/* Main */}
-          <main className="flex min-w-0 min-h-0 flex-1 flex-col">
+          <main className="flex min-h-0 min-w-0 flex-1 flex-col">
             {/* Header */}
-            <header className="flex h-14 shrink-0 items-center border-b">
-              <div className="flex items-center px-5">
-                <Breadcrumb>
-                  <BreadcrumbList>
-                    <BreadcrumbItem className="hidden md:block">
-                      <BreadcrumbLink asChild>
-                        <Link to="/authenticated/settings">设置</Link>
-                      </BreadcrumbLink>
-                    </BreadcrumbItem>
+            <header className="flex h-12 shrink-0 items-center border-b">
+              <div className="flex items-center gap-1 px-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => router.history.back()}
+                >
+                  <ChevronLeft />
+                </Button>
 
-                    <BreadcrumbSeparator className="hidden md:block" />
-
-                    <BreadcrumbItem>
-                      <BreadcrumbPage>
-                        {current?.title ?? "设置"}
-                      </BreadcrumbPage>
-                    </BreadcrumbItem>
-                  </BreadcrumbList>
-                </Breadcrumb>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => router.history.forward()}
+                >
+                  <ChevronRight />
+                </Button>
               </div>
             </header>
 
             {/* Outlet Area */}
-            <div className="min-h-0 flex-1 overflow-y-auto scrollbar-hide p-5">
+            <div className="min-h-0 flex-1 overflow-y-auto p-5 scrollbar-hide">
               <Outlet />
             </div>
           </main>

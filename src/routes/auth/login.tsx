@@ -145,7 +145,7 @@ function LoginPage() {
         </Field>
 
         <FieldDescription className="px-6 text-center">
-          继续即表示你同意 <Link to="/">服务条款</Link> 和{" "}
+          继续即表示你同意 <Link to="/">服务条款</Link> 和
           <Link to="/">隐私政策</Link>。
         </FieldDescription>
       </FieldGroup>

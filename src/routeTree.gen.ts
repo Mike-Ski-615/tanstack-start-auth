@@ -16,7 +16,6 @@ import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-pas
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthResetRouteImport } from './routes/auth/reset'
-import { Route as AuthenticatedBellRouteImport } from './routes/authenticated/bell'
 import { Route as AuthenticatedHelpRouteImport } from './routes/authenticated/help'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/authenticated/settings'
 import { Route as AuthenticatedStudentRouteImport } from './routes/authenticated/student'
@@ -24,6 +23,7 @@ import { Route as AuthenticatedTeacherRouteImport } from './routes/authenticated
 import { Route as AuthenticatedSettingsBellRouteImport } from './routes/authenticated/settings/bell'
 import { Route as AuthenticatedSettingsHomeRouteImport } from './routes/authenticated/settings/home'
 import { Route as AuthenticatedSettingsPasswordRouteImport } from './routes/authenticated/settings/password'
+import { Route as AuthenticatedSettingsPrivacySecurityRouteImport } from './routes/authenticated/settings/privacy-security'
 import { Route as AuthenticatedSettingsProfileRouteImport } from './routes/authenticated/settings/profile'
 import { Route as AuthenticatedUsersUserIdRouteImport } from './routes/authenticated/users/$userId'
 
@@ -61,11 +61,6 @@ const AuthResetRoute = AuthResetRouteImport.update({
   id: '/reset',
   path: '/reset',
   getParentRoute: () => AuthRoute,
-} as any)
-const AuthenticatedBellRoute = AuthenticatedBellRouteImport.update({
-  id: '/bell',
-  path: '/bell',
-  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedHelpRoute = AuthenticatedHelpRouteImport.update({
   id: '/help',
@@ -105,6 +100,12 @@ const AuthenticatedSettingsPasswordRoute =
     path: '/password',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
+const AuthenticatedSettingsPrivacySecurityRoute =
+  AuthenticatedSettingsPrivacySecurityRouteImport.update({
+    id: '/privacy-security',
+    path: '/privacy-security',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
 const AuthenticatedSettingsProfileRoute =
   AuthenticatedSettingsProfileRouteImport.update({
     id: '/profile',
@@ -126,7 +127,6 @@ export interface FileRoutesByFullPath {
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset': typeof AuthResetRoute
-  '/authenticated/bell': typeof AuthenticatedBellRoute
   '/authenticated/help': typeof AuthenticatedHelpRoute
   '/authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/authenticated/student': typeof AuthenticatedStudentRoute
@@ -134,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/authenticated/settings/bell': typeof AuthenticatedSettingsBellRoute
   '/authenticated/settings/home': typeof AuthenticatedSettingsHomeRoute
   '/authenticated/settings/password': typeof AuthenticatedSettingsPasswordRoute
+  '/authenticated/settings/privacy-security': typeof AuthenticatedSettingsPrivacySecurityRoute
   '/authenticated/settings/profile': typeof AuthenticatedSettingsProfileRoute
   '/authenticated/users/$userId': typeof AuthenticatedUsersUserIdRoute
 }
@@ -145,7 +146,6 @@ export interface FileRoutesByTo {
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset': typeof AuthResetRoute
-  '/authenticated/bell': typeof AuthenticatedBellRoute
   '/authenticated/help': typeof AuthenticatedHelpRoute
   '/authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/authenticated/student': typeof AuthenticatedStudentRoute
@@ -153,6 +153,7 @@ export interface FileRoutesByTo {
   '/authenticated/settings/bell': typeof AuthenticatedSettingsBellRoute
   '/authenticated/settings/home': typeof AuthenticatedSettingsHomeRoute
   '/authenticated/settings/password': typeof AuthenticatedSettingsPasswordRoute
+  '/authenticated/settings/privacy-security': typeof AuthenticatedSettingsPrivacySecurityRoute
   '/authenticated/settings/profile': typeof AuthenticatedSettingsProfileRoute
   '/authenticated/users/$userId': typeof AuthenticatedUsersUserIdRoute
 }
@@ -165,7 +166,6 @@ export interface FileRoutesById {
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset': typeof AuthResetRoute
-  '/authenticated/bell': typeof AuthenticatedBellRoute
   '/authenticated/help': typeof AuthenticatedHelpRoute
   '/authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/authenticated/student': typeof AuthenticatedStudentRoute
@@ -173,6 +173,7 @@ export interface FileRoutesById {
   '/authenticated/settings/bell': typeof AuthenticatedSettingsBellRoute
   '/authenticated/settings/home': typeof AuthenticatedSettingsHomeRoute
   '/authenticated/settings/password': typeof AuthenticatedSettingsPasswordRoute
+  '/authenticated/settings/privacy-security': typeof AuthenticatedSettingsPrivacySecurityRoute
   '/authenticated/settings/profile': typeof AuthenticatedSettingsProfileRoute
   '/authenticated/users/$userId': typeof AuthenticatedUsersUserIdRoute
 }
@@ -186,7 +187,6 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/register'
     | '/auth/reset'
-    | '/authenticated/bell'
     | '/authenticated/help'
     | '/authenticated/settings'
     | '/authenticated/student'
@@ -194,6 +194,7 @@ export interface FileRouteTypes {
     | '/authenticated/settings/bell'
     | '/authenticated/settings/home'
     | '/authenticated/settings/password'
+    | '/authenticated/settings/privacy-security'
     | '/authenticated/settings/profile'
     | '/authenticated/users/$userId'
   fileRoutesByTo: FileRoutesByTo
@@ -205,7 +206,6 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/register'
     | '/auth/reset'
-    | '/authenticated/bell'
     | '/authenticated/help'
     | '/authenticated/settings'
     | '/authenticated/student'
@@ -213,6 +213,7 @@ export interface FileRouteTypes {
     | '/authenticated/settings/bell'
     | '/authenticated/settings/home'
     | '/authenticated/settings/password'
+    | '/authenticated/settings/privacy-security'
     | '/authenticated/settings/profile'
     | '/authenticated/users/$userId'
   id:
@@ -224,7 +225,6 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/register'
     | '/auth/reset'
-    | '/authenticated/bell'
     | '/authenticated/help'
     | '/authenticated/settings'
     | '/authenticated/student'
@@ -232,6 +232,7 @@ export interface FileRouteTypes {
     | '/authenticated/settings/bell'
     | '/authenticated/settings/home'
     | '/authenticated/settings/password'
+    | '/authenticated/settings/privacy-security'
     | '/authenticated/settings/profile'
     | '/authenticated/users/$userId'
   fileRoutesById: FileRoutesById
@@ -293,13 +294,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthResetRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/authenticated/bell': {
-      id: '/authenticated/bell'
-      path: '/bell'
-      fullPath: '/authenticated/bell'
-      preLoaderRoute: typeof AuthenticatedBellRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/authenticated/help': {
       id: '/authenticated/help'
       path: '/help'
@@ -349,6 +343,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsPasswordRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
+    '/authenticated/settings/privacy-security': {
+      id: '/authenticated/settings/privacy-security'
+      path: '/privacy-security'
+      fullPath: '/authenticated/settings/privacy-security'
+      preLoaderRoute: typeof AuthenticatedSettingsPrivacySecurityRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
     '/authenticated/settings/profile': {
       id: '/authenticated/settings/profile'
       path: '/profile'
@@ -386,6 +387,7 @@ interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsBellRoute: typeof AuthenticatedSettingsBellRoute
   AuthenticatedSettingsHomeRoute: typeof AuthenticatedSettingsHomeRoute
   AuthenticatedSettingsPasswordRoute: typeof AuthenticatedSettingsPasswordRoute
+  AuthenticatedSettingsPrivacySecurityRoute: typeof AuthenticatedSettingsPrivacySecurityRoute
   AuthenticatedSettingsProfileRoute: typeof AuthenticatedSettingsProfileRoute
 }
 
@@ -393,6 +395,8 @@ const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
   AuthenticatedSettingsBellRoute: AuthenticatedSettingsBellRoute,
   AuthenticatedSettingsHomeRoute: AuthenticatedSettingsHomeRoute,
   AuthenticatedSettingsPasswordRoute: AuthenticatedSettingsPasswordRoute,
+  AuthenticatedSettingsPrivacySecurityRoute:
+    AuthenticatedSettingsPrivacySecurityRoute,
   AuthenticatedSettingsProfileRoute: AuthenticatedSettingsProfileRoute,
 }
 
@@ -402,7 +406,6 @@ const AuthenticatedSettingsRouteWithChildren =
   )
 
 interface AuthenticatedRouteChildren {
-  AuthenticatedBellRoute: typeof AuthenticatedBellRoute
   AuthenticatedHelpRoute: typeof AuthenticatedHelpRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
   AuthenticatedStudentRoute: typeof AuthenticatedStudentRoute
@@ -411,7 +414,6 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedBellRoute: AuthenticatedBellRoute,
   AuthenticatedHelpRoute: AuthenticatedHelpRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
   AuthenticatedStudentRoute: AuthenticatedStudentRoute,

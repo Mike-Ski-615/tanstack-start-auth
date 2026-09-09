@@ -1,6 +1,12 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { LoadingPage } from "#components/status/authenticated/teacher/loading";
+import { ErrorPage } from "#components/status/authenticated/teacher/error";
+import { NotFoundPage } from "#components/status/authenticated/teacher/not-found";
 
 export const Route = createFileRoute("/authenticated/teacher")({
+  pendingComponent: LoadingPage,
+  errorComponent: ErrorPage,
+  notFoundComponent: NotFoundPage,
   component: TeacherPage,
   beforeLoad: ({ context }) => {
     if (context.user.role !== "teacher") {

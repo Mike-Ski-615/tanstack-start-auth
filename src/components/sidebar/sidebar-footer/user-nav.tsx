@@ -38,6 +38,7 @@ import {
   MoonIcon,
   PaletteIcon,
   Settings,
+  Shield,
   SquareUserRound,
   SunIcon,
 } from "lucide-react";
@@ -177,6 +178,17 @@ export function UserNav({ user }: { user: User }) {
                         >
                           <SquareUserRound />
                           修改个人信息
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onSelect={() =>
+                            navigate({
+                              to: "/authenticated/settings/privacy-security",
+                            })
+                          }
+                        >
+                          <Shield />
+                          隐私和安全
                         </DropdownMenuItem>
                       </DropdownMenuGroup>
                     </DropdownMenuSubContent>

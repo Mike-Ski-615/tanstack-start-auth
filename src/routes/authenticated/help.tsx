@@ -1,8 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { HookSidebar } from "#components/help/hook-sidebar";
+import { LoadingPage } from "#components/status/authenticated/help/loading";
+import { ErrorPage } from "#components/status/authenticated/help/error";
+import { NotFoundPage } from "#components/status/authenticated/help/not-found";
 
 export const Route = createFileRoute("/authenticated/help")({
+  pendingComponent: LoadingPage,
+  errorComponent: ErrorPage,
+  notFoundComponent: NotFoundPage,
   component: HelpPage,
 });
 
@@ -57,7 +63,7 @@ function HelpPage() {
 
       <div
         ref={scrollRef}
-        className="min-h-0 min-w-0 overflow-y-auto mx-auto w-full sm:max-w-xl md:max-w-2xl xl:max-w-3xl pb-40 pt-20 scrollbar-none"
+        className="min-h-0 min-w-0 mx-auto w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-xl xl:max-w-2xl overflow-y-auto pt-20 pb-40 scrollbar-none"
       >
         <article className="typeset typeset-docs">
           <h1>帮助文档</h1>
@@ -67,8 +73,8 @@ function HelpPage() {
           </p>
           <blockquote>
             <p>
-              本帮助页的正文（标题层级、表格、代码、引用块等）由{" "}
-              <code>typeset.css</code>{" "}
+              本帮助页的正文（标题层级、表格、代码、引用块等）由
+              <code>typeset.css</code>
               排版；若样式缺失或错乱，通常是该样式层未加载。
             </p>
           </blockquote>
@@ -329,7 +335,7 @@ function HelpPage() {
               <p>
                 先用 <kbd>Ctrl</kbd> + <kbd>K</kbd> 打开命令面板探索——
                 它能以最小试错成本带你熟悉全部可导航区域与内置快捷键的入口；
-                记住 <kbd>Ctrl</kbd> + <kbd>B</kbd>（侧栏）与 <kbd>Ctrl</kbd> +{" "}
+                记住 <kbd>Ctrl</kbd> + <kbd>B</kbd>（侧栏）与 <kbd>Ctrl</kbd> +
                 <kbd>J</kbd>
                 （换肤）这两个高频动作能最快提升日常效率。
               </p>
@@ -343,7 +349,7 @@ function HelpPage() {
               <li>在弹出菜单中选择「登出」。</li>
             </ol>
             <p>
-              快捷方式：任意处按 <kbd>Ctrl</kbd> + <kbd>Shift</kbd> +{" "}
+              快捷方式：任意处按 <kbd>Ctrl</kbd> + <kbd>Shift</kbd> +
               <kbd>L</kbd>。登出会清除本机会话；公共或共享电脑离开前请务必登出。
             </p>
 
@@ -445,7 +451,7 @@ function HelpPage() {
           >
             <h2>致开发者</h2>
             <p>
-              本帮助文档由 <code>typeset.css</code>{" "}
+              本帮助文档由 <code>typeset.css</code>
               提供排版，以下是本页用到的主要类型， 便于后续扩充时对号入座。
             </p>
             <ul>
@@ -454,7 +460,7 @@ function HelpPage() {
                 自带等比字号与纵向节奏，页面应遵从层级而非随意选用。
               </li>
               <li>
-                <strong>代码</strong>：行内 <code>code</code>、代码块{" "}
+                <strong>代码</strong>：行内 <code>code</code>、代码块
                 <code>pre</code> 均有独立底色与字体。
               </li>
               <li>
@@ -462,7 +468,7 @@ function HelpPage() {
                 左侧带线条，适合作提示、隐私声明。
               </li>
               <li>
-                <strong>折叠</strong>：<code>details</code> +{" "}
+                <strong>折叠</strong>：<code>details</code> +
                 <code>summary</code>
                 适合收纳"常见问题"长条目；<code>mark</code> 可高亮重点。
               </li>
@@ -470,11 +476,11 @@ function HelpPage() {
                 <strong>键位</strong>：<code>kbd</code> 渲染为按键式样。
               </li>
               <li>
-                <strong>表格滚动</strong>：宽表外加 <code>.typeset-scroll</code>{" "}
+                <strong>表格滚动</strong>：宽表外加 <code>.typeset-scroll</code>
                 可横向滚动而不挤破版心。
               </li>
               <li>
-                <strong>局部逃生舱</strong>：在任意节点加{" "}
+                <strong>局部逃生舱</strong>：在任意节点加
                 <code>.not-typeset</code> 可跳过本文范式的容器排版。
               </li>
             </ul>
