@@ -15,7 +15,7 @@ function StudentPage() {
   const { user } = Route.useRouteContext();
 
   return (
-    <section>
+    <section className="p-4">
       <h1 className="text-2xl font-bold">学生</h1>
       <p className="mt-2">欢迎，{user.name ?? user.email}</p>
       <p className="text-sm text-muted-foreground">{user.email}</p>

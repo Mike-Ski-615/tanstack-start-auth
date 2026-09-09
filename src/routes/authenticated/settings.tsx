@@ -74,7 +74,8 @@ function SettingsLayout() {
                           <Link
                             to={item.to}
                             activeProps={{
-                              className: "bg-accent text-accent-foreground",
+                              className:
+                                "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
                             }}
                           >
                             <item.icon />

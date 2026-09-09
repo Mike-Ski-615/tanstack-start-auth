@@ -29,10 +29,7 @@ export function CommandPalette({ className }: { className?: string }) {
     <>
       <Button
         variant="secondary"
-        className={cn(
-          `bg-sidebar text-foreground justify-start sm:w-40 lg:w-56 xl:w-72 w-32`,
-          className,
-        )}
+        className={cn(`justify-start sm:w-40 lg:w-56 xl:w-72 w-32`, className)}
         onClick={() => setOpen(true)}
       >
         <Search />
