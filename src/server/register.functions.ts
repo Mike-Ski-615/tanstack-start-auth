@@ -1,8 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import {
-  getRequestIP,
-  setResponseHeader,
-} from "@tanstack/react-start/server";
+import { getRequestIP, setResponseHeader } from "@tanstack/react-start/server";
 import { db } from "#prisma/db";
 
 import { registerSchema } from "#schemas/auth";
@@ -28,48 +25,52 @@ export const register = createServerFn({
   .handler(async ({ data: { name, email, password } }) => {
     setResponseHeader("Cache-Control", "no-store");
 
-    // 速率限制：同一 IP 1 分钟最多 3 次注册
-    const ip = getRequestIP() ?? "unknown";
-    const { allowed, resetAt } = await rateLimit("register", ip);
-    if (!allowed) {
-      setResponseHeader(
-        "Retry-After",
-        String(Math.ceil((resetAt - Date.now()) / 1000)),
+    try {
+      // 速率限制：同一 IP 1 分钟最多 3 次注册
+      const ip = getRequestIP() ?? "unknown";
+      const { allowed, resetAt } = await rateLimit("register", ip);
+      if (!allowed) {
+        setResponseHeader(
+          "Retry-After",
+          String(Math.ceil((resetAt - Date.now()) / 1000)),
+        );
+        throw new Error("Too many requests, please try again later");
+      }
+
+      const existingUser = await db.orm.public.User.where({ email }).first();
+      if (existingUser) {
+        throw new Error("User already exists");
+      }
+
+      const passwordHash = await hashPassword(password);
+
+      const user = await db.orm.public.User.create({
+        email,
+        name,
+        passwordHash,
+      });
+
+      // 创建邮箱验证令牌 + 发邮件（事务外）
+      const verificationToken = await createVerificationToken(user.id);
+      await sendMail(
+        email,
+        "验证你的邮箱",
+        [
+          "请点击下面的链接验证你的邮箱（24 小时内有效）：",
+          "",
+          `${process.env.APP_URL}/auth/verify-email?token=${verificationToken}`,
+          "",
+          "如果你没有注册账号，可以安全地忽略这封邮件。",
+        ].join("\n"),
       );
-      throw new Error("Too many requests, please try again later");
+
+      return {
+        success: true,
+        user: { id: user.id, email: user.email, name: user.name },
+      };
+    } catch (error) {
+      console.error("[Register] Error:", error);
+      const message = error instanceof Error ? error.message : "Unknown error";
+      throw new Error(`Registration failed: ${message}`);
     }
-
-    const existingUser = await db.orm.public.User.where({ email }).first();
-
-    if (existingUser) {
-      throw new Error("User already exists");
-    }
-
-    const passwordHash = await hashPassword(password);
-
-    const user = await db.orm.public.User.create({
-      email,
-      name,
-      passwordHash,
-      // image / bio 使用数据库默认值
-    });
-
-    // 创建邮箱验证令牌 + 发邮件（事务外）
-    const verificationToken = await createVerificationToken(user.id);
-    await sendMail(
-      email,
-      "验证你的邮箱",
-      [
-        "请点击下面的链接验证你的邮箱（24 小时内有效）：",
-        "",
-        `${process.env.APP_URL}/auth/verify-email?token=${verificationToken}`,
-        "",
-        "如果你没有注册账号，可以安全地忽略这封邮件。",
-      ].join("\n"),
-    );
-
-    return {
-      success: true,
-      user: { id: user.id, email: user.email, name: user.name },
-    };
   });

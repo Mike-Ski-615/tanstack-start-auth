@@ -39,8 +39,9 @@ export function useRegisterMutation() {
       toast.success("注册成功，请查收验证邮件");
       navigate({ to: "/auth/check-email", search: { email: data.user.email } });
     },
-    onError: () => {
-      toast.error("注册失败，请检查信息后重试");
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : "注册失败，请检查信息后重试";
+      toast.error(message);
     },
   });
 }
