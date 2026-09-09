@@ -77,7 +77,7 @@ function SettingsLayout() {
                         <div className="flex min-w-0 flex-1 items-center gap-3">
                           {/* Avatar */}
                           <Avatar>
-                            <AvatarImage src={user.image} alt={user.name} />
+                            <AvatarImage src={user.image ?? undefined} alt={user.name} />
                             <AvatarFallback>
                               {user.name.charAt(0)}
                             </AvatarFallback>

@@ -10,12 +10,14 @@ import { emailOnlySchema, resetPasswordSchema } from "#schemas/auth";
 import { hashPassword } from "../lib/auth/password";
 import { sendMail } from "../lib/auth/mail";
 import {
-  createSession,
+  createAuthenticatedSession,
   createResetToken,
   consumeResetToken,
+  invalidateAllSessions,
 } from "#lib/auth/session-manager";
-import { setSessionCookie } from "#lib/auth/session";
+import { setSessionCookie, setDeviceCookie } from "#lib/auth/session";
 import { rateLimit } from "#lib/auth/rate-limiter";
+import { kickSession } from "#websocket/routes/ws";
 
 /**
  * 密码重置用例（DB 版）：重置令牌为一枚随机串 { userId, exp }，
@@ -34,7 +36,8 @@ export const requestPasswordResetFn = createServerFn({
     setResponseHeader("Cache-Control", "no-store");
 
     // 速率限制：同一 IP 1 分钟最多 3 次重置请求（防邮件轰炸）
-    const { allowed, resetAt } = await rateLimit("reset", getRequestIP() ?? "unknown");
+    const ip = getRequestIP() ?? "unknown";
+    const { allowed, resetAt } = await rateLimit("reset", ip);
     if (!allowed) {
       setResponseStatus(429);
       setResponseHeader(
@@ -65,7 +68,7 @@ export const requestPasswordResetFn = createServerFn({
   });
 
 /**
- * 重置密码：验签令牌 → 改密 → 创建新会话（自动登录）→ 撤销所有旧会话。
+ * 重置密码：验签令牌 → 改密 → 全局失效旧 Session → createAuthenticatedSession。
  */
 export const resetPasswordFn = createServerFn({
   method: "POST",
@@ -77,18 +80,27 @@ export const resetPasswordFn = createServerFn({
     const userId = await consumeResetToken(token);
     if (!userId) throw new Error("invalid_token");
 
+    // fail-closed：先失效所有旧 Session，再改密码
+    await invalidateAllSessions(userId);
+
     await db.orm.public.User.where({ id: userId }).update({
       passwordHash: await hashPassword(password),
     });
 
-    // 创建新会话：自动登录，同时撤销该用户所有旧会话
-    const sessionToken = await createSession({
+    // 创建新 Device + Session（自动登录）
+    const { token: sessionToken, deviceKey, oldSessionId } = await createAuthenticatedSession({
       userId,
       userAgent: getRequestHeader("user-agent"),
       ip: getRequestIP(),
     });
 
     setSessionCookie(sessionToken);
+    setDeviceCookie(deviceKey);
+
+    // 踢掉旧 Session 的 WebSocket 连接
+    if (oldSessionId) {
+      kickSession(oldSessionId as unknown as string);
+    }
 
     return { success: true };
   });

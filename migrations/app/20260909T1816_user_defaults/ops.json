@@ -1,0 +1,86 @@
+[
+  {
+    "id": "setDefault.User.image",
+    "label": "Set default on \"User\".\"image\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "image",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"image\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "image"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "set default on \"image\"",
+        "sql": "ALTER TABLE \"public\".\"User\" ALTER COLUMN \"image\" SET DEFAULT '/default-user.webp'"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"image\" has a default",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"column_default\" IS NOT NULL)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "image"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "setDefault.User.bio",
+    "label": "Set default on \"User\".\"bio\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "bio",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"bio\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "bio"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "set default on \"bio\"",
+        "sql": "ALTER TABLE \"public\".\"User\" ALTER COLUMN \"bio\" SET DEFAULT '这个人很懒,什么也没有留下'"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"bio\" has a default",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"column_default\" IS NOT NULL)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "bio"
+        ]
+      }
+    ]
+  }
+]

@@ -41,7 +41,7 @@ function SettingsProfilePage() {
   });
 
   const infoForm = useForm({
-    defaultValues: { name: user.name, bio: user.bio },
+    defaultValues: { name: user.name, bio: user.bio ?? "" },
     validators: { onSubmit: updateProfileSchema },
     onSubmit: ({ value }) => infoMutation.mutate(value),
   });

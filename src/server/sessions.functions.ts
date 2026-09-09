@@ -1,15 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
 import { setResponseHeader } from "@tanstack/react-start/server";
-import type { Char } from "@prisma/orm-postgres/target/codec-types";
-import { z } from "zod";
 import { db } from "#prisma/db";
 import { getCurrentUser } from "#lib/auth/guard";
-import { getSessionToken } from "#lib/auth/session";
-import { hashToken } from "#lib/auth/token";
+import { invalidateAllSessions } from "#lib/auth/session-manager";
+import { kickAllSessionsForUser } from "#websocket/routes/ws";
 
 /**
- * 当前用户的活跃会话（用于隐私与安全页展示）。
- * 标记当前会话，方便用户识别。
+ * 当前用户的活跃设备（用于隐私与安全页展示）。
+ *
+ * 单设备模型：一个用户最多一个 Device + 一个 Session。
+ * 简化展示，无需标记"当前"。
  */
 export const listSessionsFn = createServerFn({
   method: "GET",
@@ -17,70 +17,44 @@ export const listSessionsFn = createServerFn({
   setResponseHeader("Cache-Control", "no-store");
 
   const user = await getCurrentUser();
-  if (!user) return { sessions: [], currentTokenHash: null };
+  if (!user) return { device: null };
 
-  const now = new Date();
-  const sessions = await db.orm.public.Session.where({
+  const device = await db.orm.public.Device.where({
     userId: user.id as unknown as string,
-  }).select(
-    "id",
-    "tokenHash",
-    "userAgent",
-    "ip",
-    "createdAt",
-    "expiresAt",
-    "revokedAt",
-  ).all();
+  }).first();
 
-  const active = sessions
-    .filter((s) => !s.revokedAt && new Date(s.expiresAt).getTime() > now.getTime())
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    );
-
-  const currentToken = getSessionToken();
-  const currentTokenHash = currentToken ? hashToken(currentToken) : null;
+  if (!device) return { device: null };
 
   return {
-    sessions: active.map((s) => ({
-      id: s.id,
-      userAgent: s.userAgent,
-      ip: s.ip,
-      createdAt: s.createdAt,
-      expiresAt: s.expiresAt,
-      isCurrent: s.tokenHash === currentTokenHash,
-    })),
+    device: {
+      id: device.id,
+      name: device.name,
+      platform: device.platform,
+      userAgent: device.userAgent,
+      ip: device.ip,
+      lastSeenAt: device.lastSeenAt,
+      createdAt: device.createdAt,
+    },
   };
 });
 
-const revokeSchema = z.object({
-  sessionId: z.string().min(1),
-});
-
 /**
- * 撤销指定会话（只能撤销自己的）。
- * 撤销当前会话等于登出。
+ * 撤销当前用户全部会话（登出所有设备）。
+ * 实现：递增 sessionVersion → 所有 Session 全局失效。
  */
-export const revokeSessionFn = createServerFn({
+export const revokeAllSessionsFn = createServerFn({
   method: "POST",
-})
-  .validator(revokeSchema)
-  .handler(async ({ data: { sessionId } }) => {
-    setResponseHeader("Cache-Control", "no-store");
+}).handler(async () => {
+  setResponseHeader("Cache-Control", "no-store");
 
-    const user = await getCurrentUser();
-    if (!user) throw new Error("unauthorized");
+  const user = await getCurrentUser();
+  if (!user) throw new Error("unauthorized");
 
-    // 只能撤销自己的会话
-    const session = await db.orm.public.Session.where({ id: sessionId as Char<36> }).first();
-    if (!session || session.userId !== (user.id as unknown as string)) {
-      throw new Error("not_found");
-    }
+  // 递增 sessionVersion → 所有 Session 全局失效
+  await invalidateAllSessions(user.id);
 
-    await db.orm.public.Session.where({ id: sessionId as Char<36> }).update({
-      revokedAt: new Date().toISOString(),
-    });
+  // 踢掉该用户所有 WebSocket 连接
+  kickAllSessionsForUser(user.id as unknown as string);
 
-    return { success: true as const };
-  });
+  return { success: true as const };
+});

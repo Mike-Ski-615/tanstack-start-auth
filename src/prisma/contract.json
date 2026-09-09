@@ -4,6 +4,14 @@
   "target": "postgres",
   "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
   "roots": {
+    "Device": {
+      "model": "Device",
+      "namespace": "public"
+    },
+    "EmailVerificationToken": {
+      "model": "EmailVerificationToken",
+      "namespace": "public"
+    },
     "RateLimit": {
       "model": "RateLimit",
       "namespace": "public"
@@ -25,6 +33,27 @@
     "namespaces": {
       "public": {
         "enum": {
+          "DevicePlatform": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "web",
+                "value": "web"
+              },
+              {
+                "name": "android",
+                "value": "android"
+              },
+              {
+                "name": "ios",
+                "value": "ios"
+              },
+              {
+                "name": "desktop",
+                "value": "desktop"
+              }
+            ]
+          },
           "OnlineStatus": {
             "codecId": "pg/text@1",
             "members": [
@@ -53,6 +82,200 @@
           }
         },
         "models": {
+          "Device": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "deviceKey": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/char@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 36
+                  }
+                }
+              },
+              "ip": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "lastSeenAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "name": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "platform": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "DevicePlatform",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "userAgent": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "userId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "deviceKey": {
+                  "column": "deviceKey"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "ip": {
+                  "column": "ip"
+                },
+                "lastSeenAt": {
+                  "column": "lastSeenAt"
+                },
+                "name": {
+                  "column": "name"
+                },
+                "platform": {
+                  "column": "platform"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                },
+                "userAgent": {
+                  "column": "userAgent"
+                },
+                "userId": {
+                  "column": "userId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "Device"
+            }
+          },
+          "EmailVerificationToken": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "expiresAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/char@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 36
+                  }
+                }
+              },
+              "tokenHash": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "userId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "verifiedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "expiresAt": {
+                  "column": "expiresAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "tokenHash": {
+                  "column": "tokenHash"
+                },
+                "userId": {
+                  "column": "userId"
+                },
+                "verifiedAt": {
+                  "column": "verifiedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "EmailVerificationToken"
+            }
+          },
           "RateLimit": {
             "fields": {
               "count": {
@@ -187,6 +410,13 @@
                   "kind": "scalar"
                 }
               },
+              "deviceId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "expiresAt": {
                 "nullable": false,
                 "type": {
@@ -215,6 +445,13 @@
                 "nullable": true,
                 "type": {
                   "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "sessionVersion": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
                   "kind": "scalar"
                 }
               },
@@ -253,6 +490,9 @@
                 "createdAt": {
                   "column": "createdAt"
                 },
+                "deviceId": {
+                  "column": "deviceId"
+                },
                 "expiresAt": {
                   "column": "expiresAt"
                 },
@@ -264,6 +504,9 @@
                 },
                 "revokedAt": {
                   "column": "revokedAt"
+                },
+                "sessionVersion": {
+                  "column": "sessionVersion"
                 },
                 "tokenHash": {
                   "column": "tokenHash"
@@ -285,16 +528,9 @@
           "User": {
             "fields": {
               "bio": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "connectedAt": {
                 "nullable": true,
                 "type": {
-                  "codecId": "pg/timestamptz-string@1",
+                  "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               },
@@ -305,17 +541,17 @@
                   "kind": "scalar"
                 }
               },
-              "disconnectedAt": {
-                "nullable": true,
-                "type": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "kind": "scalar"
-                }
-              },
               "email": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "emailVerifiedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
                   "kind": "scalar"
                 }
               },
@@ -330,7 +566,7 @@
                 }
               },
               "image": {
-                "nullable": false,
+                "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
@@ -363,6 +599,13 @@
                   "plane": "domain"
                 }
               },
+              "sessionVersion": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
               "status": {
                 "nullable": false,
                 "type": {
@@ -390,17 +633,14 @@
                 "bio": {
                   "column": "bio"
                 },
-                "connectedAt": {
-                  "column": "connectedAt"
-                },
                 "createdAt": {
                   "column": "createdAt"
                 },
-                "disconnectedAt": {
-                  "column": "disconnectedAt"
-                },
                 "email": {
                   "column": "email"
+                },
+                "emailVerifiedAt": {
+                  "column": "emailVerifiedAt"
                 },
                 "id": {
                   "column": "id"
@@ -416,6 +656,9 @@
                 },
                 "role": {
                   "column": "role"
+                },
+                "sessionVersion": {
+                  "column": "sessionVersion"
                 },
                 "status": {
                   "column": "status"
@@ -437,6 +680,154 @@
       "public": {
         "entries": {
           "table": {
+            "Device": {
+              "checks": [
+                {
+                  "expression": "\"platform\" IN ('web', 'android', 'ios', 'desktop')",
+                  "name": "Device_platform_check_0a8795aa",
+                  "prefix": "Device_platform_check"
+                }
+              ],
+              "columns": {
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "deviceKey": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "sql/char@1",
+                  "nativeType": "character",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 36
+                  }
+                },
+                "ip": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "lastSeenAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "name": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "platform": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "DevicePlatform",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "userAgent": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "userId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "userId"
+                  ]
+                },
+                {
+                  "columns": [
+                    "deviceKey"
+                  ]
+                }
+              ]
+            },
+            "EmailVerificationToken": {
+              "columns": {
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "expiresAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "sql/char@1",
+                  "nativeType": "character",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 36
+                  }
+                },
+                "tokenHash": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "userId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "verifiedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "tokenHash"
+                  ]
+                }
+              ]
+            },
             "RateLimit": {
               "columns": {
                 "count": {
@@ -536,6 +927,11 @@
                   "nativeType": "timestamptz",
                   "nullable": false
                 },
+                "deviceId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
                 "expiresAt": {
                   "codecId": "pg/timestamptz-string@1",
                   "nativeType": "timestamptz",
@@ -558,6 +954,11 @@
                   "codecId": "pg/timestamptz-string@1",
                   "nativeType": "timestamptz",
                   "nullable": true
+                },
+                "sessionVersion": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
                 },
                 "tokenHash": {
                   "codecId": "pg/text@1",
@@ -590,6 +991,16 @@
               "uniques": [
                 {
                   "columns": [
+                    "userId"
+                  ]
+                },
+                {
+                  "columns": [
+                    "deviceId"
+                  ]
+                },
+                {
+                  "columns": [
                     "tokenHash"
                   ]
                 }
@@ -611,12 +1022,11 @@
               "columns": {
                 "bio": {
                   "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "这个人很懒,什么也没有留下"
+                  },
                   "nativeType": "text",
-                  "nullable": false
-                },
-                "connectedAt": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "nativeType": "timestamptz",
                   "nullable": true
                 },
                 "createdAt": {
@@ -628,15 +1038,15 @@
                   "nativeType": "timestamptz",
                   "nullable": false
                 },
-                "disconnectedAt": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "nativeType": "timestamptz",
-                  "nullable": true
-                },
                 "email": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": false
+                },
+                "emailVerifiedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
                 },
                 "id": {
                   "codecId": "sql/char@1",
@@ -648,8 +1058,12 @@
                 },
                 "image": {
                   "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "/default-user.webp"
+                  },
                   "nativeType": "text",
-                  "nullable": false
+                  "nullable": true
                 },
                 "name": {
                   "codecId": "pg/text@1",
@@ -675,6 +1089,15 @@
                     "namespaceId": "public",
                     "plane": "storage"
                   }
+                },
+                "sessionVersion": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
                 },
                 "status": {
                   "codecId": "pg/text@1",
@@ -714,6 +1137,15 @@
             }
           },
           "valueSet": {
+            "DevicePlatform": {
+              "kind": "valueSet",
+              "values": [
+                "web",
+                "android",
+                "ios",
+                "desktop"
+              ]
+            },
             "OnlineStatus": {
               "kind": "valueSet",
               "values": [
@@ -734,12 +1166,49 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "edb8580e82733c882697d218b5ac1b29ecae2c2dcd10285b51a32e2b4f649132"
+    "storageHash": "5d314dcfb0caf42e526949a2354cc8453903bae73705cc0cc612aedb9b4812b8"
   },
   "execution": {
-    "executionHash": "b4adf23d4b9d865dc21a3e09490180f34a47492db1ba9a5bdf8ba94875adb0f1",
+    "executionHash": "36f197e5006048d2e21aae611ce92a6878be7fe42d75df7b1254cc6a07965f81",
     "mutations": {
       "defaults": [
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "Device"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "updatedAt",
+            "namespace": "public",
+            "table": "Device"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "EmailVerificationToken"
+          }
+        },
         {
           "onCreate": {
             "id": "uuidv7",

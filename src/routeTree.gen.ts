@@ -12,10 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/authenticated'
+import { Route as AuthCheckEmailRouteImport } from './routes/auth/check-email'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-password'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthResetRouteImport } from './routes/auth/reset'
+import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
 import { Route as AuthenticatedHelpRouteImport } from './routes/authenticated/help'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/authenticated/settings'
 import { Route as AuthenticatedStudentRouteImport } from './routes/authenticated/student'
@@ -42,6 +44,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
   path: '/authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthCheckEmailRoute = AuthCheckEmailRouteImport.update({
+  id: '/check-email',
+  path: '/check-email',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
@@ -60,6 +67,11 @@ const AuthRegisterRoute = AuthRegisterRouteImport.update({
 const AuthResetRoute = AuthResetRouteImport.update({
   id: '/reset',
   path: '/reset',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthVerifyEmailRoute = AuthVerifyEmailRouteImport.update({
+  id: '/verify-email',
+  path: '/verify-email',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthenticatedHelpRoute = AuthenticatedHelpRouteImport.update({
@@ -123,10 +135,12 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/authenticated': typeof AuthenticatedRouteWithChildren
+  '/auth/check-email': typeof AuthCheckEmailRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset': typeof AuthResetRoute
+  '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/authenticated/help': typeof AuthenticatedHelpRoute
   '/authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/authenticated/student': typeof AuthenticatedStudentRoute
@@ -142,10 +156,12 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/authenticated': typeof AuthenticatedRouteWithChildren
+  '/auth/check-email': typeof AuthCheckEmailRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset': typeof AuthResetRoute
+  '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/authenticated/help': typeof AuthenticatedHelpRoute
   '/authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/authenticated/student': typeof AuthenticatedStudentRoute
@@ -162,10 +178,12 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/authenticated': typeof AuthenticatedRouteWithChildren
+  '/auth/check-email': typeof AuthCheckEmailRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset': typeof AuthResetRoute
+  '/auth/verify-email': typeof AuthVerifyEmailRoute
   '/authenticated/help': typeof AuthenticatedHelpRoute
   '/authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/authenticated/student': typeof AuthenticatedStudentRoute
@@ -183,10 +201,12 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/authenticated'
+    | '/auth/check-email'
     | '/auth/forgot-password'
     | '/auth/login'
     | '/auth/register'
     | '/auth/reset'
+    | '/auth/verify-email'
     | '/authenticated/help'
     | '/authenticated/settings'
     | '/authenticated/student'
@@ -202,10 +222,12 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/authenticated'
+    | '/auth/check-email'
     | '/auth/forgot-password'
     | '/auth/login'
     | '/auth/register'
     | '/auth/reset'
+    | '/auth/verify-email'
     | '/authenticated/help'
     | '/authenticated/settings'
     | '/authenticated/student'
@@ -221,10 +243,12 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/authenticated'
+    | '/auth/check-email'
     | '/auth/forgot-password'
     | '/auth/login'
     | '/auth/register'
     | '/auth/reset'
+    | '/auth/verify-email'
     | '/authenticated/help'
     | '/authenticated/settings'
     | '/authenticated/student'
@@ -266,6 +290,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/check-email': {
+      id: '/auth/check-email'
+      path: '/check-email'
+      fullPath: '/auth/check-email'
+      preLoaderRoute: typeof AuthCheckEmailRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/auth/forgot-password': {
       id: '/auth/forgot-password'
       path: '/forgot-password'
@@ -292,6 +323,13 @@ declare module '@tanstack/react-router' {
       path: '/reset'
       fullPath: '/auth/reset'
       preLoaderRoute: typeof AuthResetRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/auth/verify-email': {
+      id: '/auth/verify-email'
+      path: '/verify-email'
+      fullPath: '/auth/verify-email'
+      preLoaderRoute: typeof AuthVerifyEmailRouteImport
       parentRoute: typeof AuthRoute
     }
     '/authenticated/help': {
@@ -368,17 +406,21 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthRouteChildren {
+  AuthCheckEmailRoute: typeof AuthCheckEmailRoute
   AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthRegisterRoute: typeof AuthRegisterRoute
   AuthResetRoute: typeof AuthResetRoute
+  AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
+  AuthCheckEmailRoute: AuthCheckEmailRoute,
   AuthForgotPasswordRoute: AuthForgotPasswordRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthRegisterRoute: AuthRegisterRoute,
   AuthResetRoute: AuthResetRoute,
+  AuthVerifyEmailRoute: AuthVerifyEmailRoute,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)

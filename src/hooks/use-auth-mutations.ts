@@ -14,6 +14,7 @@ import {
   resetPasswordFn,
 } from "#server/reset.functions";
 
+
 export function useLoginMutation() {
   const navigate = useNavigate();
   return useMutation({
@@ -33,16 +34,18 @@ export function useRegisterMutation() {
   const navigate = useNavigate();
   return useMutation({
     mutationFn: (data: RegisterValues) => register({ data }),
-    onSuccess: () => {
-      // 注册即登录：会话 cookie 已随响应下发，直接进入角色首页
-      toast.success("注册成功，欢迎加入");
-      navigate({ to: "/authenticated" });
+    onSuccess: (data) => {
+      // 注册 ≠ 登录：提示用户查收邮件
+      toast.success("注册成功，请查收验证邮件");
+      navigate({ to: "/auth/check-email", search: { email: data.user.email } });
     },
     onError: () => {
       toast.error("注册失败，请检查信息后重试");
     },
   });
 }
+
+
 
 export function useRequestPasswordResetMutation() {
   return useMutation({

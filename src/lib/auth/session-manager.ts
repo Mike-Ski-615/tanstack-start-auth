@@ -1,11 +1,16 @@
+/**
+ * 会话管理：两个核心原语。
+ *
+ * - createAuthenticatedSession(): 创建认证会话（Device + Session）
+ * - invalidateAllSessions(): 全局失效所有会话（递增 sessionVersion）
+ *
+ * 所有认证操作（登录/注册/改密/重置）都基于这两个原语组合。
+ */
+
 import type { Char } from "@prisma/orm-postgres/target/codec-types";
 import { db } from "#prisma/db";
 import { generateToken, hashToken } from "./token";
-
-/** 将 Char<36> 转为 plain string 供 text 字段使用。 */
-function plain(id: Char<36>): string {
-  return id as unknown as string;
-}
+import { ensureDevice } from "./device";
 
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 天
 const RESET_TOKEN_TTL_MS = 15 * 60 * 1000; // 15 分钟
@@ -13,7 +18,9 @@ const RESET_TOKEN_TTL_MS = 15 * 60 * 1000; // 15 分钟
 export type Session = {
   id: Char<36>;
   userId: string;
+  deviceId: string;
   tokenHash: string;
+  sessionVersion: number;
   userAgent: string | null;
   ip: string | null;
   createdAt: string;
@@ -31,48 +38,118 @@ export type ResetToken = {
   createdAt: string;
 };
 
-/** 创建会话：生成随机令牌 → 存哈希 → 返回原始令牌（存 cookie）。自动撤销旧会话。 */
-export async function createSession(params: {
+// ============================================================
+// 核心原语 1：创建认证会话
+// ============================================================
+
+/**
+ * 创建认证会话：确保 Device → 删除旧 Session → 创建新 Session。
+ *
+ * 单设备保证：Device.userId UNIQUE → 一用户一设备。
+ *
+ * 职责边界：
+ * - ensureDevice() 只管 Device
+ * - createAuthenticatedSession() 只管 Session
+ *
+ * @returns { token, deviceKey, oldSessionId } 原始令牌 + deviceKey + 旧 sessionId（用于 kick WS）
+ */
+export async function createAuthenticatedSession(params: {
   userId: Char<36>;
+  deviceKey?: string;
   userAgent?: string | null;
   ip?: string | null;
-}): Promise<string> {
-  const { userId, userAgent = null, ip = null } = params;
+}): Promise<{ token: string; deviceKey: string; oldSessionId: Char<36> | null }> {
+  const { userId, deviceKey, userAgent = null, ip = null } = params;
 
-  // 单设备：撤销该用户所有旧会话
-  await db.orm.public.Session.where({ userId }).update({
-    revokedAt: new Date().toISOString(),
+  // 1. 确保 Device（单设备冲突时自动替换，不管 Session）
+  const { device, deviceKey: finalDeviceKey } = await ensureDevice({
+    userId,
+    existingDeviceKey: deviceKey,
+    userAgent,
+    ip,
   });
 
+  // 2. 查找旧 Session（用于 kick WS）
+  const oldSession = await db.orm.public.Session.where({ userId: userId as unknown as string }).first();
+  const oldSessionId = oldSession?.id as Char<36> | null;
+
+  // 3. 删除旧 Session
+  await db.orm.public.Session.where({ userId: userId as unknown as string }).delete();
+
+  // 4. 读取当前 sessionVersion
+  const user = await db.orm.public.User.where({ id: userId }).first();
+  const sessionVersion = user?.sessionVersion ?? 0;
+
+  // 5. 创建新 Session
   const rawToken = generateToken();
   const tokenHash = hashToken(rawToken);
   const expiresAt = new Date(Date.now() + SESSION_TTL_MS).toISOString();
 
   await db.orm.public.Session.create({
-    userId: plain(userId),
+    userId: userId as unknown as string,
+    deviceId: device.id as unknown as string,
     tokenHash,
+    sessionVersion,
     userAgent,
     ip,
     expiresAt,
   });
 
-  return rawToken;
+  return { token: rawToken, deviceKey: finalDeviceKey, oldSessionId };
 }
 
-/** 校验会话令牌：查哈希 → 未过期 → 未撤销 → 返回会话。 */
-export async function validateSession(
-  rawToken: string,
-): Promise<Session | null> {
+// ============================================================
+// 核心原语 2：全局失效所有会话
+// ============================================================
+
+/**
+ * 递增 User.sessionVersion → 所有旧 Session 全局失效。
+ * 用于改密、撤销全部会话。
+ */
+export async function invalidateAllSessions(userId: Char<36>): Promise<void> {
+  // sessionVersion 递增 → 所有旧 Session 全局失效。
+  //
+  // 注意：Prisma 8 ORM 当前不暴露 expression-based update API，
+  // 这里采用 read-modify-write。对于认证场景（改密、撤销全部），
+  // 并发概率极低，且即使丢失一次递增，后果只是多失效一次（无害）。
+  //
+  // TODO: Prisma 8 正式支持 expression update 后，改为：
+  //   UPDATE "User" SET "sessionVersion" = "sessionVersion" + 1 WHERE id = ?
+  const user = await db.orm.public.User.where({ id: userId }).select("sessionVersion").first();
+  if (!user) return;
+
+  await db.orm.public.User.where({ id: userId }).update({
+    sessionVersion: user.sessionVersion + 1,
+  });
+}
+
+// ============================================================
+// 会话校验
+// ============================================================
+
+/**
+ * 校验会话令牌：
+ * 1. 查哈希 → 未过期 → 未撤销
+ * 2. 检查 sessionVersion 是否匹配 User.sessionVersion
+ */
+export async function validateSession(rawToken: string): Promise<Session | null> {
   const tokenHash = hashToken(rawToken);
 
   const session = await db.orm.public.Session.where({ tokenHash }).first();
-
   if (!session) return null;
   if (session.revokedAt) return null;
   if (new Date(session.expiresAt).getTime() < Date.now()) return null;
 
+  // sessionVersion 校验
+  const user = await db.orm.public.User.where({ id: session.userId as Char<36> }).first();
+  if (!user || user.sessionVersion !== session.sessionVersion) return null;
+
   return session;
 }
+
+// ============================================================
+// 撤销
+// ============================================================
 
 /** 撤销指定令牌对应的会话。 */
 export async function revokeSession(rawToken: string): Promise<void> {
@@ -82,69 +159,23 @@ export async function revokeSession(rawToken: string): Promise<void> {
   });
 }
 
-/** 撤销该用户所有会话（登出全部设备）。 */
-export async function revokeAllSessions(userId: Char<36>): Promise<void> {
-  await db.orm.public.Session.where({ userId }).update({
-    revokedAt: new Date().toISOString(),
-  });
-}
-
-/** 撤销该用户除当前令牌外的所有会话（改密时保留当前）。 */
-export async function revokeOtherSessions(
-  userId: Char<36>,
-  currentRawToken: string,
-): Promise<void> {
-  const currentHash = hashToken(currentRawToken);
-  const sessions = await db.orm.public.Session.where({ userId }).select(
-    "id",
-    "tokenHash",
-    "revokedAt",
-  ).all();
-  for (const s of sessions) {
-    if (s.tokenHash !== currentHash && !s.revokedAt) {
-      await db.orm.public.Session.where({ id: s.id }).update({
-        revokedAt: new Date().toISOString(),
-      });
-    }
-  }
-}
-
-/** 列出该用户所有未撤销、未过期的活跃会话。 */
-export async function listActiveSessions(
-  userId: Char<36>,
-): Promise<Session[]> {
-  const now = new Date();
-  const sessions = await db.orm.public.Session.where({ userId }).select(
-    "id",
-    "userId",
-    "tokenHash",
-    "userAgent",
-    "ip",
-    "createdAt",
-    "updatedAt",
-    "expiresAt",
-    "revokedAt",
-  ).all();
-
-  return sessions
-    .filter((s) => !s.revokedAt && new Date(s.expiresAt).getTime() > now.getTime())
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-}
+// ============================================================
+// 清理
+// ============================================================
 
 /** 清理过期会话（定时任务或手动调用）。 */
 export async function purgeExpiredSessions(): Promise<number> {
-  const now = new Date();
-  const all = await db.orm.public.Session.where({}).select("id", "expiresAt").all();
-  const toDelete = all.filter(
-    (s) => new Date(s.expiresAt).getTime() < now.getTime(),
-  );
-
-  for (const s of toDelete) {
-    await db.orm.public.Session.where({ id: s.id }).delete();
-  }
-
-  return toDelete.length;
+  const now = new Date().toISOString();
+  // DB-side 条件删除，避免 O(N) 读取 + JS 过滤
+  const deleted = await db.orm.public.Session.where(
+    (s) => s.expiresAt.lt(now),
+  ).deleteAndCount();
+  return deleted;
 }
+
+// ============================================================
+// 重置令牌
+// ============================================================
 
 /** 创建密码重置令牌。 */
 export async function createResetToken(userId: Char<36>): Promise<string> {
@@ -153,7 +184,7 @@ export async function createResetToken(userId: Char<36>): Promise<string> {
   const expiresAt = new Date(Date.now() + RESET_TOKEN_TTL_MS).toISOString();
 
   await db.orm.public.ResetToken.create({
-    userId: plain(userId),
+    userId: userId as unknown as string,
     tokenHash,
     expiresAt,
   });
@@ -161,21 +192,23 @@ export async function createResetToken(userId: Char<36>): Promise<string> {
   return rawToken;
 }
 
-/** 校验并使用重置令牌：存在 → 未过期 → 未使用 → 标记已使用 → 返回 userId。 */
-export async function consumeResetToken(
-  rawToken: string,
-): Promise<Char<36> | null> {
+/**
+ * 校验并使用重置令牌：存在 → 未过期 → 未使用 → 标记已使用 → 返回 userId。
+ *
+ * 原子消费：WHERE 条件包含 tokenHash + usedAt IS NULL + expiresAt > now，
+ * 单条 SQL 完成「检查 + 更新」，杜绝并发双消费。
+ * 返回 null 表示令牌不存在 / 已使用 / 已过期。
+ */
+export async function consumeResetToken(rawToken: string): Promise<Char<36> | null> {
   const tokenHash = hashToken(rawToken);
+  const now = new Date();
 
-  const token = await db.orm.public.ResetToken.where({ tokenHash }).first();
+  const token = await db.orm.public.ResetToken.where({ tokenHash })
+    .where((t) => t.usedAt.isNull())
+    .where((t) => t.expiresAt.gt(now.toISOString()))
+    .update({
+      usedAt: now.toISOString(),
+    });
 
-  if (!token) return null;
-  if (token.usedAt) return null;
-  if (new Date(token.expiresAt).getTime() < Date.now()) return null;
-
-  await db.orm.public.ResetToken.where({ id: token.id }).update({
-    usedAt: new Date().toISOString(),
-  });
-
-  return token.userId as Char<36>;
+  return (token?.userId as Char<36>) ?? null;
 }

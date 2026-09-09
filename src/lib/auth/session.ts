@@ -4,6 +4,9 @@ import type { CookieSerializeOptions } from "cookie-es";
 /** cookie 名：只存不透明会话令牌。 */
 export const SESSION_COOKIE_NAME = "session-token";
 
+/** cookie 名：设备标识（deviceKey）。 */
+export const DEVICE_COOKIE_NAME = "device_key";
+
 /** 7 天（秒）。 */
 const SESSION_MAX_AGE = 7 * 24 * 60 * 60;
 
@@ -28,4 +31,19 @@ export function getSessionToken(): string | undefined {
 /** 清除会话 cookie。 */
 export function clearSessionCookie(): void {
   deleteCookie(SESSION_COOKIE_NAME, { path: "/" });
+}
+
+/** 设置设备 cookie（存 deviceKey）。 */
+export function setDeviceCookie(deviceKey: string): void {
+  setCookie(DEVICE_COOKIE_NAME, deviceKey, COOKIE_OPTIONS);
+}
+
+/** 读取 deviceKey，不存在返回 undefined。 */
+export function getDeviceKey(): string | undefined {
+  return getCookie(DEVICE_COOKIE_NAME);
+}
+
+/** 清除设备 cookie。 */
+export function clearDeviceCookie(): void {
+  deleteCookie(DEVICE_COOKIE_NAME, { path: "/" });
 }

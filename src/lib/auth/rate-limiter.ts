@@ -14,7 +14,9 @@ const WINDOW_MS = 60_000; // 1 分钟
 
 const LIMITS = {
   login: 5,
+  register: 3,
   reset: 3,
+  resend: 3,
 } as const;
 
 type LimitKey = keyof typeof LIMITS;
@@ -55,17 +57,8 @@ export async function rateLimit(
 
   // 窗口过期或不存在：重置计数
   const upserted = await db.orm.public.RateLimit.upsert({
-    create: {
-      key,
-      count: 1,
-      windowStart: now.toISOString(),
-      expiresAt: expiresAt.toISOString(),
-    },
-    update: {
-      count: 1,
-      windowStart: now.toISOString(),
-      expiresAt: expiresAt.toISOString(),
-    },
+    create: { key, count: 1, windowStart: now.toISOString(), expiresAt: expiresAt.toISOString() },
+    update: { count: 1, windowStart: now.toISOString(), expiresAt: expiresAt.toISOString() },
   });
   return {
     allowed: true,
@@ -76,15 +69,9 @@ export async function rateLimit(
 
 /** 清理过期行（可定时调用或懒删除）。 */
 export async function purgeExpiredRateLimit(): Promise<void> {
-  const expired = await db.orm.public.RateLimit.where({}).select(
-    "key",
-    "expiresAt",
-  ).all();
-  const toDelete = expired.filter(
-    (r: { key: string; expiresAt: string }) =>
-      new Date(r.expiresAt).getTime() < Date.now(),
-  );
-  for (const r of toDelete) {
-    await db.orm.public.RateLimit.where({ key: r.key }).delete();
-  }
+  const now = new Date().toISOString();
+  // DB-side 条件删除
+  await db.orm.public.RateLimit.where(
+    (r) => r.expiresAt.lt(now),
+  ).deleteAndCount();
 }

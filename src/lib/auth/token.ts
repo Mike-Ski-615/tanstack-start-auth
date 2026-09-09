@@ -9,3 +9,8 @@ export function generateToken(): string {
 export function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
+
+/** 生成 256-bit 设备标识，base64url 编码后存 cookie。 */
+export function generateDeviceKey(): string {
+  return randomBytes(32).toString("base64url");
+}

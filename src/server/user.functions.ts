@@ -15,13 +15,12 @@ export type User = {
   id: Char<36>;
   email: string;
   name: string;
-  image: string;
-  bio: string;
+  image: string | null;
+  bio: string | null;
   role: "teacher" | "student";
   createdAt: string;
   status: "online" | "offline";
-  connectedAt: string | null;
-  disconnectedAt: string | null;
+  sessionVersion: number;
 };
 
 /** 公开字段列表，getUserById 用它来投影。 */
@@ -34,8 +33,7 @@ const PUBLIC_COLUMNS = [
   "role",
   "createdAt",
   "status",
-  "connectedAt",
-  "disconnectedAt",
+  "sessionVersion",
 ] as const;
 
 /**

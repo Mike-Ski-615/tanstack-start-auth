@@ -32,10 +32,7 @@ export function UserView({ user }: { user: User }) {
               {user.email}
             </p>
 
-            <p
-              className="mt-0.5 text-xs text-muted-foreground"
-              title={`上线 ${user.connectedAt ? new Date(user.connectedAt).toLocaleString() : "—"} · 下线 ${user.disconnectedAt ? new Date(user.disconnectedAt).toLocaleString() : "—"}`}
-            >
+            <p className="mt-0.5 text-xs text-muted-foreground">
               {formatPresence(user)}
             </p>
           </div>

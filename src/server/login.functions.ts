@@ -1,3 +1,7 @@
+// Dummy Argon2 hash 用于用户不存在时的恒定时间校验，防止 timing attack 枚举邮箱
+const DUMMY_PASSWORD_HASH =
+  "$argon2id$v=19$m=65536,t=3,p=4$dummy$dummy";
+
 import { createServerFn } from "@tanstack/react-start";
 import {
   getRequestHeader,
@@ -8,15 +12,16 @@ import {
 import { db } from "#prisma/db";
 import { loginSchema } from "#schemas/auth";
 import { verifyPassword } from "#lib/auth/password";
-import { createSession } from "#lib/auth/session-manager";
-import { setSessionCookie } from "#lib/auth/session";
+import { createAuthenticatedSession } from "#lib/auth/session-manager";
+import { setSessionCookie, setDeviceCookie, getDeviceKey } from "#lib/auth/session";
 import { rateLimit } from "#lib/auth/rate-limiter";
+import { kickSession } from "#websocket/routes/ws";
 
 /**
- * 登录用例：校验凭据 → 创建会话 → 设 cookie → 返回成功。
+ * 登录用例：校验凭据 → createAuthenticatedSession → 设 cookie。
  *
  * 凭据失败一律 throw（用户不存在与密码错误抛同一文案），防账号枚举；
- * createSession 内部自动撤销该用户所有旧会话，保证单设备在线。
+ * createAuthenticatedSession 内部自动处理单设备冲突。
  */
 export const login = createServerFn({
   method: "POST",
@@ -26,7 +31,8 @@ export const login = createServerFn({
     setResponseHeader("Cache-Control", "no-store");
 
     // 速率限制：同一邮箱 + IP 组合 1 分钟最多 5 次
-    const { allowed, resetAt } = await rateLimit("login", `${email}:${getRequestIP() ?? "unknown"}`);
+    const ip = getRequestIP() ?? "unknown";
+    const { allowed, resetAt } = await rateLimit("login", `${email}:${ip}`);
     if (!allowed) {
       setResponseStatus(429);
       setResponseHeader(
@@ -38,20 +44,31 @@ export const login = createServerFn({
 
     const user = await db.orm.public.User.where({ email }).first();
 
-    const valid = user && (await verifyPassword(user.passwordHash, password));
+    // 防枚举：即使用户不存在也执行 Argon2 verify，消除 timing leak
+    const passwordHash = user?.passwordHash ?? DUMMY_PASSWORD_HASH;
+    const valid = await verifyPassword(passwordHash, password);
 
-    // 防枚举：用户不存在与密码错误抛出同一文案，客户端只显示笼统提示
-    if (!valid) {
+    if (!user || !valid) {
       throw new Error("Invalid email or password");
     }
 
-    const token = await createSession({
+    // 读取 cookie 中的 deviceKey（同设备复用）
+    const existingDeviceKey = getDeviceKey();
+
+    const { token, deviceKey, oldSessionId } = await createAuthenticatedSession({
       userId: user.id,
+      deviceKey: existingDeviceKey,
       userAgent: getRequestHeader("user-agent"),
       ip: getRequestIP(),
     });
 
     setSessionCookie(token);
+    setDeviceCookie(deviceKey);
+
+    // 踢掉旧 Session 的 WebSocket 连接（单设备登录）
+    if (oldSessionId) {
+      kickSession(oldSessionId as unknown as string);
+    }
 
     return { success: true };
   });

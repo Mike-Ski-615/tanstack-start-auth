@@ -18,7 +18,8 @@
       "#server/*": ["./src/server/*.ts"],
       "#schemas/*": ["./src/schemas/*.ts"],
       "#provider/*": ["./src/provider/*"],
-      "#components/*": ["./src/components/*.tsx"]
+      "#components/*": ["./src/components/*.tsx"],
+      "#websocket/*": ["./src/websocket/*.ts"]
     },
     "resolvePackageJsonImports": true,
     "resolveJsonModule": true
