@@ -1,0 +1,83 @@
+[
+  {
+    "id": "table.RateLimit",
+    "label": "Create table \"RateLimit\"",
+    "summary": "Creates table \"RateLimit\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "RateLimit"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"RateLimit\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"RateLimit\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"RateLimit\"",
+        "sql": "CREATE TABLE \"public\".\"RateLimit\" (\n  \"key\" text NOT NULL,\n  \"count\" int4 NOT NULL,\n  \"windowStart\" timestamptz NOT NULL,\n  \"expiresAt\" timestamptz NOT NULL\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"RateLimit\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"RateLimit\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.RateLimit.RateLimit_key_key",
+    "label": "Add unique constraint on \"RateLimit\" (key)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "RateLimit_key_key",
+        "table": "RateLimit"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"RateLimit_key_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "RateLimit_key_key",
+          "public",
+          "\"public\".\"RateLimit\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"RateLimit_key_key\"",
+        "sql": "ALTER TABLE \"public\".\"RateLimit\" ADD CONSTRAINT \"RateLimit_key_key\" UNIQUE (\"key\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"RateLimit_key_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "RateLimit_key_key",
+          "public",
+          "\"public\".\"RateLimit\""
+        ]
+      }
+    ]
+  }
+]

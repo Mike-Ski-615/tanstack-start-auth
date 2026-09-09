@@ -3,7 +3,7 @@ import { setResponseHeader } from "@tanstack/react-start/server";
 import type { Char } from "@prisma/orm-postgres/target/codec-types";
 import { z } from "zod";
 import { db } from "#prisma/db";
-import { useAppSession } from "#lib/auth/session";
+import { getCurrentUser } from "#lib/auth/guard";
 
 /**
  * 当前登录用户的唯一公开形态：投影发生在源头，passwordHash 不出本模块。
@@ -24,7 +24,7 @@ export type User = {
   disconnectedAt: string | null;
 };
 
-/** 公开字段列表，getUserFn 与 getUserById 共用同一投影。 */
+/** 公开字段列表，getUserById 用它来投影。 */
 const PUBLIC_COLUMNS = [
   "id",
   "email",
@@ -38,17 +38,11 @@ const PUBLIC_COLUMNS = [
   "disconnectedAt",
 ] as const;
 
-async function loadPublicUser(userId: Char<36>) {
-  return db.orm.public.User.where({ id: userId })
-    .select(...PUBLIC_COLUMNS)
-    .first();
-}
-
 /**
- * 当前登录用户（文档模式）：从会话读 userId → 查库 → 返回公开形态。
+ * 当前登录用户（文档模式）：通过 guard 校验会话 → 返回公开形态。
  *
  * 投影发生在查询层，passwordHash 永不离开服务端。
- * 无会话或用户不存在均返回 null。
+ * 会话无效或用户不存在均返回 null。
  */
 export const getUserFn = createServerFn({
   method: "GET",
@@ -56,12 +50,7 @@ export const getUserFn = createServerFn({
   // 个性化响应依赖当前会话，禁止任何缓存（登出/换号后不该吃到旧 user）
   setResponseHeader("Cache-Control", "no-store");
 
-  const session = await useAppSession();
-  const userId = session.data.userId;
-
-  if (!userId) return null;
-
-  return loadPublicUser(userId);
+  return getCurrentUser();
 });
 
 const userIdSchema = z.object({
@@ -79,8 +68,10 @@ export const getUserById = createServerFn({
 })
   .validator(userIdSchema)
   .handler(async ({ data }): Promise<User | null> => {
-    const session = await useAppSession();
-    if (!session.data.userId) return null;
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return null;
 
-    return loadPublicUser(data.userId as Char<36>);
+    return db.orm.public.User.where({ id: data.userId as Char<36> })
+      .select(...PUBLIC_COLUMNS)
+      .first();
   });

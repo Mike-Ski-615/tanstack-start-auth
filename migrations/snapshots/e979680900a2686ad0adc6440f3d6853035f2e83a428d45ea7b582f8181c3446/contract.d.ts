@@ -33,7 +33,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'edb8580e82733c882697d218b5ac1b29ecae2c2dcd10285b51a32e2b4f649132'>;
+  StorageHashBase<'e979680900a2686ad0adc6440f3d6853035f2e83a428d45ea7b582f8181c3446'>;
 export type ExecutionHash =
   ExecutionHashBase<'b4adf23d4b9d865dc21a3e09490180f34a47492db1ba9a5bdf8ba94875adb0f1'>;
 export type ProfileHash =
@@ -241,12 +241,6 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
 
 export type FieldOutputTypes = {
   readonly public: {
-    readonly RateLimit: {
-      readonly key: CodecTypes['pg/text@1']['output'];
-      readonly count: CodecTypes['pg/int4@1']['output'];
-      readonly windowStart: CodecTypes['pg/timestamptz-string@1']['output'];
-      readonly expiresAt: CodecTypes['pg/timestamptz-string@1']['output'];
-    };
     readonly ResetToken: {
       readonly id: Char<36>;
       readonly userId: CodecTypes['pg/text@1']['output'];
@@ -284,12 +278,6 @@ export type FieldOutputTypes = {
 };
 export type FieldInputTypes = {
   readonly public: {
-    readonly RateLimit: {
-      readonly key: CodecTypes['pg/text@1']['input'];
-      readonly count: CodecTypes['pg/int4@1']['input'];
-      readonly windowStart: CodecTypes['pg/timestamptz-string@1']['input'];
-      readonly expiresAt: CodecTypes['pg/timestamptz-string@1']['input'];
-    };
     readonly ResetToken: {
       readonly id: CodecTypes['sql/char@1']['input'];
       readonly userId: CodecTypes['pg/text@1']['input'];
@@ -327,12 +315,6 @@ export type FieldInputTypes = {
 };
 export type StorageColumnTypes = {
   readonly public: {
-    readonly RateLimit: {
-      readonly count: CodecTypes['pg/int4@1']['output'];
-      readonly expiresAt: CodecTypes['pg/timestamptz-string@1']['output'];
-      readonly key: CodecTypes['pg/text@1']['output'];
-      readonly windowStart: CodecTypes['pg/timestamptz-string@1']['output'];
-    };
     readonly ResetToken: {
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly expiresAt: CodecTypes['pg/timestamptz-string@1']['output'];
@@ -370,12 +352,6 @@ export type StorageColumnTypes = {
 };
 export type StorageColumnInputTypes = {
   readonly public: {
-    readonly RateLimit: {
-      readonly count: CodecTypes['pg/int4@1']['input'];
-      readonly expiresAt: CodecTypes['pg/timestamptz-string@1']['input'];
-      readonly key: CodecTypes['pg/text@1']['input'];
-      readonly windowStart: CodecTypes['pg/timestamptz-string@1']['input'];
-    };
     readonly ResetToken: {
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly expiresAt: CodecTypes['pg/timestamptz-string@1']['input'];
@@ -429,33 +405,6 @@ type ContractBase = Omit<
         readonly kind: 'postgres-schema';
         readonly entries: {
           readonly table: {
-            readonly RateLimit: {
-              columns: {
-                readonly key: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly count: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: false;
-                };
-                readonly windowStart: {
-                  readonly nativeType: 'timestamptz';
-                  readonly codecId: 'pg/timestamptz-string@1';
-                  readonly nullable: false;
-                };
-                readonly expiresAt: {
-                  readonly nativeType: 'timestamptz';
-                  readonly codecId: 'pg/timestamptz-string@1';
-                  readonly nullable: false;
-                };
-              };
-              uniques: readonly [{ readonly columns: readonly ['key'] }];
-              indexes: readonly [];
-              foreignKeys: readonly [];
-            };
             readonly ResetToken: {
               columns: {
                 readonly id: {
@@ -656,49 +605,11 @@ type ContractBase = Omit<
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'ResetToken';
     };
-    readonly RateLimit: { readonly namespace: 'public' & NamespaceId; readonly model: 'RateLimit' };
   };
   readonly domain: {
     readonly namespaces: {
       readonly public: {
         readonly models: {
-          readonly RateLimit: {
-            readonly fields: {
-              readonly key: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly count: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly windowStart: {
-                readonly nullable: false;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-string@1';
-                };
-              };
-              readonly expiresAt: {
-                readonly nullable: false;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-string@1';
-                };
-              };
-            };
-            readonly relations: Record<string, never>;
-            readonly storage: {
-              readonly table: 'RateLimit';
-              readonly namespaceId: 'public';
-              readonly fields: {
-                readonly key: { readonly column: 'key' };
-                readonly count: { readonly column: 'count' };
-                readonly windowStart: { readonly column: 'windowStart' };
-                readonly expiresAt: { readonly column: 'expiresAt' };
-              };
-            };
-          };
           readonly ResetToken: {
             readonly fields: {
               readonly id: {

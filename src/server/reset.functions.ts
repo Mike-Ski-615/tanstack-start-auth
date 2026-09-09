@@ -1,18 +1,26 @@
 import { createServerFn } from "@tanstack/react-start";
+import {
+  getRequestHeader,
+  getRequestIP,
+  setResponseStatus,
+  setResponseHeader,
+} from "@tanstack/react-start/server";
 import { db } from "#prisma/db";
 import { emailOnlySchema, resetPasswordSchema } from "#schemas/auth";
-import { useAppSession } from "#lib/auth/session";
-import { signUserToken, readUserToken } from "#lib/auth/jwt";
 import { hashPassword } from "../lib/auth/password";
 import { sendMail } from "../lib/auth/mail";
+import {
+  createSession,
+  createResetToken,
+  consumeResetToken,
+} from "#lib/auth/session-manager";
+import { setSessionCookie } from "#lib/auth/session";
+import { rateLimit } from "#lib/auth/rate-limiter";
 
 /**
- * 密码重置用例（无状态版）：令牌为一枚 HS256 JWT { sub: userId, exp }，
- * 复用 SESSION_SECRET 签名，不落库；验签即验身份与时效。
- * 与登录会话的无状态 cookie 同一哲学（见 session.ts 注释）。
- *
- * 令牌签发与验签收口在 #lib/jwt（signUserToken / readUserToken），
- * 本模块只描述用例流程。
+ * 密码重置用例（DB 版）：重置令牌为一枚随机串 { userId, exp }，
+ * SHA-256 哈希后落库，15 分钟有效。
+ * 与哲学一致：单设备在线，撤销旧会话。
  */
 
 /**
@@ -23,10 +31,23 @@ export const requestPasswordResetFn = createServerFn({
 })
   .validator(emailOnlySchema)
   .handler(async ({ data: { email } }) => {
+    setResponseHeader("Cache-Control", "no-store");
+
+    // 速率限制：同一 IP 1 分钟最多 3 次重置请求（防邮件轰炸）
+    const { allowed, resetAt } = await rateLimit("reset", getRequestIP() ?? "unknown");
+    if (!allowed) {
+      setResponseStatus(429);
+      setResponseHeader(
+        "Retry-After",
+        String(Math.ceil((resetAt - Date.now()) / 1000)),
+      );
+      throw new Error("Too many requests, please try again later");
+    }
+
     const user = await db.orm.public.User.where({ email }).first();
 
     if (user) {
-      const token = await signUserToken(user.id);
+      const token = await createResetToken(user.id);
       await sendMail(
         email,
         "重置你的密码",
@@ -44,22 +65,30 @@ export const requestPasswordResetFn = createServerFn({
   });
 
 /**
- * 重置密码：验签令牌 → 改密 → 写入新会话（自动登录）。
+ * 重置密码：验签令牌 → 改密 → 创建新会话（自动登录）→ 撤销所有旧会话。
  */
 export const resetPasswordFn = createServerFn({
   method: "POST",
 })
   .validator(resetPasswordSchema)
   .handler(async ({ data: { token, password } }) => {
-    const userId = await readUserToken(token);
+    setResponseHeader("Cache-Control", "no-store");
+
+    const userId = await consumeResetToken(token);
     if (!userId) throw new Error("invalid_token");
 
     await db.orm.public.User.where({ id: userId }).update({
       passwordHash: await hashPassword(password),
     });
 
-    const session = await useAppSession();
-    await session.update({ userId });
+    // 创建新会话：自动登录，同时撤销该用户所有旧会话
+    const sessionToken = await createSession({
+      userId,
+      userAgent: getRequestHeader("user-agent"),
+      ip: getRequestIP(),
+    });
+
+    setSessionCookie(sessionToken);
 
     return { success: true };
   });

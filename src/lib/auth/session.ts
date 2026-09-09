@@ -1,39 +1,31 @@
-import { getSession, useSession } from "@tanstack/react-start/server";
+import { deleteCookie, getCookie, setCookie } from "@tanstack/react-start/server";
+import type { CookieSerializeOptions } from "cookie-es";
 
-import type { Char } from "@prisma/orm-postgres/target/codec-types";
+/** cookie 名：只存不透明会话令牌。 */
+export const SESSION_COOKIE_NAME = "session-token";
 
-export type SessionData = {
-  userId?: Char<36>;
+/** 7 天（秒）。 */
+const SESSION_MAX_AGE = 7 * 24 * 60 * 60;
+
+const COOKIE_OPTIONS: CookieSerializeOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax",
+  path: "/",
+  maxAge: SESSION_MAX_AGE,
 };
 
-export const appSessionConfig = {
-  name: "app-session",
-
-  password: process.env.SESSION_SECRET!,
-
-  cookie: {
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax" as const,
-    httpOnly: true,
-    path: "/",
-    maxAge: 7 * 24 * 60 * 60,
-  },
-};
-
-/**
- * 当前请求的会话管理器。
- *
- * 只能在 TanStack Start server request context 中调用。
- */
-export function useAppSession() {
-  return useSession<SessionData>(appSessionConfig);
+/** 设置会话 cookie（存原始令牌）。 */
+export function setSessionCookie(token: string): void {
+  setCookie(SESSION_COOKIE_NAME, token, COOKIE_OPTIONS);
 }
 
-/**
- * 当前请求的 Session。
- *
- * 只能在 TanStack Start server request context 中调用。
- */
-export function getAppSession() {
-  return getSession<SessionData>(appSessionConfig);
+/** 读取会话令牌，不存在返回 undefined。 */
+export function getSessionToken(): string | undefined {
+  return getCookie(SESSION_COOKIE_NAME);
+}
+
+/** 清除会话 cookie。 */
+export function clearSessionCookie(): void {
+  deleteCookie(SESSION_COOKIE_NAME, { path: "/" });
 }
