@@ -1,5 +1,9 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import {
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  Search01Icon,
+} from "@hugeicons/core-free-icons";
 import {
   Link,
   Outlet,
@@ -7,6 +11,7 @@ import {
   createFileRoute,
   useRouter,
 } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { SETTINGS_NAV } from "#data/nav";
 
 import {
@@ -30,6 +35,7 @@ import { ErrorPage } from "#components/status/authenticated/settings/error";
 import { NotFoundPage } from "#components/status/authenticated/settings/not-found";
 import { Button } from "#components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "#components/ui/avatar";
+import { Input } from "#components/ui/input";
 
 export const Route = createFileRoute("/authenticated/settings")({
   pendingComponent: LoadingPage,
@@ -42,6 +48,17 @@ function SettingsLayout() {
   const navigate = useNavigate();
   const router = useRouter();
   const { user } = Route.useRouteContext();
+  const [search, setSearch] = useState("");
+
+  const filteredNav = useMemo(() => {
+    if (!search.trim()) return SETTINGS_NAV;
+    const q = search.toLowerCase();
+    return SETTINGS_NAV.filter(
+      (item) =>
+        item.title.toLowerCase().includes(q) ||
+        item.desc.toLowerCase().includes(q),
+    );
+  }, [search]);
 
   return (
     <Dialog
@@ -54,7 +71,7 @@ function SettingsLayout() {
         }
       }}
     >
-      <DialogContent className="h-[min(80vh,500px)] max-h-[calc(100vh-2rem)] overflow-hidden p-0 sm:max-w-175 lg:max-w-200">
+      <DialogContent className="h-[min(85vh,600px)] max-h-[calc(100vh-2rem)] overflow-hidden p-0 sm:max-w-225 lg:max-w-250">
         <DialogTitle className="sr-only">Settings</DialogTitle>
 
         <DialogDescription className="sr-only">
@@ -98,9 +115,26 @@ function SettingsLayout() {
                     </SidebarMenuItem>
                   </SidebarMenu>
 
+                  {/* Search */}
+                  <div className="px-2 pb-2">
+                    <div className="relative">
+                      <HugeiconsIcon
+                        icon={Search01Icon}
+                        className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                      />
+                      <Input
+                        type="text"
+                        placeholder="搜索设置"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="pl-8"
+                      />
+                    </div>
+                  </div>
+
                   {/* Settings navigation */}
                   <SidebarMenu>
-                    {SETTINGS_NAV.map((item) => (
+                    {filteredNav.map((item) => (
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton asChild>
                           <Link
@@ -111,7 +145,14 @@ function SettingsLayout() {
                             }}
                           >
                             <HugeiconsIcon icon={item.icon} />
-                            <span>{item.title}</span>
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate text-sm">{item.title}</div>
+                              {item.desc && (
+                                <div className="truncate text-xs text-muted-foreground">
+                                  {item.desc}
+                                </div>
+                              )}
+                            </div>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
