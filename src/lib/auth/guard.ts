@@ -32,6 +32,7 @@ export async function getCurrentUser(): Promise<User | null> {
       "createdAt",
       "status",
       "sessionVersion",
+      "emailVerifiedAt",
     )
     .first();
 

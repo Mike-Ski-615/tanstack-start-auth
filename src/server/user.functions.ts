@@ -21,6 +21,7 @@ export type User = {
   createdAt: string;
   status: "online" | "offline";
   sessionVersion: number;
+  emailVerifiedAt: string | null;
 };
 
 /** 公开字段列表，getUserById 用它来投影。 */
@@ -34,6 +35,7 @@ const PUBLIC_COLUMNS = [
   "createdAt",
   "status",
   "sessionVersion",
+  "emailVerifiedAt",
 ] as const;
 
 /**

@@ -6,10 +6,9 @@ import { invalidateAllSessions } from "#lib/auth/session-manager";
 import { kickAllSessionsForUser } from "#lib/auth/ws-registry";
 
 /**
- * 当前用户的活跃设备（用于隐私与安全页展示）。
+ * 当前用户的设备、会话、账户安全信息（用于隐私与安全页展示）。
  *
  * 单设备模型：一个用户最多一个 Device + 一个 Session。
- * 简化展示，无需标记"当前"。
  */
 export const listSessionsFn = createServerFn({
   method: "GET",
@@ -17,13 +16,17 @@ export const listSessionsFn = createServerFn({
   setResponseHeader("Cache-Control", "no-store");
 
   const user = await getCurrentUser();
-  if (!user) return { device: null };
+  if (!user) return { device: null, session: null };
 
   const device = await db.orm.public.Device.where({
     userId: user.id as unknown as string,
   }).first();
 
-  if (!device) return { device: null };
+  if (!device) return { device: null, session: null };
+
+  const session = await db.orm.public.Session.where({
+    userId: user.id as unknown as string,
+  }).first();
 
   return {
     device: {
@@ -35,6 +38,15 @@ export const listSessionsFn = createServerFn({
       lastSeenAt: device.lastSeenAt,
       createdAt: device.createdAt,
     },
+    session: session
+      ? {
+          id: session.id,
+          sessionVersion: session.sessionVersion,
+          createdAt: session.createdAt,
+          expiresAt: session.expiresAt,
+        }
+      : null,
+    emailVerifiedAt: user.emailVerifiedAt,
   };
 });
 
