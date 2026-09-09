@@ -57,7 +57,7 @@ function RootComponent() {
       </head>
       <body>
         <ThemeProvider defaultTheme="light" storageKey="theme">
-          <Toaster />
+          <Toaster richColors position="top-center" />
           <TooltipProvider>
             <Outlet />
           </TooltipProvider>

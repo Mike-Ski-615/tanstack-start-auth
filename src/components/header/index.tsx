@@ -5,6 +5,7 @@ import { PanelLeftOpen } from "#components/header/panel-left-open";
 import { Separator } from "#components/ui/separator";
 import { useSidebar } from "#components/ui/sidebar";
 import { cn } from "#lib/utils";
+import { HeaderBell } from "#components/header/header-bell";
 
 export function Header() {
   const { open } = useSidebar();
@@ -26,6 +27,11 @@ export function Header() {
       />
       <HeaderBreadcrumb />
       <CommandPalette className="ml-auto" />
+      <Separator
+        className="my-auto data-[orientation=vertical]:h-4"
+        orientation="vertical"
+      />
+      <HeaderBell />
       <Separator
         className="my-auto data-[orientation=vertical]:h-4"
         orientation="vertical"

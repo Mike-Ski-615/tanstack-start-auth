@@ -12,7 +12,6 @@ import {
   FieldLabel,
 } from "#components/ui/field";
 import { Input } from "#components/ui/input";
-import { Separator } from "#components/ui/separator";
 import { changePasswordSchema, type ChangePasswordValues } from "#schemas/auth";
 import { changePasswordFn } from "#server/profile.functions";
 import { LoadingPage } from "#components/status/authenticated/settings/password/loading";
