@@ -28,5 +28,4 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
-  // vite-tsconfig-paths plugin handles path resolution
 });

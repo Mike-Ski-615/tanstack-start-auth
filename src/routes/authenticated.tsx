@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { getUserFn } from "#server/user.functions";
 import { useLogoutMutation } from "#hooks/use-auth-mutations";
+import { useWs } from "#hooks/use-ws";
 import { LoadingPage } from "#components/status/authenticated/loading";
 import { ErrorPage } from "#components/status/authenticated/error";
 import { NotFoundPage } from "#components/status/authenticated/not-found";
@@ -43,6 +44,9 @@ export const Route = createFileRoute("/authenticated")({
 function AuthenticatedLayout() {
   const { user } = Route.useRouteContext();
   const logoutMutation = useLogoutMutation();
+
+  // WebSocket 连接 — 实时在线状态 + 被踢通知
+  useWs();
 
   // Ctrl + Shift + L 退出登录
   useHotkeys("ctrl+shift+l", () => logoutMutation.mutate(), {
