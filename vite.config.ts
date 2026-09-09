@@ -4,6 +4,7 @@ import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { devtools } from "@tanstack/devtools-vite";
 import { nitro } from "nitro/vite";
+import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
   server: {
@@ -11,6 +12,7 @@ export default defineConfig({
   },
   plugins: [
     devtools(),
+    tsconfigPaths(),
     tanstackStart(),
     viteReact(),
     tailwindcss(),
@@ -23,7 +25,5 @@ export default defineConfig({
       },
     }),
   ],
-  resolve: {
-    tsconfigPaths: true,
-  },
+  // vite-tsconfig-paths plugin handles path resolution
 });
