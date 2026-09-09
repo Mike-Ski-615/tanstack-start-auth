@@ -84,16 +84,20 @@ DB 承载：RateLimit 表存 key（类型:标识符）+ count + windowStart + ex
 窗口过期时重置计数（upsert 复用行），而非逐条清理。`purgeExpiredRateLimit()` 清理过期行。
 
 ### WebSocket Presence & Kick
-连接追踪（单实例内存 Map<userId, Set<peerId>> + Map<sessionId, Set<peerId>>）：
-- open → Set.add → 仅首次设 status=online
-- close → Set.delete → 仅末次设 status=offline
-- Session 维度：Map<sessionId, Set<peerId>> 支持精确 kick
+连接追踪（单实例内存注册表 `lib/auth/ws-registry.ts`）：
+- `peersBySession: Map<sessionId, Set<peerId>>` → 支持精确 kick
+- `peersByUser: Map<userId, Set<peerId>>` → 支持 presence
+- `peerRefs: Map<peerId, {peer, userId, sessionId}>` → 支持 close
+
+生命周期：
+- open → registerPeer → 仅首次设 status=online
+- close → unregisterPeer → 仅末次设 status=offline
 
 WS 握手绑定 sessionId（非仅 userId），Session revoke 后踢旧连接：
-- kickSession(sessionId) → 关闭该 Session 的所有 WS
-- kickAllSessionsForUser(userId) → 关闭该用户的所有 WS
+- `kickSession(sessionId)` → 关闭该 Session 的所有 WS（close code 4001）
+- `kickAllSessionsForUser(userId)` → 关闭该用户的所有 WS（close code 4002）
 
-多实例部署需替换为 Redis/DB 方案。
+多实例部署时需替换为 Redis/DB 方案。
 
 ### Fail-Closed 顺序
 无多语句 transaction 前提下，安全敏感操作采用 fail-closed 顺序：

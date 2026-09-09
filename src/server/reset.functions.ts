@@ -17,7 +17,7 @@ import {
 } from "#lib/auth/session-manager";
 import { setSessionCookie, setDeviceCookie } from "#lib/auth/session";
 import { rateLimit } from "#lib/auth/rate-limiter";
-import { kickSession } from "#websocket/routes/ws";
+import { kickSession } from "#lib/auth/ws-registry";
 
 /**
  * 密码重置用例（DB 版）：重置令牌为一枚随机串 { userId, exp }，

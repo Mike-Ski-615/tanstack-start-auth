@@ -16,10 +16,9 @@
       "#hooks/*": ["./src/hooks/*.ts"],
       "#prisma/*": ["./src/prisma/*.ts"],
       "#server/*": ["./src/server/*.ts"],
-      "#schemas/*": ["./src/schemas/*.ts"],
       "#provider/*": ["./src/provider/*"],
-      "#components/*": ["./src/components/*.tsx"],
-      "#websocket/*": ["./src/websocket/*.ts"]
+      "#schemas/*": ["./src/schemas/*.ts"],
+      "#components/*": ["./src/components/*.tsx"]
     },
     "resolvePackageJsonImports": true,
     "resolveJsonModule": true

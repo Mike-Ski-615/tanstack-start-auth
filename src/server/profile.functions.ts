@@ -15,7 +15,7 @@ import {
   invalidateAllSessions,
 } from "#lib/auth/session-manager";
 import { setSessionCookie, setDeviceCookie } from "#lib/auth/session";
-import { kickSession } from "#websocket/routes/ws";
+import { kickSession } from "#lib/auth/ws-registry";
 
 /**
  * 更新当前登录用户的可编辑资料（name / bio）。

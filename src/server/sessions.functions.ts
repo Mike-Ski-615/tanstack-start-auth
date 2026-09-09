@@ -3,7 +3,7 @@ import { setResponseHeader } from "@tanstack/react-start/server";
 import { db } from "#prisma/db";
 import { getCurrentUser } from "#lib/auth/guard";
 import { invalidateAllSessions } from "#lib/auth/session-manager";
-import { kickAllSessionsForUser } from "#websocket/routes/ws";
+import { kickAllSessionsForUser } from "#lib/auth/ws-registry";
 
 /**
  * 当前用户的活跃设备（用于隐私与安全页展示）。

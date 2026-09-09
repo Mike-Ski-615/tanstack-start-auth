@@ -11,7 +11,7 @@ import { db } from "#prisma/db";
 import { emailOnlySchema } from "#schemas/auth";
 
 import { createAuthenticatedSession } from "#lib/auth/session-manager";
-import { kickSession } from "#websocket/routes/ws";
+import { kickSession } from "#lib/auth/ws-registry";
 import {
   consumeVerificationToken,
   createVerificationToken,

@@ -15,7 +15,7 @@ import { verifyPassword } from "#lib/auth/password";
 import { createAuthenticatedSession } from "#lib/auth/session-manager";
 import { setSessionCookie, setDeviceCookie, getDeviceKey } from "#lib/auth/session";
 import { rateLimit } from "#lib/auth/rate-limiter";
-import { kickSession } from "#websocket/routes/ws";
+import { kickSession } from "#lib/auth/ws-registry";
 
 /**
  * 登录用例：校验凭据 → createAuthenticatedSession → 设 cookie。
