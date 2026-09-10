@@ -1,10 +1,15 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Notification01Icon } from "@hugeicons/core-free-icons";
 import { createFileRoute } from "@tanstack/react-router";
-import { LoadingPage } from "#components/status/authenticated/settings/bell/loading";
-import { ErrorPage } from "#components/status/authenticated/settings/bell/error";
-import { NotFoundPage } from "#components/status/authenticated/settings/bell/not-found";
-import { Skeleton } from "#components/ui/skeleton";
+
+import { Switch } from "#components/ui/switch";
+import { Label } from "#components/ui/label";
+import { LoadingPage } from "#components/status/authenticated/loading";
+import { ErrorPage } from "#components/status/authenticated/error";
+import { NotFoundPage } from "#components/status/authenticated/not-found";
+import { useUpdateNotificationPrefsMutation } from "#hooks/use-notifications";
+import { NotificationHistory } from "#components/notification/notification-history";
+
 export const Route = createFileRoute("/authenticated/settings/bell")({
   pendingComponent: LoadingPage,
   errorComponent: ErrorPage,
@@ -12,8 +17,11 @@ export const Route = createFileRoute("/authenticated/settings/bell")({
   component: SettingsBellPage,
 });
 
-/** 通知设置：页面骨架占位，功能开发中。 */
+/** 通知设置：弹窗开关 + 完整通知历史。 */
 function SettingsBellPage() {
+  const { user } = Route.useRouteContext();
+  const update = useUpdateNotificationPrefsMutation();
+
   return (
     <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col gap-6">
       <header>
@@ -24,20 +32,31 @@ function SettingsBellPage() {
         <p className="mt-1 text-sm text-muted-foreground">管理站内消息与各类提醒偏好。</p>
       </header>
 
-      <div className="space-y-3" aria-hidden>
-        {(["w-3/4", "w-1/2", "w-2/3"] as const).map((w, i) => (
-          <div key={i} className="flex items-center gap-3 rounded-xl border bg-card p-4">
-            <Skeleton className="size-8 shrink-0 rounded-full" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className={`h-3.5 ${w}`} />
-              <Skeleton className="h-3 w-2/3" />
-            </div>
-            <div className="h-6" />
+      <section className="rounded-xl border bg-card">
+        <div className="flex items-start justify-between gap-4 p-4">
+          <div className="min-w-0 flex-1">
+            <Label htmlFor="notify-toast" className="text-sm font-medium">
+              新通知弹窗提醒
+            </Label>
+            <p className="mt-1 text-xs text-muted-foreground">
+              有新通知时在屏幕角落弹出提示。关掉后仍会出现在右上角的铃铛里， 只是不再打扰你。
+            </p>
           </div>
-        ))}
-      </div>
 
-      <Skeleton className="mt-1 h-9 w-36" />
+          <Switch
+            id="notify-toast"
+            checked={user.notifyOnNewMessage}
+            onCheckedChange={(checked) => update.mutate(checked)}
+            disabled={update.isPending}
+            aria-label="新通知弹窗提醒"
+          />
+        </div>
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-sm font-medium text-muted-foreground">通知历史</h2>
+        <NotificationHistory />
+      </section>
     </div>
   );
 }

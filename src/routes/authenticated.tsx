@@ -3,6 +3,7 @@ import { currentUserQueryOptions } from "#lib/queries/current-user";
 import { ROLE_HOME } from "#lib/auth/current-user";
 import { useLogoutMutation } from "#hooks/use-auth-mutations";
 import { useSessionGuard } from "#hooks/use-session-guard";
+import { useNewNotificationToast } from "#hooks/use-notifications";
 import { LoadingPage } from "#components/status/authenticated/loading";
 import { ErrorPage } from "#components/status/authenticated/error";
 import { NotFoundPage } from "#components/status/authenticated/not-found";
@@ -42,6 +43,9 @@ function AuthenticatedLayout() {
 
   // 会话守卫 — 其它设备登录 / 全局登出后跳登录页
   useSessionGuard();
+
+  // 新通知到达时弹 toast（开关在设置页，关掉就完全不打扰）
+  useNewNotificationToast(user.notifyOnNewMessage);
 
   // Ctrl + Shift + L 退出登录
   useHotkeys("ctrl+shift+l", () => logoutMutation.mutate(), {

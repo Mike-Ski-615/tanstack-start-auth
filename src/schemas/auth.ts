@@ -121,3 +121,10 @@ export const notificationBatchIdSchema = z.object({
 });
 
 export type SendNotificationValues = z.infer<typeof sendNotificationSchema>;
+
+/** 通知偏好（只读自己的，身份取自会话）。 */
+export const notificationPrefsSchema = z.object({
+  notifyOnNewMessage: z.boolean(),
+});
+
+export type NotificationPrefsValues = z.infer<typeof notificationPrefsSchema>;

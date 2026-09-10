@@ -72,6 +72,14 @@ guard 只做转发。理由：会话校验反正要读 User 比对 sessionVersio
 
 未读数 30s 轮询（与 useSessionGuard 同节奏）；列表只在铃铛打开时才拉。
 
+**弹窗提醒**：`User.notifyOnNewMessage`（默认 true，存数据库而非 localStorage
+—— 多设备登录时「要不要打扰我」应当跟随账号）。开关在 /settings/bell。
+`useNewNotificationToast` 挂在 authenticated 布局上，**只在未读数上升时弹**，
+首次加载只记基线不弹（否则每次刷新都会重放旧通知）。开关关闭期间基线仍更新，
+重新打开不会把攒下的通知一次倒出来。
+
+阅读统计（管理员页）**不轮询** —— 那是偶尔看一眼的数据，刷新页面即可。
+
 ### Role（角色）
 
 三个值：`student` / `teacher` / `admin`，默认 `student`。两处定义必须同步：

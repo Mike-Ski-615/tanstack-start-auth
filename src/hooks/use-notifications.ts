@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { queryKeys } from "#lib/query-keys";
@@ -11,25 +12,34 @@ import {
   listSentNotificationsFn,
   deleteNotificationBatchFn,
   listSelectableUsersFn,
+  updateNotificationPrefsFn,
 } from "#server/notifications.functions";
 import type { SendNotificationValues } from "#schemas/auth";
 
 /**
  * 通知的 query / mutation。
  *
- * 不做轮询：通知与阅读统计的变化频率低，不值得为它持续发请求。
- * 需要最新数据时刷新页面，或由本客户端的操作触发失效（见
- * useInvalidateNotifications）。
+ * 未读数带轮询（与 useSessionGuard 同节奏）—— 「新通知来了要弹提醒」需要
+ * 主动感知，而通知是别人（管理员）产生的数据，本客户端无从得知何时变化。
  *
- * 已知代价：**跨客户端不会自动同步** —— 学生在自己电脑上标已读，
- * 管理员的阅读统计要刷新页面才更新。
+ * 阅读统计（useSentNotifications）**不轮询**：那是管理员偶尔看一眼的数据，
+ * 刷新页面即可，不值得为它持续发请求。
+ *
+ * ponytail: 30s 轮询，需要更快感知就调小 NOTIFICATION_POLL_INTERVAL_MS
+ * （代价是请求量）。
  */
 
-/** 未读数（铃铛徽章）。 */
+/** 轮询间隔（毫秒）。与 SESSION_POLL_INTERVAL_MS 取同一值。 */
+const NOTIFICATION_POLL_INTERVAL_MS = 30_000;
+
+/** 未读数（铃铛徽章）。轮询 + 窗口聚焦时立即刷新。 */
 export function useUnreadCount() {
   return useQuery({
     queryKey: queryKeys.notificationsUnread,
     queryFn: () => unreadCountFn(),
+    refetchInterval: NOTIFICATION_POLL_INTERVAL_MS,
+    // 切回标签页时立刻查一次，避免「切回来还要等一个轮询周期」
+    refetchOnWindowFocus: true,
     // 未读数是轻查询，没必要每次失败就重试三次
     retry: 1,
   });
@@ -135,6 +145,21 @@ export function useSendNotificationMutation() {
   });
 }
 
+/** 更新通知偏好（弹不弹 toast）。 */
+export function useUpdateNotificationPrefsMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (notifyOnNewMessage: boolean) =>
+      updateNotificationPrefsFn({ data: { notifyOnNewMessage } }),
+    onSuccess: () => {
+      // currentUser 里带着这个字段，改完要让 beforeLoad 与守卫重新取
+      void qc.invalidateQueries({ queryKey: queryKeys.currentUser });
+      toast.success("设置已保存");
+    },
+    onError: () => toast.error("保存失败，请稍后重试"),
+  });
+}
+
 export function useDeleteNotificationBatchMutation() {
   const qc = useQueryClient();
   return useMutation({
@@ -146,4 +171,63 @@ export function useDeleteNotificationBatchMutation() {
     },
     onError: () => toast.error("撤回失败，请稍后重试"),
   });
+}
+
+// ============================================================
+// 新通知提醒
+// ============================================================
+
+/**
+ * 监测新到达的通知并弹 toast。
+ *
+ * 挂在 authenticated 布局上（登录后一直活着），不挂在铃铛里 —— 铃铛可能
+ * 根本没打开过。
+ *
+ * **只在「未读数上升」时弹，不是「有未读就弹」**：
+ * 首次加载时把当前值记为基线，之后每次轮询回来的值比基线大才提示。
+ * 否则每次刷新都会把所有旧通知重弹一遍。
+ *
+ * 用户在设置页关掉开关（notifyOnNewMessage=false）时完全不弹，但**基线
+ * 仍要更新** —— 否则开关重新打开时会把关闭期间攒的通知一次性倒出来。
+ */
+export function useNewNotificationToast(notifyOnNewMessage: boolean): void {
+  const { data: unread } = useUnreadCount();
+
+  // 基线：上一次见到的未读数。null = 尚未建立（首次加载）
+  const [seen, setSeen] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (unread === undefined) return;
+
+    // 首次拿到数据：只记基线，不弹
+    if (seen === null) {
+      setSeen(unread);
+      return;
+    }
+
+    // 未读数下降（用户标已读 / 删除）→ 只更新基线
+    if (unread <= seen) {
+      setSeen(unread);
+      return;
+    }
+
+    const added = unread - seen;
+    setSeen(unread);
+
+    // 开关关着就不打扰 —— 但基线已经更新，不会在重新打开时补弹
+    if (!notifyOnNewMessage) return;
+
+    toast.info(added === 1 ? "你有一条新通知" : `你有 ${added} 条新通知`, {
+      action: {
+        label: "查看",
+        // 跳到设置页的通知历史（完整列表）。
+        // 不用 router.navigate：这个 hook 在布局层，拿 navigate 会让它依赖
+        // 路由上下文；location.assign 走一次整页加载，但用户点「查看」是
+        // 低频操作，代价可接受。
+        onClick: () => {
+          window.location.assign("/authenticated/settings/bell");
+        },
+      },
+    });
+  }, [unread, seen, notifyOnNewMessage]);
 }

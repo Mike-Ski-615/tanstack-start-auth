@@ -836,6 +836,13 @@
                   "kind": "scalar"
                 }
               },
+              "notifyOnNewMessage": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
               "passwordHash": {
                 "nullable": false,
                 "type": {
@@ -940,6 +947,9 @@
                 },
                 "name": {
                   "column": "name"
+                },
+                "notifyOnNewMessage": {
+                  "column": "notifyOnNewMessage"
                 },
                 "passwordHash": {
                   "column": "passwordHash"
@@ -1589,6 +1599,15 @@
                   "nativeType": "text",
                   "nullable": false
                 },
+                "notifyOnNewMessage": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": true
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
                 "passwordHash": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
@@ -1664,7 +1683,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "63494a9b5b9e8dbe8b3bf13e439ec1fca0832970624c0d5c39e22cfacea96354"
+    "storageHash": "2fb6a7cb2cb3c48a645a3d559035f041bc8315706331bf1991053145e97781cc"
   },
   "execution": {
     "executionHash": "3e7ddb2a21aa65e10b0fbd2cae88b0689b02e9c1c06908ed14706b5428dc0004",

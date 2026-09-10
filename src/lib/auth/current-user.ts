@@ -21,6 +21,9 @@ export const PUBLIC_COLUMNS = [
   "createdAt",
   "sessionVersion",
   "emailVerifiedAt",
+  // 通知弹窗偏好。放在公开投影里是有意的 —— 前端需要读它决定弹不弹，
+  // 且它不含任何敏感信息。
+  "notifyOnNewMessage",
 ] as const;
 
 /**
@@ -51,6 +54,7 @@ export type User = {
   image: string;
   bio: string;
   role: Role;
+  notifyOnNewMessage: boolean;
   createdAt: string;
   sessionVersion: number;
   emailVerifiedAt: string | null;

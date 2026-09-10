@@ -13,9 +13,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { setResponseHeader } from "@tanstack/react-start/server";
 import {
   notificationBatchIdSchema,
+  notificationPrefsSchema,
   notificationRecipientIdSchema,
   sendNotificationSchema,
 } from "#schemas/auth";
+import { db } from "#prisma/db";
 import { requireAdmin } from "#lib/auth/admin-guard";
 import { listManagedUsers } from "#lib/auth/admin-actions";
 import { getCurrentUser } from "#lib/auth/guard";
@@ -71,6 +73,21 @@ export const markAllNotificationsReadFn = createServerFn({
   const userId = await requireUserId();
   return { count: await markAllRead(userId) };
 });
+
+/**
+ * 更新自己的通知偏好。
+ *
+ * 只认会话里的 userId —— 不接受「改哪个用户」的参数，否则就成了改别人的设置。
+ */
+export const updateNotificationPrefsFn = createServerFn({ method: "POST" })
+  .validator(notificationPrefsSchema)
+  .handler(async ({ data }) => {
+    const userId = await requireUserId();
+    await db.orm.public.User.where({ id: userId }).update({
+      notifyOnNewMessage: data.notifyOnNewMessage,
+    });
+    return { success: true };
+  });
 
 /** 删除（软删）自己的一条通知。 */
 export const deleteNotificationFn = createServerFn({ method: "POST" })

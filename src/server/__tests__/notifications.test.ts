@@ -10,11 +10,13 @@ import {
   markNotificationReadFn,
   markAllNotificationsReadFn,
   deleteNotificationFn,
+  updateNotificationPrefsFn,
 } from "#server/notifications.functions";
 import {
   sendNotificationSchema,
   notificationRecipientIdSchema,
   notificationBatchIdSchema,
+  notificationPrefsSchema,
 } from "#schemas/auth";
 import { db } from "#prisma/db";
 import { createUser, deleteUser, callServerFnValidated, callServerFn } from "#test/helpers";
@@ -436,5 +438,94 @@ describe("用户不能操作别人的收件行", () => {
       r.userId.eq(victim.user.id),
     ).all();
     expect(victimRows.every((r) => r.readAt == null)).toBe(true);
+  });
+});
+
+// ============================================================
+// 通知偏好
+// ============================================================
+
+describe("通知偏好", () => {
+  it("新用户默认开启弹窗提醒", async () => {
+    const s = await userWithSession("student");
+    const row = await db.orm.public.User.where({ id: s.user.id }).first();
+    expect(row!.notifyOnNewMessage).toBe(true);
+  });
+
+  it("能关掉", async () => {
+    const s = await userWithSession("student");
+    await callServerFnValidated(
+      updateNotificationPrefsFn,
+      notificationPrefsSchema,
+      { notifyOnNewMessage: false },
+      ctx(s.token),
+    );
+    const row = await db.orm.public.User.where({ id: s.user.id }).first();
+    expect(row!.notifyOnNewMessage).toBe(false);
+  });
+
+  it("能重新打开", async () => {
+    const s = await userWithSession("student");
+    for (const v of [false, true]) {
+      await callServerFnValidated(
+        updateNotificationPrefsFn,
+        notificationPrefsSchema,
+        { notifyOnNewMessage: v },
+        ctx(s.token),
+      );
+    }
+    const row = await db.orm.public.User.where({ id: s.user.id }).first();
+    expect(row!.notifyOnNewMessage).toBe(true);
+  });
+
+  it("未登录改不了", async () => {
+    await expect(
+      callServerFnValidated(
+        updateNotificationPrefsFn,
+        notificationPrefsSchema,
+        { notifyOnNewMessage: false },
+        {},
+      ),
+    ).rejects.toThrow(/unauthenticated/);
+  });
+
+  it("只改自己的 —— 别人的偏好不受影响", async () => {
+    const me = await userWithSession("student");
+    const other = await userWithSession("student");
+
+    await callServerFnValidated(
+      updateNotificationPrefsFn,
+      notificationPrefsSchema,
+      { notifyOnNewMessage: false },
+      ctx(me.token),
+    );
+
+    const otherRow = await db.orm.public.User.where({
+      id: other.user.id,
+    }).first();
+    expect(otherRow!.notifyOnNewMessage).toBe(true);
+  });
+
+  it("管理员也改不了别人的（接口不接受 userId 参数）", async () => {
+    const admin = await userWithSession("admin");
+    const target = await userWithSession("student");
+
+    await callServerFnValidated(
+      updateNotificationPrefsFn,
+      notificationPrefsSchema,
+      // 多余字段会被 schema strip 掉；即便塞进来也无效
+      { notifyOnNewMessage: false, userId: target.user.id } as never,
+      ctx(admin.token),
+    );
+
+    const adminRow = await db.orm.public.User.where({
+      id: admin.user.id,
+    }).first();
+    const targetRow = await db.orm.public.User.where({
+      id: target.user.id,
+    }).first();
+    // 改的是管理员自己，目标纹丝不动
+    expect(adminRow!.notifyOnNewMessage).toBe(false);
+    expect(targetRow!.notifyOnNewMessage).toBe(true);
   });
 });

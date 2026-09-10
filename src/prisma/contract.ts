@@ -41,6 +41,13 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
       image: field.text(),
       bio: field.text(),
       role: field.namedType(Role).default("student"),
+      /**
+       * 收到新通知时是否弹 toast 提醒。
+       *
+       * 存数据库而非 localStorage：用户可能多设备登录，偏好应当跟随账号
+       * （theme 那类外观偏好存本地合理，这条是「要不要打扰我」，跨设备一致更重要）。
+       */
+      notifyOnNewMessage: field.boolean().default(true),
       sessionVersion: field.int().default(0),
       emailVerifiedAt: field.temporal.timestamptzString().optional(),
       createdAt: field.temporal.createdAtString(),
