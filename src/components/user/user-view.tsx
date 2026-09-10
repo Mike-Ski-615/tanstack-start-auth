@@ -2,13 +2,9 @@ import Heatmap from "./heatmap";
 import ThisWeek from "./week";
 import { Separator } from "#components/ui/separator";
 import type { User } from "#server/user.functions";
-import { daysSince, formatPresence } from "#lib/format";
-import { useOnlineUsers } from "#hooks/use-ws";
+import { daysSince } from "#lib/format";
 
 export function UserView({ user }: { user: User }) {
-  const onlineUsers = useOnlineUsers();
-  const isOnline = onlineUsers.has(user.id);
-
   return (
     <main className="min-h-full min-w-0">
       <div className=" mx-auto flex w-full max-w-7xl min-w-0 flex-col gap-4 p-4 sm:gap-5 sm:p-6 lg:gap-6 lg:p-8">
@@ -19,12 +15,6 @@ export function UserView({ user }: { user: User }) {
               alt={`${user.name} 的头像`}
               className=" size-16 rounded-full object-cover lg:size-24"
             />
-            <span
-              title={formatPresence(isOnline)}
-              className={`absolute right-1 bottom-1 size-3.5 rounded-full ring-2 ring-card lg:size-4 ${
-                isOnline ? "bg-emerald-500" : "bg-destructive"
-              }`}
-            />
           </div>
 
           <div className=" min-w-0 lg:flex lg:flex-col lg:items-center">
@@ -34,10 +24,6 @@ export function UserView({ user }: { user: User }) {
 
             <p className=" mt-1 truncate text-sm text-muted-foreground">
               {user.email}
-            </p>
-
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              {formatPresence(isOnline)}
             </p>
           </div>
         </header>

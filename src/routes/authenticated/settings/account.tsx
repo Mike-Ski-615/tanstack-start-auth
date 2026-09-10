@@ -15,7 +15,6 @@ import { listSessionsFn } from "#server/sessions.functions";
 import { LoadingPage } from "#components/status/authenticated/settings/account/loading";
 import { ErrorPage } from "#components/status/authenticated/settings/account/error";
 import { NotFoundPage } from "#components/status/authenticated/settings/account/not-found";
-import { useOnlineUsers } from "#hooks/use-ws";
 
 export const Route = createFileRoute("/authenticated/settings/account")({
   pendingComponent: LoadingPage,
@@ -29,15 +28,8 @@ const ROLE_LABELS: Record<string, string> = {
   teacher: "教师",
 };
 
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  online: { label: "在线", color: "bg-green-100 text-green-700" },
-  offline: { label: "离线", color: "bg-gray-100 text-gray-600" },
-};
-
 function SettingsAccountPage() {
   const { user } = Route.useRouteContext();
-  const onlineUsers = useOnlineUsers();
-  const isOnline = onlineUsers.has(user.id);
 
   const { data } = useQuery({
     queryKey: ["security-info"],
@@ -96,12 +88,6 @@ function SettingsAccountPage() {
             <span className="text-xs text-muted-foreground">角色</span>
             <span className="text-sm">
               {ROLE_LABELS[user.role] ?? user.role}
-            </span>
-          </div>
-          <div className="grid grid-cols-[100px_1fr] gap-1 p-4">
-            <span className="text-xs text-muted-foreground">在线状态</span>
-            <span className={`inline-flex w-fit rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_LABELS[isOnline ? "online" : "offline"].color}`}>
-              {STATUS_LABELS[isOnline ? "online" : "offline"].label}
             </span>
           </div>
         </div>

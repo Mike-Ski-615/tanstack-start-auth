@@ -23,7 +23,6 @@ import {
   getDeviceKey,
 } from "#lib/auth/session";
 import { rateLimit } from "#lib/auth/rate-limiter";
-import { kickSession } from "#lib/auth/ws-registry";
 
 /**
  * 登录用例：校验凭据 → createAuthenticatedSession → 设 cookie。
@@ -63,7 +62,7 @@ export const login = createServerFn({
     // 读取 cookie 中的 deviceKey（同设备复用）
     const existingDeviceKey = getDeviceKey();
 
-    const { token, deviceKey, oldSessionId } = await createAuthenticatedSession(
+    const { token, deviceKey } = await createAuthenticatedSession(
       {
         userId: user.id,
         deviceKey: existingDeviceKey,
@@ -74,11 +73,6 @@ export const login = createServerFn({
 
     setSessionCookie(token);
     setDeviceCookie(deviceKey);
-
-    // 踢掉旧 Session 的 WebSocket 连接（单设备登录）
-    if (oldSessionId) {
-      kickSession(oldSessionId);
-    }
 
     return { success: true };
   });

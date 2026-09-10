@@ -2,7 +2,6 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowUpDownIcon, ColorPickerIcon, Home01Icon, Key02Icon, Logout01Icon, MoonIcon, Notification01Icon, Settings01Icon, Shield01Icon, Sun01Icon } from "@hugeicons/core-free-icons";
 import {
   Avatar,
-  AvatarBadge,
   AvatarFallback,
   AvatarImage,
 } from "#components/ui/avatar";
@@ -29,7 +28,6 @@ import {
   useSidebar,
 } from "#components/ui/sidebar";
 import { useLogoutMutation } from "#hooks/use-auth-mutations";
-import { useOnlineUsers } from "#hooks/use-ws";
 import { useNavigate } from "@tanstack/react-router";
 import type { User } from "#server/user.functions";
 import { useTheme } from "#provider/theme-provider";
@@ -39,8 +37,6 @@ export function UserNav({ user }: { user: User }) {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const logoutMutation = useLogoutMutation();
-  const onlineUsers = useOnlineUsers();
-  const isOnline = onlineUsers.has(user.id);
 
   return (
     <>
@@ -54,12 +50,6 @@ export function UserNav({ user }: { user: User }) {
                   <AvatarFallback className="rounded-lg">
                     {user.name.charAt(0)}
                   </AvatarFallback>
-                  <AvatarBadge
-                    title={isOnline ? "在线" : "离线"}
-                    className={
-                      isOnline ? "bg-emerald-500" : "bg-destructive"
-                    }
-                  />
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user.name}</span>
@@ -81,12 +71,6 @@ export function UserNav({ user }: { user: User }) {
                     <AvatarFallback className="rounded-lg">
                       {user.name.charAt(0)}
                     </AvatarFallback>
-                    <AvatarBadge
-                      title={isOnline ? "在线" : "离线"}
-                      className={
-                        isOnline ? "bg-emerald-500" : "bg-destructive"
-                      }
-                    />
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-medium">{user.name}</span>

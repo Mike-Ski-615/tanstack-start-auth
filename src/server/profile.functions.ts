@@ -15,7 +15,6 @@ import {
   invalidateAllSessions,
 } from "#lib/auth/session-manager";
 import { setSessionCookie, setDeviceCookie } from "#lib/auth/session";
-import { kickSession } from "#lib/auth/ws-registry";
 
 /**
  * 更新当前登录用户的可编辑资料（name / bio）。
@@ -67,18 +66,13 @@ export const changePasswordFn = createServerFn({
     });
 
     // 创建新 Device + Session（自动登录）
-    const { token, deviceKey, oldSessionId } = await createAuthenticatedSession({
+    const { token, deviceKey } = await createAuthenticatedSession({
       userId: user.id,
       userAgent: getRequestHeader("user-agent"),
       ip: getRequestIP(),
     });
     setSessionCookie(token);
     setDeviceCookie(deviceKey);
-
-    // 踢掉旧 Session 的 WebSocket 连接
-    if (oldSessionId) {
-      kickSession(oldSessionId);
-    }
 
     return { success: true as const };
   });

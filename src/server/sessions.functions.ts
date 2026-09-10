@@ -3,7 +3,6 @@ import { setResponseHeader } from "@tanstack/react-start/server";
 import { db } from "#prisma/db";
 import { getCurrentUser } from "#lib/auth/guard";
 import { invalidateAllSessions } from "#lib/auth/session-manager";
-import { kickAllSessionsForUser } from "#lib/auth/ws-registry";
 
 /**
  * 当前用户的设备、会话、账户安全信息（用于隐私与安全页展示）。
@@ -56,9 +55,6 @@ export const revokeAllSessionsFn = createServerFn({
 
   // 递增 sessionVersion → 所有 Session 全局失效
   await invalidateAllSessions(user.id);
-
-  // 踢掉该用户所有 WebSocket 连接
-  kickAllSessionsForUser(user.id);
 
   return { success: true as const };
 });

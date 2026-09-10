@@ -1,13 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { revokeSession } from "#lib/auth/session-manager";
-import { closeSessionPeers } from "#lib/auth/ws-registry";
 import {
   getSessionToken,
   clearSessionCookie,
 } from "#lib/auth/session";
 
 /**
- * 登出用例：撤销会话（DB 标记 revokedAt）→ 踢掉该 Session 的 WS → 清 session cookie。
+ * 登出用例：撤销会话（DB 标记 revokedAt）→ 清 session cookie。
  *
  * 为什么要主动踢 WS：客户端 use-ws 靠组件卸载时 close() 断开，但浏览器直接关
  * 页签 / 崩溃时不会执行卸载回调，服务端只能等 TCP 超时。此期间用户实际已登出，
@@ -24,8 +23,7 @@ export const logout = createServerFn({
 }).handler(async () => {
   const token = getSessionToken();
   if (token) {
-    const sessionId = await revokeSession(token);
-    if (sessionId) closeSessionPeers(sessionId);
+    await revokeSession(token);
   }
   clearSessionCookie();
 

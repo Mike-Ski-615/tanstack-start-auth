@@ -9,7 +9,6 @@ import { db } from "#prisma/db";
 import { emailOnlySchema, verifyEmailSchema } from "#schemas/auth";
 
 import { createAuthenticatedSession } from "#lib/auth/session-manager";
-import { kickSession } from "#lib/auth/ws-registry";
 import {
   consumeVerificationToken,
   createVerificationToken,
@@ -35,11 +34,7 @@ export const verifyEmailFn = createServerFn({
     if (!userId) throw new Error("invalid_or_expired_token");
 
     // 验证通过 → 创建 Session（自动登录）
-    const {
-      token: sessionToken,
-      deviceKey,
-      oldSessionId,
-    } = await createAuthenticatedSession({
+    const { token: sessionToken, deviceKey } = await createAuthenticatedSession({
       userId,
       userAgent: getRequestHeader("user-agent"),
       ip: getRequestIP(),
@@ -47,11 +42,6 @@ export const verifyEmailFn = createServerFn({
 
     setSessionCookie(sessionToken);
     setDeviceCookie(deviceKey);
-
-    // 踢掉旧 Session 的 WebSocket 连接
-    if (oldSessionId) {
-      kickSession(oldSessionId);
-    }
 
     return { success: true };
   });

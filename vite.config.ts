@@ -18,11 +18,6 @@ export default defineConfig({
     tailwindcss(),
     nitro({
       preset: "bun",
-      serverDir: "./src/websocket",
-      features: {
-        runtimeHooks: true,
-        websocket: true,
-      },
     }),
   ],
   resolve: {

@@ -17,7 +17,6 @@ import {
 } from "#lib/auth/session-manager";
 import { setSessionCookie, setDeviceCookie } from "#lib/auth/session";
 import { rateLimit } from "#lib/auth/rate-limiter";
-import { kickSession } from "#lib/auth/ws-registry";
 
 /**
  * 密码重置用例（DB 版）：重置令牌为一枚随机串 { userId, exp }，
@@ -88,7 +87,7 @@ export const resetPasswordFn = createServerFn({
     });
 
     // 创建新 Device + Session（自动登录）
-    const { token: sessionToken, deviceKey, oldSessionId } = await createAuthenticatedSession({
+    const { token: sessionToken, deviceKey } = await createAuthenticatedSession({
       userId,
       userAgent: getRequestHeader("user-agent"),
       ip: getRequestIP(),
@@ -96,11 +95,6 @@ export const resetPasswordFn = createServerFn({
 
     setSessionCookie(sessionToken);
     setDeviceCookie(deviceKey);
-
-    // 踢掉旧 Session 的 WebSocket 连接
-    if (oldSessionId) {
-      kickSession(oldSessionId);
-    }
 
     return { success: true };
   });
