@@ -2,7 +2,6 @@ import { ActivityCalendar } from "react-activity-calendar";
 import "react-activity-calendar/tooltips.css";
 
 import { useTheme } from "#provider/theme-provider";
-import { activity } from "./activity";
 import { CALENDAR_COLORS } from "./colors";
 
 function fmtDate(ymd: string) {
@@ -10,7 +9,9 @@ function fmtDate(ymd: string) {
   return `${Number(m)}月${Number(d)}日`;
 }
 
-export default function Heatmap() {
+import type { ActivityDay } from "#lib/activity";
+
+export default function Heatmap({ data }: { data: ActivityDay[] }) {
   const { theme } = useTheme();
 
   // blockSize + blockMargin give the full-year SVG a fixed ~793px width
@@ -19,7 +20,7 @@ export default function Heatmap() {
 
   return (
     <ActivityCalendar
-      data={activity}
+      data={data}
       colorScheme={theme}
       theme={CALENDAR_COLORS}
       weekStart={0}

@@ -40,7 +40,7 @@ export function SentNotificationsList() {
 
   return (
     <>
-      <ScrollArea className="max-h-[480px] pr-3">
+      <ScrollArea className="max-h-120 pr-3">
         <div className="flex flex-col gap-3">
           {items.map((n) => {
             const rate =

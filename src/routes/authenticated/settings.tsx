@@ -57,25 +57,28 @@ function SettingsLayout() {
                   {/* User */}
                   <SidebarMenu className="mb-2">
                     <SidebarMenuItem>
-                      <SidebarMenuButton className="h-auto">
-                        <div className="flex min-w-0 flex-1 items-center gap-3">
-                          {/* Avatar */}
-                          <Avatar>
-                            <AvatarImage src={user.image} alt={user.name} />
-                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
+                      {/* 点自己的用户卡片 → 我的主页 */}
+                      <SidebarMenuButton asChild className="h-auto">
+                        <Link to="/authenticated/users/$userId" params={{ userId: user.id }}>
+                          <div className="flex min-w-0 flex-1 items-center gap-3">
+                            {/* Avatar */}
+                            <Avatar>
+                              <AvatarImage src={user.image} alt={user.name} />
+                              <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
 
-                          {/* User info */}
-                          <div className="min-w-0 flex-1">
-                            <div className="truncate text-sm font-medium leading-5">
-                              {user.name}
-                            </div>
+                            {/* User info */}
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate text-sm font-medium leading-5">
+                                {user.name}
+                              </div>
 
-                            <div className="truncate text-xs leading-4 text-muted-foreground">
-                              {user.email}
+                              <div className="truncate text-xs leading-4 text-muted-foreground">
+                                {user.email}
+                              </div>
                             </div>
                           </div>
-                        </div>
+                        </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   </SidebarMenu>

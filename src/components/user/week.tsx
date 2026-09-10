@@ -1,5 +1,4 @@
 import { useTheme } from "#provider/theme-provider";
-import { activity } from "./activity";
 import { levelPalette } from "./colors";
 
 const DAY_MS = 86_400_000;
@@ -17,13 +16,15 @@ const todayISO = isoUTC(todayStartUTC);
 
 // Each rendered color maps to the day's level via levelPalette, i.e. the SAME
 // colors + source the heatmap uses, so both stay in lock-step.
-export default function ThisWeek() {
+import type { ActivityDay } from "#lib/activity";
+
+export default function ThisWeek({ data }: { data: ActivityDay[] }) {
   const { theme } = useTheme();
   const palette = levelPalette(theme);
 
   // Sunday-start week (matches the heatmap's weekStart=0), in UTC days.
   const sundayStartUTC = todayStartUTC - now.getUTCDay() * DAY_MS;
-  const by = new Map(activity.map((a) => [a.date, a]));
+  const by = new Map(data.map((a) => [a.date, a]));
 
   const days = Array.from({ length: 7 }, (_, i) => {
     const key = isoUTC(sundayStartUTC + i * DAY_MS);

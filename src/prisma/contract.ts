@@ -201,6 +201,31 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
   });
 
   // ============================================================
+  // LoginEvent
+  // ============================================================
+
+  /**
+   * 登录事件（每次成功登录写一行）。
+   *
+   * 为什么不能拿 Session 当数据源：单设备模型下 Session.userId 是 UNIQUE，
+   * 新登录会覆盖旧记录 —— 历史登录全部丢失，热力图与统计就无从算起。
+   *
+   * 为什么存原始事件而不是每日计数：聚合口径（一天多次登录算一次还是多次）
+   * 会随需求变，存事件随时能改算法；存了计数要改就得重算历史。代价是查询
+   * 要 GROUP BY，但登录频率低，量很小。
+   */
+  const LoginEvent = model("LoginEvent", {
+    fields: {
+      id: field.id.uuidv7Native(),
+      userId: field.uuidNative(),
+      createdAt: field.temporal.createdAtString(),
+    },
+    relations: {
+      user: rel.belongsTo(User, { from: "userId", to: "id" }).sql({ fk: { onDelete: "cascade" } }),
+    },
+  });
+
+  // ============================================================
   // RateLimit
   // ============================================================
 
@@ -229,6 +254,7 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
     device: rel.hasOne(Device, { by: "userId" }),
     session: rel.hasOne(Session, { by: "userId" }),
     notificationRecipients: rel.hasMany(NotificationRecipient, { by: "userId" }),
+    loginEvents: rel.hasMany(LoginEvent, { by: "userId" }),
   });
 
   // ============================================================
@@ -245,6 +271,7 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
       RateLimit,
       Notification: Notification$,
       NotificationRecipient,
+      LoginEvent,
     },
     enums: {
       Role,

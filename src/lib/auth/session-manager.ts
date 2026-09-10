@@ -17,6 +17,7 @@ import { PUBLIC_COLUMNS, type User } from "./current-user";
 import { generateToken, hashToken } from "./token";
 import { ensureDevice } from "./device";
 import { setSessionCookie, setDeviceCookie, getDeviceKey } from "./session";
+import { recordLogin } from "#lib/activity";
 
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 天
 
@@ -121,6 +122,9 @@ export async function signIn(userId: string): Promise<void> {
 
   setSessionCookie(token);
   setDeviceCookie(deviceKey);
+
+  // 记一次登录活动（热力图与统计的数据源）。失败不影响登录 —— 见 recordLogin。
+  await recordLogin(userId);
 }
 
 // ============================================================

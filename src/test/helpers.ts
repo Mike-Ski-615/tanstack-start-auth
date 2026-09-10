@@ -65,9 +65,21 @@ export async function deleteUser(userId: string): Promise<void> {
  * 限速是 DB 型、跨用例持久 —— 同一 IP 跑多个「连续尝试」用例会互相干扰。
  * 需要干净窗口的用例在 beforeEach 里调它，而不是依赖全库清空。
  */
+/**
+ * 清限速计数。
+ *
+ * 传 type（如 "register"）会清掉该维度**全部** key。
+ *
+ * ⚠️ 这在跨文件时是危险的：两个测试文件都用 register 维度、但靠不同 IP 段
+ * 隔离时，一方的 clear 会把另一方的计数擦掉 —— 表现为「第 N 次应该被限速
+ * 却通过了」的偶发失败。
+ *
+ * 需要精确隔离时传完整前缀，例如 clearRateLimit("register:ip=203.0.113.10")，
+ * 只清自己那个桶。key 的构造见 lib/auth/rate-limiter.ts 的 subjectKey()。
+ */
 export async function clearRateLimit(...types: string[]): Promise<void> {
   for (const t of types) {
-    await db.orm.public.RateLimit.where((r) => r.key.like(`${t}:%`)).delete();
+    await db.orm.public.RateLimit.where((r) => r.key.like(`${t}%`)).delete();
   }
 }
 

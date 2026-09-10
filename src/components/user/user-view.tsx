@@ -1,10 +1,10 @@
 import Heatmap from "./heatmap";
 import ThisWeek from "./week";
 import { Separator } from "#components/ui/separator";
-import type { User } from "#server/user.functions";
+import type { UserProfile } from "#server/user.functions";
 import { daysSince } from "#lib/format";
 
-export function UserView({ user }: { user: User }) {
+export function UserView({ user, calendar, stats }: UserProfile) {
   return (
     <main className="min-h-full min-w-0">
       <div className=" mx-auto flex w-full max-w-7xl min-w-0 flex-col gap-4 p-4 sm:gap-5 sm:p-6 lg:gap-6 lg:p-8">
@@ -36,47 +36,64 @@ export function UserView({ user }: { user: User }) {
 
           <Separator orientation="vertical" className="hidden h-8 lg:block" />
 
-          <div className="flex flex-col items-center justify-center gap-1">
-            <dd className="text-xl font-semibold tracking-tight tabular-nums">xxx</dd>
-            <dt className="text-center text-xs font-medium text-muted-foreground">xxx</dt>
-          </div>
+          <Stat value={stats.loginCount} label="登录次数" />
+
+          <Separator orientation="vertical" className="hidden h-8 lg:block" />
+
+          <Stat value={stats.activeDays} label="活跃天数" />
+
+          <Separator orientation="vertical" className="hidden h-8 lg:block" />
+
+          <Stat value={stats.currentStreak} label="连续活跃" />
 
           <Separator orientation="vertical" className="hidden h-8 lg:block" />
 
           <div className="flex flex-col items-center justify-center gap-1">
-            <dd className="text-xl font-semibold tracking-tight tabular-nums">xx</dd>
-            <dt className="text-center text-xs font-medium text-muted-foreground">xxxx</dt>
-          </div>
-
-          <Separator orientation="vertical" className="hidden h-8 lg:block" />
-
-          <div className="flex flex-col items-center justify-center gap-1">
-            <dd className="text-xl font-semibold tracking-tight tabular-nums">xx</dd>
-            <dt className="text-center text-xs font-medium text-muted-foreground">xxx</dt>
-          </div>
-
-          <Separator orientation="vertical" className="hidden h-8 lg:block" />
-
-          <div className="flex flex-col items-center justify-center gap-1">
-            <dd className="text-xl font-semibold tracking-tight tabular-nums">xxx</dd>
-            <dt className="text-center text-xs font-medium text-muted-foreground">xxxx</dt>
-          </div>
-
-          <Separator orientation="vertical" className="hidden h-8 lg:block" />
-
-          <div className="flex flex-col items-center justify-center gap-1">
-            <dd className="text-xl font-semibold tracking-tight tabular-nums">xxx</dd>
-            <dt className="text-center text-xs font-medium text-muted-foreground">xxx</dt>
+            <dd className="text-xl font-semibold tracking-tight tabular-nums">
+              {formatLastLogin(stats.lastLoginAt)}
+            </dd>
+            <dt className="text-center text-xs font-medium text-muted-foreground">最近登录</dt>
           </div>
         </dl>
 
         <section className=" grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
           <div className="min-w-0 overflow-hidden rounded-2xl bg-card p-4 sm:p-5">
-            <Heatmap />
+            <Heatmap data={calendar} />
           </div>
-          <ThisWeek />
+          <ThisWeek data={calendar} />
         </section>
       </div>
     </main>
   );
+}
+
+/** 统计区的一格。 */
+function Stat({ value, label }: { value: number; label: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-1">
+      <dd className="text-xl font-semibold tracking-tight tabular-nums">{value}</dd>
+      <dt className="text-center text-xs font-medium text-muted-foreground">{label}</dt>
+    </div>
+  );
+}
+
+/**
+ * 最近登录的显示形态。
+ *
+ * 这里用**本地时区**而非 UTC：统计口径（活跃天数/连续）必须 UTC 一致以防
+ * 水合不匹配，但「最近登录」给人看的是「多久以前」，用相对时间反而没有
+ * 时区歧义，且不受 SSR/客户端分界影响。
+ */
+function formatLastLogin(iso: string | null): string {
+  if (!iso) return "从未";
+
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const min = Math.floor(diffMs / 60_000);
+  if (min < 1) return "刚刚";
+  if (min < 60) return `${min} 分钟前`;
+  const hours = Math.floor(min / 60);
+  if (hours < 24) return `${hours} 小时前`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days} 天前`;
+  return `${Math.floor(days / 30)} 个月前`;
 }

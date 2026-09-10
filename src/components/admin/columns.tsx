@@ -1,4 +1,5 @@
 import { createColumnHelper } from "@tanstack/react-table";
+import { Link } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
 
 import { Badge } from "#components/ui/badge";
@@ -46,7 +47,14 @@ export const columns = columnHelper.columns([
       return (
         <div className="flex gap-2">
           {role && <Badge variant="outline">{role.label}</Badge>}
-          <span className="max-w-125 truncate font-medium">{row.getValue("name")}</span>
+          {/* 点人名 → 该用户的主页 */}
+          <Link
+            to="/authenticated/users/$userId"
+            params={{ userId: row.original.id }}
+            className="max-w-125 truncate font-medium hover:underline hover:underline-offset-2"
+          >
+            {row.getValue("name")}
+          </Link>
         </div>
       );
     },

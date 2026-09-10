@@ -4,6 +4,7 @@ import { userIdSchema } from "#schemas/auth";
 import { db } from "#prisma/db";
 import { getCurrentUser } from "#lib/auth/guard";
 import { PUBLIC_COLUMNS, type User } from "#lib/auth/current-user";
+import { getActivityForUser, type ActivityDay, type ActivityStats } from "#lib/activity";
 
 // 客户端组件继续从本模块 import User，不必知道它搬去了叶子模块。
 export type { User };
@@ -23,17 +24,28 @@ export const getUserFn = createServerFn({
   return getCurrentUser();
 });
 
+/** 主页需要的全部数据：用户资料 + 活动。 */
+export type UserProfile = {
+  user: User;
+  calendar: ActivityDay[];
+  stats: ActivityStats;
+};
+
 /**
- * 按 id 取任意用户的公开形态（含 basic + 在线态），
- * /authenticated/users/$userId 用它来渲染目标用户主页。
+ * 按 id 取任意用户的公开资料与活动数据，
+ * /authenticated/users/$userId 用它渲染目标用户主页。
  *
  * 只要求"已登录"即可查（会话无自界→任何登录用户可见任意用户）。
+ * 邮箱也包含在公开投影里 —— 明确决策，见 CONTEXT.md。
+ *
+ * 资料与活动一次返回而非两个接口：主页两者都要，分两次请求只会多一次往返，
+ * 且没有单独使用其一的场景。
  */
 export const getUserById = createServerFn({
   method: "GET",
 })
   .validator(userIdSchema)
-  .handler(async ({ data }): Promise<User | null> => {
+  .handler(async ({ data }): Promise<UserProfile | null> => {
     const currentUser = await getCurrentUser();
     if (!currentUser) return null;
 
@@ -43,5 +55,7 @@ export const getUserById = createServerFn({
 
     if (!user) return null;
 
-    return user;
+    const { calendar, stats } = await getActivityForUser(data.userId);
+
+    return { user, calendar, stats };
   });

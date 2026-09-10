@@ -12,6 +12,10 @@
       "model": "EmailVerificationToken",
       "namespace": "public"
     },
+    "LoginEvent": {
+      "model": "LoginEvent",
+      "namespace": "public"
+    },
     "Notification": {
       "model": "Notification",
       "namespace": "public"
@@ -309,6 +313,63 @@
               },
               "namespaceId": "public",
               "table": "EmailVerificationToken"
+            }
+          },
+          "LoginEvent": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "userId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "user": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "userId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "userId": {
+                  "column": "userId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "LoginEvent"
             }
           },
           "Notification": {
@@ -894,6 +955,21 @@
                   "namespace": "public"
                 }
               },
+              "loginEvents": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "userId"
+                  ]
+                },
+                "to": {
+                  "model": "LoginEvent",
+                  "namespace": "public"
+                }
+              },
               "notificationRecipients": {
                 "cardinality": "1:N",
                 "on": {
@@ -1169,6 +1245,64 @@
                   ],
                   "name": "EmailVerificationToken_userId_idx_a489d58a",
                   "prefix": "EmailVerificationToken_userId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "LoginEvent": {
+              "columns": {
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/uuid@1",
+                  "nativeType": "uuid",
+                  "nullable": false
+                },
+                "userId": {
+                  "codecId": "pg/uuid@1",
+                  "nativeType": "uuid",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "LoginEvent"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "User"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "userId"
+                  ],
+                  "name": "LoginEvent_userId_idx_a489d58a",
+                  "prefix": "LoginEvent_userId_idx",
                   "unique": false
                 }
               ],
@@ -1683,10 +1817,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "2fb6a7cb2cb3c48a645a3d559035f041bc8315706331bf1991053145e97781cc"
+    "storageHash": "aafbb633a6df53ad250e4e496e2ed30a82772a07b9b8fa83f76854c04b846d63"
   },
   "execution": {
-    "executionHash": "3e7ddb2a21aa65e10b0fbd2cae88b0689b02e9c1c06908ed14706b5428dc0004",
+    "executionHash": "df95fb7718de0fec05a06508e4322af09110635d8b3406d3a8125775f0e43408",
     "mutations": {
       "defaults": [
         {
@@ -1724,6 +1858,17 @@
             "column": "id",
             "namespace": "public",
             "table": "EmailVerificationToken"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "LoginEvent"
           }
         },
         {

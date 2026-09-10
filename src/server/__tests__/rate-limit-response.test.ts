@@ -54,8 +54,13 @@ async function call(fn: () => Promise<unknown>) {
 
 describe("被限速时返回 429", () => {
   it("register：打满 IP 配额后返回 429", async () => {
-    // 用未被其它文件使用的 IP 段，因此不需要清 register 计数
+    // 用未被其它文件使用的 IP 段，并**只清自己这个桶**。
+    //
+    // 不能写 clearRateLimit("register") —— 那会清掉全部 register 计数，
+    // 包括 register.test.ts 正在用的 203.0.113.10 等，两边交错执行时互相
+    // 擦除，表现为「第 4 次应该被拒却通过了」的偶发失败（本轮真的撞上过）。
     const ip = "203.0.113.240";
+    await clearRateLimit(`register:ip=${ip}`);
     for (let i = 0; i < 3; i++) {
       const email = uniqueEmail("rl");
       await withRequest({ ip }, () =>
