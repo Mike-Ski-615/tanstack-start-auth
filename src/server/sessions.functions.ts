@@ -16,44 +16,28 @@ export const listSessionsFn = createServerFn({
   setResponseHeader("Cache-Control", "no-store");
 
   const user = await getCurrentUser();
-  if (!user) return { device: null, session: null };
+  if (!user) return { device: null, session: null, emailVerifiedAt: null };
 
-  // 一次查询带出 Device + Session（契约声明的 1:1 关系），代替原来两次往返。
-  const row = await db.orm.public.User.where({ id: user.id })
-    .include("device", (d) =>
-      d.select("id", "name", "platform", "userAgent", "ip", "lastSeenAt", "createdAt"),
-    )
-    .include("session", (s) =>
-      s.select("id", "sessionVersion", "createdAt", "expiresAt"),
-    )
-    .first();
+  // 分成两次查询，而不是 include()：
+  // include() 的结果类型带 `{ [x: string]: unknown }` 索引签名（上游
+  // IncludedRelationsForRow 未传 NsId），过不了 createServerFn 的可序列化校验，
+  // 只能再手工抄一遍字段字面量 —— 字段清单重复两处，且漏改一边不会报错。
+  // 分开查则每张表只写一次 .select()，多一次往返换掉那个静默失败面。
+  //
+  // 注意：下面两个 select 就是发给客户端的字段白名单。
+  // tokenHash / deviceKey 是凭证，绝不可加进来；要加字段先想清楚是否必要。
+  const [device, session] = await Promise.all([
+    db.orm.public.Device.where({ userId: user.id })
+      .select("id", "name", "platform", "userAgent", "ip", "lastSeenAt", "createdAt")
+      .first(),
+    db.orm.public.Session.where({ userId: user.id })
+      .select("id", "sessionVersion", "createdAt", "expiresAt")
+      .first(),
+  ]);
 
-  const device = row?.device;
-  const session = row?.session;
-
-  // 注意：必须手动投影成新对象字面量。`include()` 的结果类型带一个
-  // `{ [x: string]: unknown }` 索引签名（上游 IncludedRelationsForRow 未传 NsId），
-  // 直接把 row.device 交给 createServerFn 会被可序列化校验拒掉。
   return {
-    device: device
-      ? {
-          id: device.id,
-          name: device.name,
-          platform: device.platform,
-          userAgent: device.userAgent,
-          ip: device.ip,
-          lastSeenAt: device.lastSeenAt,
-          createdAt: device.createdAt,
-        }
-      : null,
-    session: session
-      ? {
-          id: session.id,
-          sessionVersion: session.sessionVersion,
-          createdAt: session.createdAt,
-          expiresAt: session.expiresAt,
-        }
-      : null,
+    device: device ?? null,
+    session: session ?? null,
     emailVerifiedAt: user.emailVerifiedAt,
   };
 });
