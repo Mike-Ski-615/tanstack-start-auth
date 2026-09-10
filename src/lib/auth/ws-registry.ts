@@ -7,11 +7,15 @@
  * 供 server functions 调用 kickSession / kickAllSessionsForUser。
  * WS handler (ws.ts) 在连接建立/关闭时更新此注册表。
  *
- * 状态存在 globalThis 而非模块级变量：dev 模式下 Nitro 会把 WS handler
- * （serverDir）与 server functions 放在**不同的模块图**里，同一模块会
- * 被实例化两次，各自持有独立的 Map。后果是 kickSession 在 server function
- * 那份空 Map 上操作，永远踢不到真实连接（已实测：两个实例的 moduleId 不同、
- * 注册表 size 分别为 0 和 1）。挂到 globalThis 后两边共享同一份状态。
+ * 状态存在 globalThis 而非模块级变量：Vite 6 的 Environment API 为 Nitro 插件
+ * 单独建了一个 environment（server.environments.nitro），它与主图各有独立的模块实例
+ * 缓存。于是同一模块被实例化两次、各持一份 Map：WS handler 在环境图里注册连接，
+ * server function 在主图里读注册表，后者永远是空的 —— kickSession 遍历空 Map，
+ * 什么也踢不到（已实测：两实例 moduleId 不同、peersBySession.size 一为 1 一为 0）。
+ * 挂到 globalThis 后与环境无关，两边共享同一份状态。
+ *
+ * 注：这与 nitro 的 serverDir 配置无关（它只决定 handler 扫描目录）；Nitro 也没有
+ * 提供关闭模块隔离的开关 —— 隔离来自 Vite 的 environment 架构本身。
  *
  * 多实例部署（多进程）时需替换为 Redis。
  */
