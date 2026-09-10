@@ -17,7 +17,6 @@ export const PUBLIC_COLUMNS = [
   "bio",
   "role",
   "createdAt",
-  "status",
   "sessionVersion",
   "emailVerifiedAt",
 ] as const;
@@ -30,7 +29,6 @@ export type User = {
   bio: string;
   role: "teacher" | "student";
   createdAt: string;
-  status: "online" | "offline";
   sessionVersion: number;
   emailVerifiedAt: string | null;
 };

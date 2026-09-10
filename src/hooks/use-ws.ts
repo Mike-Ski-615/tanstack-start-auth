@@ -1,95 +1,80 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
+import { createWsClient } from "#lib/ws-client";
 import {
   WS_CLOSE_SESSION_REPLACED,
   WS_CLOSE_ALL_SESSIONS_REVOKED,
-  WS_CLOSE_NORMAL,
 } from "#lib/ws-close-codes";
 
 export { WS_CLOSE_SESSION_REPLACED, WS_CLOSE_ALL_SESSIONS_REVOKED };
 
 /**
- * WebSocket 客户端钩子 — 实时在线状态 + 被踢通知。
+ * 在线用户集合的模块级 store。
  *
- * 功能：
- * - 连接 WS → 服务端更新 status = online
- * - 被踢（单设备登录）→ Toast + 跳转登录页
- * - 全部撤销 → Toast + 跳转登录页
- * - 异常断线 → 自动重连（3 秒后）
+ * 为什么不用 Context：唯一的生产者（useWs）挂在 authenticated 布局，
+ * 消费者散落在深层展示组件里。走 Context 要把 provider 塞进布局并让
+ * 每个消费者改签名；模块级订阅则是任意组件一行 hook 即可读取，
+ * 且 SSR 时天然为空集合（无 WS）。
  */
-export function useWs() {
+let onlineUserIds: ReadonlySet<string> = new Set();
+const subscribers = new Set<() => void>();
+
+function setOnlineUserIds(next: ReadonlySet<string>) {
+  onlineUserIds = next;
+  for (const notify of subscribers) notify();
+}
+
+/** 读取当前在线用户 id 集合。任意组件可用。 */
+export function useOnlineUsers(): ReadonlySet<string> {
+  const [, forceUpdate] = useState(0);
+
+  const subscribe = useCallback((notify: () => void) => {
+    subscribers.add(notify);
+    return () => {
+      subscribers.delete(notify);
+    };
+  }, []);
+
+  useEffect(() => subscribe(() => forceUpdate((n) => n + 1)), [subscribe]);
+
+  return onlineUserIds;
+}
+
+/**
+ * WebSocket 连接 — 在线状态同步 + 被踢通知。
+ *
+ * 连接管理（心跳 / 退避 / 重连）全在 lib/ws-client，这里只负责
+ * 接到 React 生命周期与 UI 反馈。挂在 authenticated 布局，全站一条连接。
+ *
+ * 在线状态由服务端全量推送替换，不查 DB —— User.status 字段已废除。
+ */
+export function useWs(): void {
   const navigate = useNavigate();
-  const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const unmountedRef = useRef(false);
 
   useEffect(() => {
-    unmountedRef.current = false;
-
-    const connect = () => {
-      if (unmountedRef.current) return;
-
-      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
-      wsRef.current = ws;
-
-      ws.onopen = () => {
-        console.log("[WS] 已连接");
-      };
-
-      ws.onclose = (event) => {
-        console.log("[WS] 连接关闭", event.code, event.reason);
-
-        // 被踢原因码 → Toast + 跳转登录
-        if (event.code === WS_CLOSE_SESSION_REPLACED) {
+    const client = createWsClient({
+      presence: (userIds) => setOnlineUserIds(new Set(userIds)),
+      kicked: (code) => {
+        setOnlineUserIds(new Set());
+        if (code === WS_CLOSE_SESSION_REPLACED) {
           toast.error("你的账号在另一设备登录", {
             description: "当前会话已被替换",
             duration: 5000,
           });
-          navigate({ to: "/auth/login" });
-          return;
-        }
-
-        if (event.code === WS_CLOSE_ALL_SESSIONS_REVOKED) {
+        } else if (code === WS_CLOSE_ALL_SESSIONS_REVOKED) {
           toast.error("所有会话已被撤销", {
             description: "请重新登录",
             duration: 5000,
           });
-          navigate({ to: "/auth/login" });
-          return;
         }
-
-        // 主动登出（服务端正常关闭）：不提示、不重连、不跳转。
-        // 登出的 UI 反馈与跳转由 logout mutation 负责，这里重复处理会双重提示。
-        // 必须显式判断：unmountedRef 在此刻可能仍为 false（navigate 先于组件
-        // 卸载执行），光靠它拦不住重连。
-        if (event.code === WS_CLOSE_NORMAL) {
-          return;
-        }
-
-        // 其他原因（网络异常等）→ 自动重连
-        if (!unmountedRef.current) {
-          reconnectTimerRef.current = setTimeout(connect, 3000);
-        }
-      };
-
-      ws.onerror = () => {
-        console.warn("[WS] 连接异常");
-      };
-    };
-
-    connect();
+        navigate({ to: "/auth/login" });
+      },
+    });
 
     return () => {
-      unmountedRef.current = true;
-      if (reconnectTimerRef.current) {
-        clearTimeout(reconnectTimerRef.current);
-      }
-      if (wsRef.current) {
-        wsRef.current.close();
-        wsRef.current = null;
-      }
+      client.close();
+      setOnlineUserIds(new Set());
     };
   }, [navigate]);
 }

@@ -29,6 +29,7 @@ import {
   useSidebar,
 } from "#components/ui/sidebar";
 import { useLogoutMutation } from "#hooks/use-auth-mutations";
+import { useOnlineUsers } from "#hooks/use-ws";
 import { useNavigate } from "@tanstack/react-router";
 import type { User } from "#server/user.functions";
 import { useTheme } from "#provider/theme-provider";
@@ -38,6 +39,8 @@ export function UserNav({ user }: { user: User }) {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const logoutMutation = useLogoutMutation();
+  const onlineUsers = useOnlineUsers();
+  const isOnline = onlineUsers.has(user.id);
 
   return (
     <>
@@ -52,11 +55,9 @@ export function UserNav({ user }: { user: User }) {
                     {user.name.charAt(0)}
                   </AvatarFallback>
                   <AvatarBadge
-                    title={user.status === "online" ? "在线" : "离线"}
+                    title={isOnline ? "在线" : "离线"}
                     className={
-                      user.status === "online"
-                        ? "bg-emerald-500"
-                        : "bg-destructive"
+                      isOnline ? "bg-emerald-500" : "bg-destructive"
                     }
                   />
                 </Avatar>
@@ -81,11 +82,9 @@ export function UserNav({ user }: { user: User }) {
                       {user.name.charAt(0)}
                     </AvatarFallback>
                     <AvatarBadge
-                      title={user.status === "online" ? "在线" : "离线"}
+                      title={isOnline ? "在线" : "离线"}
                       className={
-                        user.status === "online"
-                          ? "bg-emerald-500"
-                          : "bg-destructive"
+                        isOnline ? "bg-emerald-500" : "bg-destructive"
                       }
                     />
                   </Avatar>

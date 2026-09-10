@@ -15,6 +15,7 @@ import { listSessionsFn } from "#server/sessions.functions";
 import { LoadingPage } from "#components/status/authenticated/settings/account/loading";
 import { ErrorPage } from "#components/status/authenticated/settings/account/error";
 import { NotFoundPage } from "#components/status/authenticated/settings/account/not-found";
+import { useOnlineUsers } from "#hooks/use-ws";
 
 export const Route = createFileRoute("/authenticated/settings/account")({
   pendingComponent: LoadingPage,
@@ -35,6 +36,8 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 
 function SettingsAccountPage() {
   const { user } = Route.useRouteContext();
+  const onlineUsers = useOnlineUsers();
+  const isOnline = onlineUsers.has(user.id);
 
   const { data } = useQuery({
     queryKey: ["security-info"],
@@ -97,8 +100,8 @@ function SettingsAccountPage() {
           </div>
           <div className="grid grid-cols-[100px_1fr] gap-1 p-4">
             <span className="text-xs text-muted-foreground">在线状态</span>
-            <span className={`inline-flex w-fit rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_LABELS[user.status]?.color ?? ""}`}>
-              {STATUS_LABELS[user.status]?.label ?? user.status}
+            <span className={`inline-flex w-fit rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_LABELS[isOnline ? "online" : "offline"].color}`}>
+              {STATUS_LABELS[isOnline ? "online" : "offline"].label}
             </span>
           </div>
         </div>
