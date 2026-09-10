@@ -1,5 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AppleIcon, UserIcon } from "@hugeicons/core-free-icons";
+import { GoogleIcon } from "#components/ui/google-icon";
 import { useForm } from "@tanstack/react-form";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { Button } from "#components/ui/button";
@@ -64,8 +65,7 @@ function RegisterPage() {
         </div>
         <form.Field name="name">
           {(nameField) => {
-            const invalid =
-              nameField.state.meta.isTouched && !nameField.state.meta.isValid;
+            const invalid = nameField.state.meta.isTouched && !nameField.state.meta.isValid;
             return (
               <Field data-invalid={invalid}>
                 <FieldLabel htmlFor={nameField.name}>名称</FieldLabel>
@@ -75,9 +75,7 @@ function RegisterPage() {
                   type="text"
                   value={nameField.state.value}
                   onBlur={nameField.handleBlur}
-                  onChange={(event) =>
-                    nameField.handleChange(event.target.value)
-                  }
+                  onChange={(event) => nameField.handleChange(event.target.value)}
                   aria-invalid={invalid}
                   placeholder="张三"
                   autoComplete="name"
@@ -91,8 +89,7 @@ function RegisterPage() {
 
         <form.Field name="email">
           {(emailField) => {
-            const invalid =
-              emailField.state.meta.isTouched && !emailField.state.meta.isValid;
+            const invalid = emailField.state.meta.isTouched && !emailField.state.meta.isValid;
             return (
               <Field data-invalid={invalid}>
                 <FieldLabel htmlFor={emailField.name}>邮箱</FieldLabel>
@@ -102,17 +99,13 @@ function RegisterPage() {
                   type="email"
                   value={emailField.state.value}
                   onBlur={emailField.handleBlur}
-                  onChange={(event) =>
-                    emailField.handleChange(event.target.value)
-                  }
+                  onChange={(event) => emailField.handleChange(event.target.value)}
                   aria-invalid={invalid}
                   placeholder="name@example.com"
                   autoComplete="email"
                   required
                 />
-                {invalid && (
-                  <FieldError errors={emailField.state.meta.errors} />
-                )}
+                {invalid && <FieldError errors={emailField.state.meta.errors} />}
               </Field>
             );
           }}
@@ -120,9 +113,7 @@ function RegisterPage() {
 
         <form.Field name="password">
           {(passwordField) => {
-            const invalid =
-              passwordField.state.meta.isTouched &&
-              !passwordField.state.meta.isValid;
+            const invalid = passwordField.state.meta.isTouched && !passwordField.state.meta.isValid;
             return (
               <Field data-invalid={invalid}>
                 <FieldLabel htmlFor={passwordField.name}>密码</FieldLabel>
@@ -132,17 +123,13 @@ function RegisterPage() {
                   type="password"
                   value={passwordField.state.value}
                   onBlur={passwordField.handleBlur}
-                  onChange={(event) =>
-                    passwordField.handleChange(event.target.value)
-                  }
+                  onChange={(event) => passwordField.handleChange(event.target.value)}
                   aria-invalid={invalid}
                   placeholder="请输入密码"
                   autoComplete="new-password"
                   required
                 />
-                {invalid && (
-                  <FieldError errors={passwordField.state.meta.errors} />
-                )}
+                {invalid && <FieldError errors={passwordField.state.meta.errors} />}
               </Field>
             );
           }}
@@ -163,14 +150,13 @@ function RegisterPage() {
           </Button>
 
           <Button variant="outline" type="button">
-            <HugeiconsIcon icon={AppleIcon} />
+            <GoogleIcon className="size-4" />
             使用 Google 注册
           </Button>
         </Field>
 
         <FieldDescription className="px-6 text-center">
-          继续即表示你同意 <Link to="/">服务条款</Link> 和
-          <Link to="/">隐私政策</Link>。
+          继续即表示你同意 <Link to="/">服务条款</Link> 和<Link to="/">隐私政策</Link>。
         </FieldDescription>
       </FieldGroup>
     </form>

@@ -4,22 +4,12 @@ import { useForm } from "@tanstack/react-form";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { Button } from "#components/ui/button";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "#components/ui/field";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "#components/ui/field";
 import { Input } from "#components/ui/input";
 import { useState } from "react";
 import { resetPasswordSchema } from "#schemas/auth";
 import { useResetPasswordMutation } from "#hooks/use-auth-mutations";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "#components/ui/input-otp";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "#components/ui/input-otp";
 import { LoadingPage } from "#components/status/auth/reset/loading";
 import { ErrorPage } from "#components/status/auth/reset/error";
 import { NotFoundPage } from "#components/status/auth/reset/not-found";
@@ -85,14 +75,18 @@ function ResetPage() {
             <span className="sr-only">Demo</span>
           </Link>
           <h1 className="text-xl font-bold">设置新密码</h1>
-          <FieldDescription>
-            验证码已发送至 {email}，15 分钟内有效。
-          </FieldDescription>
+          <FieldDescription>验证码已发送至 {email}，15 分钟内有效。</FieldDescription>
         </div>
 
         <Field>
           <FieldLabel htmlFor="otp">邮箱验证码</FieldLabel>
+          {/*
+            id 必填：FieldLabel 的 htmlFor="otp" 需要一个真实存在的
+            id 才能建立关联。OTP 控件底层是原生 input，id 会透传。
+            缺了它 label 就是个死链 —— 无障碍树里该控件没有名字。
+          */}
           <InputOTP
+            id="otp"
             maxLength={6}
             value={otp}
             onChange={setOtp}
@@ -108,9 +102,7 @@ function ResetPage() {
 
         <form.Field name="password">
           {(passwordField) => {
-            const invalid =
-              passwordField.state.meta.isTouched &&
-              !passwordField.state.meta.isValid;
+            const invalid = passwordField.state.meta.isTouched && !passwordField.state.meta.isValid;
             return (
               <Field data-invalid={invalid}>
                 <FieldLabel htmlFor={passwordField.name}>新密码</FieldLabel>
@@ -120,33 +112,24 @@ function ResetPage() {
                   type="password"
                   value={passwordField.state.value}
                   onBlur={passwordField.handleBlur}
-                  onChange={(event) =>
-                    passwordField.handleChange(event.target.value)
-                  }
+                  onChange={(event) => passwordField.handleChange(event.target.value)}
                   aria-invalid={invalid}
                   placeholder="请输入新密码"
                   autoComplete="new-password"
                   required
                 />
-                {invalid && (
-                  <FieldError errors={passwordField.state.meta.errors} />
-                )}
+                {invalid && <FieldError errors={passwordField.state.meta.errors} />}
               </Field>
             );
           }}
         </form.Field>
 
         <Field>
-          <Button
-            type="submit"
-            disabled={otp.length !== 6 || resetMutation.isPending}
-          >
+          <Button type="submit" disabled={otp.length !== 6 || resetMutation.isPending}>
             {resetMutation.isPending ? "重置中..." : "重置密码"}
           </Button>
           {resetMutation.isError && (
-            <p className="text-sm text-destructive">
-              验证码不正确或已过期，请重试
-            </p>
+            <p className="text-sm text-destructive">验证码不正确或已过期，请重试</p>
           )}
         </Field>
       </FieldGroup>
