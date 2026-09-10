@@ -1,11 +1,15 @@
 /**
  * 滑动窗口速率限制器（DB 型，适合多实例部署）。
  *
- * 用 Prisma upsert 原子递增，单行记录窗口内计数。
- * 窗口到期时重置计数，而非逐条清理。
+ * 单条原子 UPSERT 完成「窗口判断 + 递增/重置 + 取回计数」，没有 check-then-act 竞态。
  *
- * 注意：count 递增非原子，但限速场景下微小竞争可接受；
- * 如需严格原子，可改用 SQL raw `count = count + 1`。
+ * 为什么不能写成 SELECT → JS +1 → UPDATE 绝对值：并发请求会全部读到同一个旧值、
+ * 全部通过 `count >= max` 检查、全部写回同一个新值。实测 20 并发 / 限制 5 会
+ * **放行 20 次**（见 ADR-0004）。而限速器要挡的正是突发流量，突发即并发 ——
+ * 所以这不是「微小竞争」，是限速可被完全绕过。
+ *
+ * count 语义为「窗口内的尝试次数」：被拒的请求也计数，但不会推迟 windowStart，
+ * 因此不会延长封锁。并发下每个请求拿到互不重复的 count，恰好前 max 个放行。
  */
 
 import { db } from "#prisma/db";
@@ -26,46 +30,45 @@ export async function rateLimit(
   identifier: string,
 ): Promise<{ allowed: boolean; remaining: number; resetAt: number }> {
   const key = `${type}:${identifier}`;
-  const now = new Date();
-  const windowStart = new Date(now.getTime() - WINDOW_MS);
-  const expiresAt = new Date(now.getTime() + WINDOW_MS);
   const max = LIMITS[type];
+  const now = new Date();
+  const nowIso = now.toISOString();
+  const windowStartIso = new Date(now.getTime() - WINDOW_MS).toISOString();
+  const expiresAtIso = new Date(now.getTime() + WINDOW_MS).toISOString();
 
-  const existing = await db.orm.public.RateLimit.where({ key }).first();
+  // ponytail: 表名/列名是原始 SQL 里的字面量，没有编译期保护 ——
+  // 改契约里的 RateLimit 表或这几列时要同步改这里（改了不会有类型报错，
+  // 只会在运行时炸）。上限可接受：这是内置表，且这张表就一个用途。
+  const plan = db.raw.sql`
+    INSERT INTO "public"."RateLimit" ("key", "count", "windowStart", "expiresAt")
+    VALUES (${key}, 1, ${nowIso}::timestamptz, ${expiresAtIso}::timestamptz)
+    ON CONFLICT ("key") DO UPDATE SET
+      "count" = CASE
+        WHEN "RateLimit"."windowStart" > ${windowStartIso}::timestamptz
+        THEN "RateLimit"."count" + 1
+        ELSE 1
+      END,
+      "windowStart" = CASE
+        WHEN "RateLimit"."windowStart" > ${windowStartIso}::timestamptz
+        THEN "RateLimit"."windowStart"
+        ELSE ${nowIso}::timestamptz
+      END,
+      "expiresAt" = ${expiresAtIso}::timestamptz
+    RETURNING "count", "windowStart"
+  `
+    .returnsRow({
+      count: { codecId: "pg/int4@1" },
+      windowStart: { codecId: "pg/timestamptz-string@1" },
+    })
+    .build();
 
-  if (existing && new Date(existing.windowStart) > windowStart) {
-    // 窗口内：检查是否超限
-    if (existing.count >= max) {
-      return {
-        allowed: false,
-        remaining: 0,
-        resetAt: new Date(existing.windowStart).getTime() + WINDOW_MS,
-      };
-    }
-    // 递增（非原子，但限速场景可接受）
-    const newCount = existing.count + 1;
-    await db.orm.public.RateLimit.where({ key }).update({
-      count: newCount,
-      expiresAt: expiresAt.toISOString(),
-    });
-    return {
-      allowed: true,
-      remaining: max - newCount,
-      resetAt: new Date(existing.windowStart).getTime() + WINDOW_MS,
-    };
-  }
+  const [row] = await db.runtime().query(plan);
+  const count = row?.count ?? 1;
 
-  // 窗口过期或不存在：重置计数
-  // conflictOn 必填：RateLimit 无主键，只有 key 唯一约束
-  const upserted = await db.orm.public.RateLimit.upsert({
-    create: { key, count: 1, windowStart: now.toISOString(), expiresAt: expiresAt.toISOString() },
-    update: { count: 1, windowStart: now.toISOString(), expiresAt: expiresAt.toISOString() },
-    conflictOn: { key },
-  });
   return {
-    allowed: true,
-    remaining: max - upserted.count,
-    resetAt: new Date(upserted.windowStart).getTime() + WINDOW_MS,
+    allowed: count <= max,
+    remaining: Math.max(0, max - count),
+    resetAt: new Date(row?.windowStart ?? nowIso).getTime() + WINDOW_MS,
   };
 }
 

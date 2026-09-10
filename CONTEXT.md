@@ -63,10 +63,8 @@ User 级别的整数计数器，用于全局会话失效。
 
 校验：`Session.sessionVersion === User.sessionVersion`，不匹配则 Session 失效。
 
-> ⚠️ 当前实现为 read-modify-write（SELECT → JS +1 → UPDATE）。并发两次 invalidate
-> 可能都读到同一 version，导致其中一次递增丢失。这不会造成旧 Session 重新生效
-> （两次操作都希望失效，第一次已提升 version），属于计数精度问题而非认证绕过。
-> TODO: Prisma 8 支持 expression-based update 后改为 `UPDATE ... SET sessionVersion = sessionVersion + 1`。
+> 递增为**单条原子 UPDATE**（`SET "sessionVersion" = "sessionVersion" + 1`），
+> 不存在 read-modify-write 竞争。实现细节见 ADR-0004。
 
 ### reset（密码重置）
 认证用例之一：验签令牌 → 改密 → 递增 sessionVersion → 创建新 Device + 新 Session（自动登录）。
@@ -148,15 +146,11 @@ User
 | Login timing attack | PASS | DUMMY_PASSWORD_HASH 恒定时间 |
 | Resend without session | PASS | email + IP 双维度限速 |
 | DB-side purge | PASS | deleteAndCount 替代 JS filter |
-| sessionVersion increment | TODO | read-modify-write，Prisma 8 支持 expression update 后改为原子 |
-| RateLimit increment | TODO | read-modify-write，Prisma 8 支持 expression update 后改为原子 |
+| sessionVersion increment | PASS | 单条原子 UPDATE（ADR-0004） |
+| RateLimit increment | PASS | 单条原子 UPSERT（ADR-0004） |
 | UUID  foreign-key types | PASS | 已消除全部 as unknown as（ADR-0003） |
 
 ### TODO
 
-**P2 — 工程性限制（非认证漏洞）：**
-1. `sessionVersion` → DB atomic increment（等待 Prisma 8 expression update API）
-2. `RateLimit` → atomic increment（等待 Redis INCR 或 Prisma 8 expression update）
-
 **Scale — 横向扩展约束：**
-3. WS in-memory peer registry → Redis / PubSub 当多实例部署
+1. WS in-memory peer registry → Redis / PubSub 当多实例部署

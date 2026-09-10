@@ -105,22 +105,22 @@ export async function createAuthenticatedSession(params: {
 /**
  * 递增 User.sessionVersion → 所有旧 Session 全局失效。
  * 用于改密、撤销全部会话。
+ *
+ * 单条原子 UPDATE（SET "sessionVersion" = "sessionVersion" + 1），
+ * 不再是原先的 read-modify-write（SELECT → JS +1 → UPDATE 绝对值）——
+ * 那样并发时会互相覆盖写回同一个值，丢失递增。
+ *
+ * user 不存在时影响 0 行，静默返回（与旧实现一致）。
  */
 export async function invalidateAllSessions(userId: string): Promise<void> {
-  // sessionVersion 递增 → 所有旧 Session 全局失效。
-  //
-  // 注意：Prisma 8 ORM 当前不暴露 expression-based update API，
-  // 这里采用 read-modify-write。对于认证场景（改密、撤销全部），
-  // 并发概率极低，且即使丢失一次递增，后果只是多失效一次（无害）。
-  //
-  // TODO: Prisma 8 正式支持 expression update 后，改为：
-  //   UPDATE "User" SET "sessionVersion" = "sessionVersion" + 1 WHERE id = ?
-  const user = await db.orm.public.User.where({ id: userId }).select("sessionVersion").first();
-  if (!user) return;
-
-  await db.orm.public.User.where({ id: userId }).update({
-    sessionVersion: user.sessionVersion + 1,
-  });
+  await db.runtime().execute(
+    db.sql.public.User
+      .update((f, fns) => ({
+        sessionVersion: fns.raw`${f.sessionVersion} + 1`.returns({ codecId: "pg/int4@1" }),
+      }))
+      .where((f, fns) => fns.eq(f.id, userId))
+      .build(),
+  );
 }
 
 // ============================================================
