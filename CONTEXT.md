@@ -143,7 +143,7 @@ User
 | WS presence race | PASS | Set<peerId> 幂等 open/close |
 | WS session kick | PASS | kickSession + kickAllSessionsForUser |
 | Device/Session 解耦 | PASS | ensureDevice 只管 Device；Session.deviceId 故意无 FK（ADR-0003） |
-| Login timing attack | PASS | DUMMY_PASSWORD_HASH 恒定时间 |
+| Login timing attack | PASS | DUMMY_PASSWORD_HASH 为 argon2id 真实产物（伪哈希会抛异常，反而放大差异）；回归检查 `bun run scripts/check-dummy-hash.ts` |
 | Resend without session | PASS | email + IP 双维度限速 |
 | DB-side purge | PASS | deleteAndCount 替代 JS filter |
 | sessionVersion increment | PASS | 单条原子 UPDATE（ADR-0004） |
