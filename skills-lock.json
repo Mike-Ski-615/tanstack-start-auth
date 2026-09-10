@@ -193,6 +193,12 @@
       "skillPath": "skills/engineering/wayfinder/SKILL.md",
       "computedHash": "f53b17850d8d4d68e8b861cfc7de69580335851d7fe7bc3acdf37505f46c9940"
     },
+    "websocket-engineer": {
+      "source": "jeffallan/claude-skills",
+      "sourceType": "github",
+      "skillPath": "skills/websocket-engineer/SKILL.md",
+      "computedHash": "0be23b3291c1ad1b58ebf5e9cbd56f6cba4a0a7799ec466660c6ad97fd657b1c"
+    },
     "wizard": {
       "source": "mattpocock/skills",
       "sourceType": "github",
