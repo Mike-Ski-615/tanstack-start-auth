@@ -6,7 +6,8 @@
  */
 
 import { db } from "#prisma/db";
-import { generateOtp, hashOtp, MAX_OTP_ATTEMPTS } from "./otp";
+import { generateOtp, hashOtp } from "./otp";
+import { consumeOtp, type OtpRecord, type OtpResult } from "./otp-store";
 
 /** OTP 有效期：6 位数字空间有限，不宜长时间暴露。 */
 const VERIFICATION_OTP_TTL_MS = 15 * 60 * 1000; // 15 分钟
@@ -48,67 +49,46 @@ export async function createVerificationOtp(userId: string): Promise<string> {
   return otp;
 }
 
-/** 邮箱验证 OTP 的校验结果。 */
-export type VerifyOtpResult =
-  | { ok: true; userId: string }
-  | { ok: false; reason: "invalid" | "expired" | "too_many_attempts" };
-
 /**
  * 校验邮箱验证 OTP。
  *
- * 流程：按 userId 取当前未消费的 OTP → 检查过期 / 错误次数 → 比对哈希。
- * 比对失败时 attempts + 1；达到上限则该 OTP 直接作废。
- *
- * 注意必须按 userId 查而非按 otp 查：OTP 空间只有 100 万，不同用户可能
- * 撞到同一个值，按 otp 查会命中别人的记录。
+ * 规则（过期判定、错误次数上限、作废时机）在 otp-store.consumeOtp 里，
+ * 这里只声明本流程的表长什么样：查 EmailVerificationToken、以 verifiedAt
+ * 作废、成功后额外同步 User.emailVerifiedAt。
  */
 export async function verifyEmailOtp(
   userId: string,
   otp: string,
-): Promise<VerifyOtpResult> {
-  const now = new Date();
+): Promise<OtpResult> {
+  return consumeOtp(
+    {
+      findLive: (uid) =>
+        db.orm.public.EmailVerificationToken.where((t) => t.userId.eq(uid))
+          .where((t) => t.verifiedAt.isNull())
+          .first() as Promise<OtpRecord | null>,
 
-  const record = await db.orm.public.EmailVerificationToken.where((t) =>
-    t.userId.eq(userId),
-  )
-    .where((t) => t.verifiedAt.isNull())
-    .first();
+      invalidate: async (id) => {
+        await db.orm.public.EmailVerificationToken.where({ id }).update({
+          verifiedAt: new Date().toISOString(),
+        });
+      },
 
-  if (!record) return { ok: false, reason: "invalid" };
-  if (new Date(record.expiresAt).getTime() < now.getTime()) {
-    return { ok: false, reason: "expired" };
-  }
+      bumpAttempts: async (id, next) => {
+        await db.orm.public.EmailVerificationToken.where({ id }).update({
+          attempts: next,
+        });
+      },
 
-  if (record.attempts >= MAX_OTP_ATTEMPTS) {
-    // 超限：直接作废，用户需重新发起
-    await db.orm.public.EmailVerificationToken.where({ id: record.id }).update({
-      verifiedAt: now.toISOString(),
-    });
-    return { ok: false, reason: "too_many_attempts" };
-  }
-
-  if (record.tokenHash !== hashOtp(otp)) {
-    const next = record.attempts + 1;
-    await db.orm.public.EmailVerificationToken.where({ id: record.id }).update({
-      attempts: next,
-      // 最后一次也判错时顺手作废，避免留下一个已耗尽的 OTP 记录
-      ...(next >= MAX_OTP_ATTEMPTS ? { verifiedAt: now.toISOString() } : {}),
-    });
-    return {
-      ok: false,
-      reason: next >= MAX_OTP_ATTEMPTS ? "too_many_attempts" : "invalid",
-    };
-  }
-
-  // 命中：标记消费 + 同步账户级验证状态
-  await db.orm.public.EmailVerificationToken.where({ id: record.id }).update({
-    verifiedAt: now.toISOString(),
-  });
-  await db.orm.public.User.where({ id: userId }).update({
-    emailVerifiedAt: now.toISOString(),
-  });
-
-  return { ok: true, userId };
+      // 邮箱验证特有：验证通过要同步账户级状态
+      onSuccess: async (uid) => {
+        await db.orm.public.User.where({ id: uid }).update({
+          emailVerifiedAt: new Date().toISOString(),
+        });
+      },
+    },
+    userId,
+    otp,
+  );
 }
 
 /**

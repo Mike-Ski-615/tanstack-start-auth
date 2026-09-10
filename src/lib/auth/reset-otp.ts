@@ -10,7 +10,8 @@
  */
 
 import { db } from "#prisma/db";
-import { generateOtp, hashOtp, MAX_OTP_ATTEMPTS } from "./otp";
+import { generateOtp, hashOtp } from "./otp";
+import { consumeOtp, type OtpRecord, type OtpResult } from "./otp-store";
 
 const RESET_TOKEN_TTL_MS = 15 * 60 * 1000; // 15 分钟
 
@@ -41,57 +42,36 @@ export async function createResetOtp(userId: string): Promise<string> {
   return otp;
 }
 
-/** 密码重置 OTP 的校验结果（仅本模块内部使用，不外传）。 */
-type VerifyResetOtpResult =
-  | { ok: true; userId: string }
-  | { ok: false; reason: "invalid" | "expired" | "too_many_attempts" };
-
 /**
  * 校验密码重置 OTP。
  *
- * 与邮箱验证同一套逻辑：6 位数字必须计错误次数（见 MAX_OTP_ATTEMPTS），
- * 否则限速之外的暴力枚举仍能撞开。必须先按 userId 取记录再比对，
- * 不能按 otp 查 —— 百万级空间下不同用户可能撞到同一个值。
+ * 规则在 otp-store.consumeOtp 里，与邮箱验证共用。这里只声明本流程的表：
+ * 查 ResetToken、以 usedAt 作废、成功时无额外动作。
  */
 export async function verifyResetOtp(
   userId: string,
   otp: string,
-): Promise<VerifyResetOtpResult> {
-  const now = new Date();
+): Promise<OtpResult> {
+  return consumeOtp(
+    {
+      findLive: (uid) =>
+        db.orm.public.ResetToken.where((t) => t.userId.eq(uid))
+          .where((t) => t.usedAt.isNull())
+          .first() as Promise<OtpRecord | null>,
 
-  const record = await db.orm.public.ResetToken.where((t) =>
-    t.userId.eq(userId),
-  )
-    .where((t) => t.usedAt.isNull())
-    .first();
+      invalidate: async (id) => {
+        await db.orm.public.ResetToken.where({ id }).update({
+          usedAt: new Date().toISOString(),
+        });
+      },
 
-  if (!record) return { ok: false, reason: "invalid" };
-  if (new Date(record.expiresAt).getTime() < now.getTime()) {
-    return { ok: false, reason: "expired" };
-  }
-
-  if (record.attempts >= MAX_OTP_ATTEMPTS) {
-    await db.orm.public.ResetToken.where({ id: record.id }).update({
-      usedAt: now.toISOString(),
-    });
-    return { ok: false, reason: "too_many_attempts" };
-  }
-
-  if (record.tokenHash !== hashOtp(otp)) {
-    const next = record.attempts + 1;
-    await db.orm.public.ResetToken.where({ id: record.id }).update({
-      attempts: next,
-      ...(next >= MAX_OTP_ATTEMPTS ? { usedAt: now.toISOString() } : {}),
-    });
-    return {
-      ok: false,
-      reason: next >= MAX_OTP_ATTEMPTS ? "too_many_attempts" : "invalid",
-    };
-  }
-
-  await db.orm.public.ResetToken.where({ id: record.id }).update({
-    usedAt: now.toISOString(),
-  });
-
-  return { ok: true, userId };
+      bumpAttempts: async (id, next) => {
+        await db.orm.public.ResetToken.where({ id }).update({
+          attempts: next,
+        });
+      },
+    },
+    userId,
+    otp,
+  );
 }
