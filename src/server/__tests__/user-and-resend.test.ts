@@ -35,8 +35,7 @@ async function cleanup() {
 async function sessionFor(verified = true) {
   const { user, email } = await createUser({ verified });
   created.push(user.id);
-  const { createAuthenticatedSession } =
-    await import("#lib/auth/session-manager");
+  const { createAuthenticatedSession } = await import("#lib/auth/session-manager");
   const { token } = await createAuthenticatedSession({
     userId: user.id,
     userAgent: "vitest",
@@ -76,9 +75,7 @@ describe("getUserById", () => {
 
     // 读不到返回值（存根限制），改为断言「不抛错 + DB 里确实存在」
     await expect(
-      withToken(viewer.token, () =>
-        getUserById({ data: { userId: target.user.id } }),
-      ),
+      withToken(viewer.token, () => getUserById({ data: { userId: target.user.id } })),
     ).resolves.toBeUndefined();
 
     const row = await db.orm.public.User.where({ id: target.user.id }).first();
@@ -139,9 +136,7 @@ describe("getUserById", () => {
 
   it("用户的 deviceKey 不会随公开投影泄露", async () => {
     const me = await sessionFor();
-    const dev = await db.orm.public.Device.where((d) =>
-      d.userId.eq(me.user.id),
-    ).first();
+    const dev = await db.orm.public.Device.where((d) => d.userId.eq(me.user.id)).first();
     expect(dev).toBeTruthy();
 
     const row = await db.orm.public.User.where({ id: me.user.id })
@@ -213,12 +208,8 @@ describe("getUserFn", () => {
     const a = await sessionFor();
     const b = await sessionFor();
 
-    await expect(
-      withToken(a.token, () => getUserFn()),
-    ).resolves.toBeUndefined();
-    await expect(
-      withToken(b.token, () => getUserFn()),
-    ).resolves.toBeUndefined();
+    await expect(withToken(a.token, () => getUserFn())).resolves.toBeUndefined();
+    await expect(withToken(b.token, () => getUserFn())).resolves.toBeUndefined();
 
     const { validateSession } = await import("#lib/auth/session-manager");
     expect((await validateSession(a.token))!.user.id).toBe(a.user.id);
@@ -244,12 +235,7 @@ describe("重发验证邮件 — 输入校验", () => {
 
   it("邮箱为空被挡下", async () => {
     await expect(
-      callServerFnValidated(
-        resendVerificationEmailFn,
-        emailOnlySchema,
-        { email: "" },
-        { ip: IP },
-      ),
+      callServerFnValidated(resendVerificationEmailFn, emailOnlySchema, { email: "" }, { ip: IP }),
     ).rejects.toThrow();
   });
 });
@@ -264,9 +250,7 @@ describe("重发验证邮件 — 限速边界", () => {
     const ip = "192.0.2.201";
 
     for (let i = 0; i < 3; i++) {
-      await withRequest({ ip }, () =>
-        resendVerificationEmailFn({ data: { email } }),
-      );
+      await withRequest({ ip }, () => resendVerificationEmailFn({ data: { email } }));
     }
     await expect(
       withRequest({ ip }, () => resendVerificationEmailFn({ data: { email } })),
@@ -282,14 +266,10 @@ describe("重发验证邮件 — 限速边界", () => {
     const ip = "192.0.2.202";
 
     for (let i = 0; i < 3; i++) {
-      await withRequest({ ip }, () =>
-        resendVerificationEmailFn({ data: { email } }),
-      );
+      await withRequest({ ip }, () => resendVerificationEmailFn({ data: { email } }));
     }
     clearMails();
-    await withRequest({ ip }, () =>
-      resendVerificationEmailFn({ data: { email } }),
-    ).catch(() => {});
+    await withRequest({ ip }, () => resendVerificationEmailFn({ data: { email } })).catch(() => {});
     expect(mails).toHaveLength(0);
   });
 
@@ -300,15 +280,11 @@ describe("重发验证邮件 — 限速边界", () => {
     const ip = "192.0.2.203";
 
     for (let i = 0; i < 3; i++) {
-      await withRequest({ ip }, () =>
-        resendVerificationEmailFn({ data: { email } }),
-      );
+      await withRequest({ ip }, () => resendVerificationEmailFn({ data: { email } }));
     }
 
     const before = await getEmailOtps(user.id);
-    await withRequest({ ip }, () =>
-      resendVerificationEmailFn({ data: { email } }),
-    ).catch(() => {});
+    await withRequest({ ip }, () => resendVerificationEmailFn({ data: { email } })).catch(() => {});
     const after = await getEmailOtps(user.id);
 
     expect(after.length).toBe(before.length);
@@ -328,9 +304,7 @@ describe("重发验证邮件 — 限速边界", () => {
 
     // 第四个 IP 仍被邮箱维度拦下
     await expect(
-      withRequest({ ip: "192.0.2.220" }, () =>
-        resendVerificationEmailFn({ data: { email } }),
-      ),
+      withRequest({ ip: "192.0.2.220" }, () => resendVerificationEmailFn({ data: { email } })),
     ).rejects.toThrow();
   });
 
@@ -342,16 +316,12 @@ describe("重发验证邮件 — 限速边界", () => {
     const ip = "192.0.2.230";
 
     for (let i = 0; i < 3; i++) {
-      await withRequest({ ip }, () =>
-        resendVerificationEmailFn({ data: { email: a.email } }),
-      );
+      await withRequest({ ip }, () => resendVerificationEmailFn({ data: { email: a.email } }));
     }
 
     // 换邮箱但同 IP —— 被 IP 维度拦下
     await expect(
-      withRequest({ ip }, () =>
-        resendVerificationEmailFn({ data: { email: b.email } }),
-      ),
+      withRequest({ ip }, () => resendVerificationEmailFn({ data: { email: b.email } })),
     ).rejects.toThrow();
   });
 });
@@ -361,25 +331,19 @@ describe("重发验证邮件 — OTP 生命周期", () => {
     const { user, email } = await createUser({ verified: false });
     created.push(user.id);
 
-    const { createVerificationOtp, verifyEmailOtp } =
-      await import("#lib/auth/email-verification");
+    const { createVerificationOtp, verifyEmailOtp } = await import("#lib/auth/email-verification");
     const oldOtp = await createVerificationOtp(user.id);
     // 记下旧记录（重发后会新增一条，只比对旧的这条是否被作废）
     const beforeId = (await getEmailOtps(user.id))[0].id;
 
     await clearRateLimit("resend");
-    await withRequest({ ip: IP }, () =>
-      resendVerificationEmailFn({ data: { email } }),
-    );
+    await withRequest({ ip: IP }, () => resendVerificationEmailFn({ data: { email } }));
 
-    const newOtp =
-      mails[mails.length - 1]?.text.match(/^\s{4}(\d{6})\s*$/m)?.[1];
+    const newOtp = mails[mails.length - 1]?.text.match(/^\s{4}(\d{6})\s*$/m)?.[1];
     expect(newOtp).toBeTruthy();
 
     // 旧记录必须已被标记作废
-    const oldRecord = (await getEmailOtps(user.id)).find(
-      (o) => o.id === beforeId,
-    );
+    const oldRecord = (await getEmailOtps(user.id)).find((o) => o.id === beforeId);
     expect(oldRecord!.verifiedAt).toBeTruthy();
 
     // 全局只应剩一条可用，且能通过验证
@@ -396,17 +360,14 @@ describe("重发验证邮件 — OTP 生命周期", () => {
   it("重发会重置旧 OTP 的错误计数（新记录 attempts=0）", async () => {
     const { user, email } = await createUser({ verified: false });
     created.push(user.id);
-    const { createVerificationOtp, verifyEmailOtp } =
-      await import("#lib/auth/email-verification");
+    const { createVerificationOtp, verifyEmailOtp } = await import("#lib/auth/email-verification");
     const oldOtp = await createVerificationOtp(user.id);
     const wrong = oldOtp === "000000" ? "111111" : "000000";
 
     await verifyEmailOtp(user.id, wrong);
 
     await clearRateLimit("resend");
-    await withRequest({ ip: IP }, () =>
-      resendVerificationEmailFn({ data: { email } }),
-    );
+    await withRequest({ ip: IP }, () => resendVerificationEmailFn({ data: { email } }));
 
     const live = (await getEmailOtps(user.id)).filter((o) => !o.verifiedAt);
     expect(live).toHaveLength(1);
@@ -418,9 +379,7 @@ describe("重发验证邮件 — OTP 生命周期", () => {
     created.push(user.id);
 
     await clearRateLimit("resend");
-    await withRequest({ ip: IP }, () =>
-      resendVerificationEmailFn({ data: { email } }),
-    );
+    await withRequest({ ip: IP }, () => resendVerificationEmailFn({ data: { email } }));
 
     expect(mails).toHaveLength(1);
     expect(await getEmailOtps(user.id)).toHaveLength(1);
@@ -430,14 +389,11 @@ describe("重发验证邮件 — OTP 生命周期", () => {
     const { user, email } = await createUser({ verified: false });
     created.push(user.id);
     // 未验证用户可能已有会话（登录不拦未验证邮箱）
-    const { createAuthenticatedSession } =
-      await import("#lib/auth/session-manager");
+    const { createAuthenticatedSession } = await import("#lib/auth/session-manager");
     await createAuthenticatedSession({ userId: user.id, ip: IP });
 
     await clearRateLimit("resend");
-    await withRequest({ ip: IP }, () =>
-      resendVerificationEmailFn({ data: { email } }),
-    );
+    await withRequest({ ip: IP }, () => resendVerificationEmailFn({ data: { email } }));
 
     expect(mails).toHaveLength(1);
   });
@@ -445,15 +401,12 @@ describe("重发验证邮件 — OTP 生命周期", () => {
   it("重发不影响已建立的会话", async () => {
     const { user, email } = await createUser({ verified: false });
     created.push(user.id);
-    const { createAuthenticatedSession } =
-      await import("#lib/auth/session-manager");
+    const { createAuthenticatedSession } = await import("#lib/auth/session-manager");
     await createAuthenticatedSession({ userId: user.id, ip: IP });
     expect(await getSessions(user.id)).toHaveLength(1);
 
     await clearRateLimit("resend");
-    await withRequest({ ip: IP }, () =>
-      resendVerificationEmailFn({ data: { email } }),
-    );
+    await withRequest({ ip: IP }, () => resendVerificationEmailFn({ data: { email } }));
 
     expect(await getSessions(user.id)).toHaveLength(1);
   });

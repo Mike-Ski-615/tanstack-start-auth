@@ -6,10 +6,7 @@ import { SIDEBAR_WIDTH_PX, useSidebar } from "#components/ui/sidebar";
 const SIDEBAR_COLLAPSE_THRESHOLD_PX = 128;
 const OVERSHOOT_RESISTANCE = 0.35;
 
-export function SidebarTrigger({
-  className,
-  ...props
-}: HTMLMotionProps<"div">) {
+export function SidebarTrigger({ className, ...props }: HTMLMotionProps<"div">) {
   const { width, open, setOpen } = useSidebar();
   const startWidth = React.useRef(0);
 

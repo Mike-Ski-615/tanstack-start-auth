@@ -40,9 +40,6 @@ export async function hashPassword(password: string): Promise<string> {
 }
 
 /** 用存储的哈希校验明文密码。 */
-export async function verifyPassword(
-  passwordHash: string,
-  password: string,
-): Promise<boolean> {
+export async function verifyPassword(passwordHash: string, password: string): Promise<boolean> {
   return argon2Verify({ password, hash: passwordHash });
 }

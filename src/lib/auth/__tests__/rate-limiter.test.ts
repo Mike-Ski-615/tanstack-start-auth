@@ -59,8 +59,7 @@ describe("限速器 — 基本计数", () => {
 
   it("不同 identifier 各自独立计数", async () => {
     await reset();
-    for (let i = 0; i < 5; i++)
-      await rateLimit(KEY, { email: "a@example.com" });
+    for (let i = 0; i < 5; i++) await rateLimit(KEY, { email: "a@example.com" });
 
     const { allowed } = await rateLimit(KEY, { email: "b@example.com" });
     expect(allowed).toBe(true);
@@ -68,8 +67,7 @@ describe("限速器 — 基本计数", () => {
 
   it("不同 type 共享 identifier 也各自独立", async () => {
     await clearAll();
-    for (let i = 0; i < 5; i++)
-      await rateLimit("login", { email: "same@x.com" });
+    for (let i = 0; i < 5; i++) await rateLimit("login", { email: "same@x.com" });
 
     const { allowed } = await rateLimit("register", { email: "same@x.com" });
     expect(allowed).toBe(true);
@@ -137,9 +135,7 @@ describe("限速器 — 并发原子性（ADR-0004 回归）", () => {
   it("20 并发 / 上限 5 → 恰好放行 5 次", async () => {
     await reset();
 
-    const results = await Promise.all(
-      Array.from({ length: 20 }, () => rateLimit(KEY, ID)),
-    );
+    const results = await Promise.all(Array.from({ length: 20 }, () => rateLimit(KEY, ID)));
     const allowed = results.filter((r) => r.allowed).length;
 
     expect(allowed).toBe(5);
@@ -148,9 +144,7 @@ describe("限速器 — 并发原子性（ADR-0004 回归）", () => {
   it("并发下每次拿到互不重复的 remaining（证明是原子递增）", async () => {
     await reset();
 
-    const results = await Promise.all(
-      Array.from({ length: 5 }, () => rateLimit(KEY, ID)),
-    );
+    const results = await Promise.all(Array.from({ length: 5 }, () => rateLimit(KEY, ID)));
     const remainings = results.map((r) => r.remaining).sort((a, b) => a - b);
 
     // 理想情况是 4,3,2,1,0 —— 至少不能全部相同
@@ -160,12 +154,8 @@ describe("限速器 — 并发原子性（ADR-0004 回归）", () => {
   it("并发不同 identifier 互不干扰", async () => {
     await reset();
     const results = await Promise.all([
-      ...Array.from({ length: 10 }, () =>
-        rateLimit(KEY, { email: "x@example.com" }),
-      ),
-      ...Array.from({ length: 10 }, () =>
-        rateLimit(KEY, { email: "y@example.com" }),
-      ),
+      ...Array.from({ length: 10 }, () => rateLimit(KEY, { email: "x@example.com" })),
+      ...Array.from({ length: 10 }, () => rateLimit(KEY, { email: "y@example.com" })),
     ]);
     const allowed = results.filter((r) => r.allowed).length;
     expect(allowed).toBe(10); // 每个 identifier 各放行 5
@@ -174,12 +164,8 @@ describe("限速器 — 并发原子性（ADR-0004 回归）", () => {
   it("跨 type 并发时计数互不污染", async () => {
     await clearAll();
     const results = await Promise.all([
-      ...Array.from({ length: 10 }, () =>
-        rateLimit("login", { email: "z@example.com" }),
-      ),
-      ...Array.from({ length: 10 }, () =>
-        rateLimit("resend", { email: "z@example.com" }),
-      ),
+      ...Array.from({ length: 10 }, () => rateLimit("login", { email: "z@example.com" })),
+      ...Array.from({ length: 10 }, () => rateLimit("resend", { email: "z@example.com" })),
     ]);
     // login 上限 5，resend 上限 3
     const allowed = results.filter((r) => r.allowed).length;
@@ -202,9 +188,7 @@ describe("限速器 — 清理", () => {
 
     await purgeExpiredRateLimit();
 
-    const rows = await db.orm.public.RateLimit.where((r) =>
-      r.key.like("login:%"),
-    ).all();
+    const rows = await db.orm.public.RateLimit.where((r) => r.key.like("login:%")).all();
     expect(rows.some((r) => r.key.includes("stale"))).toBe(false);
     expect(rows.some((r) => r.key.includes("fresh"))).toBe(true);
   });

@@ -9,9 +9,7 @@ export const Route = createFileRoute("/auth")({
   errorComponent: ErrorPage,
   notFoundComponent: NotFoundPage,
   beforeLoad: async ({ context }) => {
-    const user = await context.queryClient.ensureQueryData(
-      currentUserQueryOptions,
-    );
+    const user = await context.queryClient.ensureQueryData(currentUserQueryOptions);
 
     if (user) {
       throw redirect({ to: "/authenticated" });

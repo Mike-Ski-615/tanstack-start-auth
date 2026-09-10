@@ -1,9 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  parseUserAgent,
-  formatDeviceName,
-  inferPlatform,
-} from "#lib/auth/device-name";
+import { parseUserAgent, formatDeviceName, inferPlatform } from "#lib/auth/device-name";
 
 /**
  * User-Agent 解析。
@@ -47,8 +43,7 @@ const UA = {
     "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
   androidTablet:
     "Mozilla/5.0 (Linux; Android 14; SM-X910) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-  firefoxAndroid:
-    "Mozilla/5.0 (Android 14; Mobile; rv:121.0) Gecko/121.0 Firefox/121.0",
+  firefoxAndroid: "Mozilla/5.0 (Android 14; Mobile; rv:121.0) Gecko/121.0 Firefox/121.0",
 };
 
 describe("parseUserAgent — 操作系统（规则顺序敏感）", () => {

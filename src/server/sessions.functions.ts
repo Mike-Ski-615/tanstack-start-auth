@@ -27,15 +27,7 @@ export const listSessionsFn = createServerFn({
   // tokenHash / deviceKey 是凭证，绝不可加进来；要加字段先想清楚是否必要。
   const [device, session] = await Promise.all([
     db.orm.public.Device.where({ userId: user.id })
-      .select(
-        "id",
-        "name",
-        "platform",
-        "userAgent",
-        "ip",
-        "lastSeenAt",
-        "createdAt",
-      )
+      .select("id", "name", "platform", "userAgent", "ip", "lastSeenAt", "createdAt")
       .first(),
     db.orm.public.Session.where({ userId: user.id })
       .select("id", "sessionVersion", "createdAt", "expiresAt")

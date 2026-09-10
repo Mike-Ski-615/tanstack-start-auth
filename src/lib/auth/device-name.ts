@@ -65,8 +65,7 @@ export interface ParsedUA {
 
 /** 解析 User-Agent，返回浏览器 + 操作系统。 */
 export function parseUserAgent(ua: string): ParsedUA {
-  const browser =
-    UA_RULES.find((r) => r.pattern.test(ua))?.name ?? "Unknown Browser";
+  const browser = UA_RULES.find((r) => r.pattern.test(ua))?.name ?? "Unknown Browser";
   const os = OS_RULES.find((r) => r.pattern.test(ua))?.name ?? "Unknown OS";
   return { browser, os };
 }
@@ -78,9 +77,7 @@ export function formatDeviceName(ua: string): string {
 }
 
 /** 推断设备平台（用于 Device.platform 字段）。 */
-export function inferPlatform(
-  ua: string,
-): "web" | "android" | "ios" | "desktop" {
+export function inferPlatform(ua: string): "web" | "android" | "ios" | "desktop" {
   if (/iPhone|iPad|iPod/.test(ua)) return "ios";
   if (/Android/.test(ua)) return "android";
   return "web";

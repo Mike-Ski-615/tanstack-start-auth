@@ -1,12 +1,7 @@
 import "#test/mock-server-env";
 import { describe, it, expect, afterEach, vi } from "vitest";
 import { db } from "#prisma/db";
-import {
-  createUser,
-  deleteUser,
-  withRequest,
-  TEST_PASSWORD,
-} from "#test/helpers";
+import { createUser, deleteUser, withRequest, TEST_PASSWORD } from "#test/helpers";
 import { validateSession } from "#lib/auth/session-manager";
 
 /**
@@ -43,9 +38,7 @@ describe("rotatePassword 的顺序", () => {
     expect(await vs(oldToken)).toBeTruthy();
 
     const { rotatePassword } = await import("#lib/auth/password-rotation");
-    await withRequest({ ip: "192.0.2.10" }, () =>
-      rotatePassword(user.id, "newpass123456"),
-    );
+    await withRequest({ ip: "192.0.2.10" }, () => rotatePassword(user.id, "newpass123456"));
 
     // 旧 token 失效
     expect(await validateSession(oldToken)).toBeNull();
@@ -65,15 +58,11 @@ describe("rotatePassword 的顺序", () => {
 
     // 让 invalidate 抛错
     const sm = await import("#lib/auth/session-manager");
-    const spy = vi
-      .spyOn(sm, "invalidateAllSessions")
-      .mockRejectedValueOnce(new Error("boom"));
+    const spy = vi.spyOn(sm, "invalidateAllSessions").mockRejectedValueOnce(new Error("boom"));
 
     const { rotatePassword } = await import("#lib/auth/password-rotation");
     await expect(
-      withRequest({ ip: "192.0.2.10" }, () =>
-        rotatePassword(user.id, "newpass123456"),
-      ),
+      withRequest({ ip: "192.0.2.10" }, () => rotatePassword(user.id, "newpass123456")),
     ).rejects.toThrow();
 
     spy.mockRestore();
@@ -88,22 +77,16 @@ describe("rotatePassword 的顺序", () => {
     created.push(user.id);
 
     const sm = await import("#lib/auth/session-manager");
-    const spy = vi
-      .spyOn(sm, "invalidateAllSessions")
-      .mockRejectedValueOnce(new Error("boom"));
+    const spy = vi.spyOn(sm, "invalidateAllSessions").mockRejectedValueOnce(new Error("boom"));
 
     const { rotatePassword } = await import("#lib/auth/password-rotation");
     await expect(
-      withRequest({ ip: "192.0.2.10" }, () =>
-        rotatePassword(user.id, "newpass123456"),
-      ),
+      withRequest({ ip: "192.0.2.10" }, () => rotatePassword(user.id, "newpass123456")),
     ).rejects.toThrow();
 
     spy.mockRestore();
 
-    const sessions = await db.orm.public.Session.where((s) =>
-      s.userId.eq(user.id),
-    ).all();
+    const sessions = await db.orm.public.Session.where((s) => s.userId.eq(user.id)).all();
     expect(sessions).toHaveLength(0);
   });
 });

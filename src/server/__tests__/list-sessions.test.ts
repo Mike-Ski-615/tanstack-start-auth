@@ -2,13 +2,7 @@ import "#test/mock-server-env";
 import { describe, it, expect, afterEach } from "vitest";
 import { listSessionsFn } from "#server/sessions.functions";
 import { db } from "#prisma/db";
-import {
-  createUser,
-  deleteUser,
-  withRequest,
-  getDevices,
-  getSessions,
-} from "#test/helpers";
+import { createUser, deleteUser, withRequest, getDevices, getSessions } from "#test/helpers";
 
 /**
  * listSessionsFn —— 隐私与安全页的数据源。
@@ -36,8 +30,7 @@ afterEach(cleanup);
 async function loggedIn() {
   const { user, email } = await createUser({ verified: true });
   created.push(user.id);
-  const { createAuthenticatedSession } =
-    await import("#lib/auth/session-manager");
+  const { createAuthenticatedSession } = await import("#lib/auth/session-manager");
   const { token } = await createAuthenticatedSession({
     userId: user.id,
     userAgent: "vitest",
@@ -57,39 +50,30 @@ describe("listSessionsFn — 可执行性", () => {
   it("未登录时不抛错（返回全 null 分支）", async () => {
     // 未登录时函数返回 null 三元组，不抛错 —— 这是安全页在会话失效后的
     // 正常路径，不应该是异常
-    await expect(
-      withRequest({}, () => listSessionsFn()),
-    ).resolves.toBeUndefined();
+    await expect(withRequest({}, () => listSessionsFn())).resolves.toBeUndefined();
   });
 
   it("无效 token 时不抛错", async () => {
     await expect(
-      withRequest({ cookies: { "session-token": "bogus" } }, () =>
-        listSessionsFn(),
-      ),
+      withRequest({ cookies: { "session-token": "bogus" } }, () => listSessionsFn()),
     ).resolves.toBeUndefined();
   });
 
   it("已登录时正常执行", async () => {
     const { token } = await loggedIn();
-    await expect(
-      withToken(token, () => listSessionsFn()),
-    ).resolves.toBeUndefined();
+    await expect(withToken(token, () => listSessionsFn())).resolves.toBeUndefined();
   });
 
   it("未验证邮箱的用户也能查（emailVerifiedAt 为 null 是合法状态）", async () => {
     const { user } = await createUser({ verified: false });
     created.push(user.id);
-    const { createAuthenticatedSession } =
-      await import("#lib/auth/session-manager");
+    const { createAuthenticatedSession } = await import("#lib/auth/session-manager");
     const { token } = await createAuthenticatedSession({
       userId: user.id,
       ip: "192.0.2.10",
     });
 
-    await expect(
-      withToken(token, () => listSessionsFn()),
-    ).resolves.toBeUndefined();
+    await expect(withToken(token, () => listSessionsFn())).resolves.toBeUndefined();
   });
 });
 
@@ -108,12 +92,7 @@ const DEVICE_FIELDS = [
   "createdAt",
 ] as const;
 
-const SESSION_FIELDS = [
-  "id",
-  "sessionVersion",
-  "createdAt",
-  "expiresAt",
-] as const;
+const SESSION_FIELDS = ["id", "sessionVersion", "createdAt", "expiresAt"] as const;
 
 describe("listSessionsFn — 投影字段白名单", () => {
   it("Device 只投影白名单字段", async () => {
@@ -214,9 +193,7 @@ describe("listSessionsFn — 单设备模型", () => {
 
   it("emailVerifiedAt 由 User 提供，不是 Device/Session 的字段", async () => {
     const { user } = await loggedIn();
-    const row = await db.orm.public.User.where({ id: user.id })
-      .select("emailVerifiedAt")
-      .first();
+    const row = await db.orm.public.User.where({ id: user.id }).select("emailVerifiedAt").first();
 
     expect(row).toHaveProperty("emailVerifiedAt");
     expect(row!.emailVerifiedAt).toBeTruthy();

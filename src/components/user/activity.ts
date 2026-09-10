@@ -25,11 +25,7 @@ function isoUTC(d: Date) {
 // Current day boundary as UTC ms since epoch (both runtimes share this).
 const now = new Date();
 const year = now.getUTCFullYear();
-const dayStartUTC = Date.UTC(
-  now.getUTCFullYear(),
-  now.getUTCMonth(),
-  now.getUTCDate(),
-);
+const dayStartUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
 
 const startUTC = Date.UTC(year, 0, 1); // Jan 1 midnight UTC
 const daysSoFar = Math.round((dayStartUTC - startUTC) / DAY) + 1; // state through today
@@ -54,12 +50,9 @@ function pseudoCount(unixDay: number) {
 
 // Whole calendar year [Jan 1, Dec 31] as UTC Date instances, ascending. Days
 // after today are emitted but always emptied (level 0).
-export const activity: Activity[] = Array.from(
-  { length: totalDays },
-  (_v, i) => {
-    const date = new Date(startUTC + i * DAY);
-    const unixDay = date.getTime() / DAY;
-    const count = i < daysSoFar ? pseudoCount(unixDay) : 0;
-    return { date: isoUTC(date), count, level: levelFor(count) };
-  },
-);
+export const activity: Activity[] = Array.from({ length: totalDays }, (_v, i) => {
+  const date = new Date(startUTC + i * DAY);
+  const unixDay = date.getTime() / DAY;
+  const count = i < daysSoFar ? pseudoCount(unixDay) : 0;
+  return { date: isoUTC(date), count, level: levelFor(count) };
+});

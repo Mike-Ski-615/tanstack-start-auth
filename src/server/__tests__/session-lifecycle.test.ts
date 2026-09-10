@@ -46,8 +46,7 @@ afterEach(cleanup);
 async function sessionFor(verified = true) {
   const { user, email } = await createUser({ verified });
   created.push(user.id);
-  const { createAuthenticatedSession } =
-    await import("#lib/auth/session-manager");
+  const { createAuthenticatedSession } = await import("#lib/auth/session-manager");
   const { token, deviceKey } = await createAuthenticatedSession({
     userId: user.id,
     userAgent: "vitest",
@@ -86,9 +85,7 @@ describe("登出", () => {
   });
 
   it("无 cookie 不抛错", async () => {
-    await expect(
-      withRequest({ cookies: {} }, () => logout()),
-    ).resolves.toBeUndefined();
+    await expect(withRequest({ cookies: {} }, () => logout())).resolves.toBeUndefined();
   });
 
   it("无效 token 不抛错（查不到记录）", async () => {
@@ -120,9 +117,7 @@ describe("登出", () => {
 
 describe("全局登出（撤销所有会话）", () => {
   it("未登录抛错", async () => {
-    await expect(
-      withRequest({}, () => revokeAllSessionsFn()),
-    ).rejects.toThrow();
+    await expect(withRequest({}, () => revokeAllSessionsFn())).rejects.toThrow();
   });
 
   it("递增 sessionVersion", async () => {
@@ -168,9 +163,7 @@ describe("更新资料", () => {
   it("更新 name 与 bio", async () => {
     const { user, token } = await sessionFor();
 
-    await withToken(token, () =>
-      updateProfileFn({ data: { name: "新名字", bio: "新简介" } }),
-    );
+    await withToken(token, () => updateProfileFn({ data: { name: "新名字", bio: "新简介" } }));
 
     const after = await db.orm.public.User.where({ id: user.id }).first();
     expect(after!.name).toBe("新名字");
@@ -181,9 +174,7 @@ describe("更新资料", () => {
     const a = await sessionFor();
     const b = await sessionFor();
 
-    await withToken(a.token, () =>
-      updateProfileFn({ data: { name: "A改", bio: "A简介" } }),
-    );
+    await withToken(a.token, () => updateProfileFn({ data: { name: "A改", bio: "A简介" } }));
 
     const bb = await db.orm.public.User.where({ id: b.user.id }).first();
     expect(bb!.name).not.toBe("A改");
@@ -193,9 +184,7 @@ describe("更新资料", () => {
     const { user, token } = await sessionFor();
     const before = await db.orm.public.User.where({ id: user.id }).first();
 
-    await withToken(token, () =>
-      updateProfileFn({ data: { name: "改过", bio: "" } }),
-    );
+    await withToken(token, () => updateProfileFn({ data: { name: "改过", bio: "" } }));
 
     const after = await db.orm.public.User.where({ id: user.id }).first();
     expect(after!.passwordHash).toBe(before!.passwordHash);
@@ -486,8 +475,7 @@ describe("Device 身份在登录态切换时保持一致", () => {
     const { user } = await createUser({ verified: true });
 
     // 不带任何 cookie 建会话
-    const { createAuthenticatedSession } =
-      await import("#lib/auth/session-manager");
+    const { createAuthenticatedSession } = await import("#lib/auth/session-manager");
     await withRequest({ ip: "192.0.2.30" }, () =>
       createAuthenticatedSession({ userId: user.id, ip: "192.0.2.30" }),
     );

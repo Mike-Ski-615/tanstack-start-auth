@@ -13,10 +13,7 @@
  */
 
 import { db } from "#prisma/db";
-import {
-  setResponseStatus,
-  setResponseHeader,
-} from "@tanstack/react-start/server";
+import { setResponseStatus, setResponseHeader } from "@tanstack/react-start/server";
 
 const WINDOW_MS = 60_000; // 1 分钟
 
@@ -132,18 +129,12 @@ export const RATE_LIMITED = "rate_limited";
  *
  * 调用方只需：await enforceRateLimit("login", { email, ip });
  */
-export async function enforceRateLimit(
-  type: LimitKey,
-  subject: RateSubject,
-): Promise<void> {
+export async function enforceRateLimit(type: LimitKey, subject: RateSubject): Promise<void> {
   const { allowed, resetAt } = await rateLimit(type, subject);
   if (allowed) return;
 
   setResponseStatus(429);
-  setResponseHeader(
-    "Retry-After",
-    String(Math.ceil((resetAt - Date.now()) / 1000)),
-  );
+  setResponseHeader("Retry-After", String(Math.ceil((resetAt - Date.now()) / 1000)));
   throw new Error(RATE_LIMITED);
 }
 
@@ -151,7 +142,5 @@ export async function enforceRateLimit(
 export async function purgeExpiredRateLimit(): Promise<void> {
   const now = new Date().toISOString();
   // DB-side 条件删除
-  await db.orm.public.RateLimit.where((r) =>
-    r.expiresAt.lt(now),
-  ).deleteAndCount();
+  await db.orm.public.RateLimit.where((r) => r.expiresAt.lt(now)).deleteAndCount();
 }

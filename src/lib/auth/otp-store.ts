@@ -46,8 +46,7 @@ export interface OtpStore {
 
 /** 校验结果。 */
 export type OtpResult =
-  | { ok: true; userId: string }
-  | { ok: false; reason: "invalid" | "expired" | "too_many_attempts" };
+  { ok: true; userId: string } | { ok: false; reason: "invalid" | "expired" | "too_many_attempts" };
 
 /**
  * 按共用规则消费一枚 OTP。
@@ -55,11 +54,7 @@ export type OtpResult =
  * 必须先按 userId 取记录再比对，不能按 otp 查 —— 6 位数字只有 100 万种，
  * 百万级空间下不同用户可能撞到同一个值，按 otp 查会命中别人的记录。
  */
-export async function consumeOtp(
-  store: OtpStore,
-  userId: string,
-  otp: string,
-): Promise<OtpResult> {
+export async function consumeOtp(store: OtpStore, userId: string, otp: string): Promise<OtpResult> {
   const now = new Date();
 
   const record = await store.findLive(userId);

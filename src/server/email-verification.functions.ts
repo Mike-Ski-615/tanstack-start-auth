@@ -4,10 +4,7 @@ import { db } from "#prisma/db";
 import { emailOnlySchema, verifyEmailOtpSchema } from "#schemas/auth";
 
 import { signIn } from "#lib/auth/session-manager";
-import {
-  createVerificationOtp,
-  verifyEmailOtp,
-} from "#lib/auth/email-verification";
+import { createVerificationOtp, verifyEmailOtp } from "#lib/auth/email-verification";
 import { sendMail } from "#lib/auth/mail";
 import { enforceRateLimit } from "#lib/auth/rate-limiter";
 

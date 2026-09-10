@@ -1,10 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  generateOtp,
-  hashOtp,
-  isValidOtpFormat,
-  MAX_OTP_ATTEMPTS,
-} from "#lib/auth/otp";
+import { generateOtp, hashOtp, isValidOtpFormat, MAX_OTP_ATTEMPTS } from "#lib/auth/otp";
 
 describe("generateOtp", () => {
   it("生成的验证码长度恒为 6", () => {

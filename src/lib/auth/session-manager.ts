@@ -202,8 +202,6 @@ export async function revokeSession(rawToken: string): Promise<void> {
 export async function purgeExpiredSessions(): Promise<number> {
   const now = new Date().toISOString();
   // DB-side 条件删除，避免 O(N) 读取 + JS 过滤
-  const deleted = await db.orm.public.Session.where((s) =>
-    s.expiresAt.lt(now),
-  ).deleteAndCount();
+  const deleted = await db.orm.public.Session.where((s) => s.expiresAt.lt(now)).deleteAndCount();
   return deleted;
 }

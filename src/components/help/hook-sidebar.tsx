@@ -4,8 +4,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { cn } from "#lib/utils";
 
 const CORNER = 6;
-const DASH =
-  "repeating-linear-gradient(to top, transparent 0 2px, currentColor 2px 4px)";
+const DASH = "repeating-linear-gradient(to top, transparent 0 2px, currentColor 2px 4px)";
 
 export type HookSidebarItem = string | { label: string; href?: string };
 
@@ -19,11 +18,9 @@ export type HookSidebarProps = Omit<ComponentProps<"nav">, "onChange"> & {
   dashed?: boolean;
 };
 
-const hrefOf = (item: HookSidebarItem) =>
-  typeof item === "string" ? undefined : item.href;
+const hrefOf = (item: HookSidebarItem) => (typeof item === "string" ? undefined : item.href);
 
-const labelOf = (item: HookSidebarItem) =>
-  typeof item === "string" ? item : item.label;
+const labelOf = (item: HookSidebarItem) => (typeof item === "string" ? item : item.label);
 
 const Rail = ({
   from = 0,
@@ -58,11 +55,7 @@ const Rail = ({
         initial={false}
         animate={{ top: from, height: Math.max(0, (y ?? 0) - CORNER - from) }}
         transition={travel}
-        style={
-          dashed
-            ? { backgroundImage: DASH }
-            : { backgroundColor: "currentColor" }
-        }
+        style={dashed ? { backgroundImage: DASH } : { backgroundColor: "currentColor" }}
         className="absolute left-0.5 w-px"
       />
       <motion.svg
@@ -114,11 +107,7 @@ export function HookSidebar({
     if (!list) return;
 
     const measure = () =>
-      setCenters(
-        itemRefs.current.map((el) =>
-          el ? el.offsetTop + el.offsetHeight / 2 : 0,
-        ),
-      );
+      setCenters(itemRefs.current.map((el) => (el ? el.offsetTop + el.offsetHeight / 2 : 0)));
 
     const observer = new ResizeObserver(measure);
     observer.observe(list);
@@ -167,12 +156,7 @@ export function HookSidebar({
           dashed={dashed}
           className="text-foreground/30"
         />
-        <Rail
-          y={activeY}
-          visible={activeY !== null}
-          color={color}
-          dashed={dashed}
-        />
+        <Rail y={activeY} visible={activeY !== null} color={color} dashed={dashed} />
 
         {items.map((item, index) => {
           const text = labelOf(item);
@@ -196,9 +180,7 @@ export function HookSidebar({
             onClick: () => select(index),
             className: cn(
               "w-fit rounded-lg py-1.5 pl-5 pr-2 text-left text-sm transition-colors duration-200 motion-reduce:transition-none",
-              isActive
-                ? "text-foreground"
-                : "text-foreground/50 hover:text-foreground/80",
+              isActive ? "text-foreground" : "text-foreground/50 hover:text-foreground/80",
             ),
           };
 

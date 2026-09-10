@@ -27,10 +27,7 @@ import { invalidateAllSessions, signIn } from "./session-manager";
  * 这个约束以前只写在 CONTEXT.md 的「Fail-Closed 顺序」一节里，两个调用点
  * 各自照做。搬进代码后它由实现强制，不再靠人记住。
  */
-export async function rotatePassword(
-  userId: string,
-  newPassword: string,
-): Promise<void> {
+export async function rotatePassword(userId: string, newPassword: string): Promise<void> {
   // 1. 先失效 —— 失败则整个操作中止，密码不动
   await invalidateAllSessions(userId);
 

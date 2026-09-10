@@ -40,9 +40,7 @@ export const changePasswordFn = createServerFn({
     if (!user) throw new Error("当前密码不正确");
 
     const fullUser = await db.orm.public.User.where({ id: user.id }).first();
-    const ok =
-      fullUser &&
-      (await verifyPassword(fullUser.passwordHash, currentPassword));
+    const ok = fullUser && (await verifyPassword(fullUser.passwordHash, currentPassword));
 
     if (!ok) throw new Error("当前密码不正确");
 

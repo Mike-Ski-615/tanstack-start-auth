@@ -22,9 +22,7 @@ export function UserView({ user }: { user: User }) {
               {user.name}
             </h1>
 
-            <p className=" mt-1 truncate text-sm text-muted-foreground">
-              {user.email}
-            </p>
+            <p className=" mt-1 truncate text-sm text-muted-foreground">{user.email}</p>
           </div>
         </header>
 
@@ -33,64 +31,42 @@ export function UserView({ user }: { user: User }) {
             <dd className="text-xl font-semibold tracking-tight tabular-nums">
               {daysSince(user.createdAt)}天
             </dd>
-            <dt className="text-center text-xs font-medium text-muted-foreground">
-              加入天数
-            </dt>
+            <dt className="text-center text-xs font-medium text-muted-foreground">加入天数</dt>
           </div>
 
           <Separator orientation="vertical" className="hidden h-8 lg:block" />
 
           <div className="flex flex-col items-center justify-center gap-1">
-            <dd className="text-xl font-semibold tracking-tight tabular-nums">
-              xxx
-            </dd>
-            <dt className="text-center text-xs font-medium text-muted-foreground">
-              xxx
-            </dt>
+            <dd className="text-xl font-semibold tracking-tight tabular-nums">xxx</dd>
+            <dt className="text-center text-xs font-medium text-muted-foreground">xxx</dt>
           </div>
 
           <Separator orientation="vertical" className="hidden h-8 lg:block" />
 
           <div className="flex flex-col items-center justify-center gap-1">
-            <dd className="text-xl font-semibold tracking-tight tabular-nums">
-              xx
-            </dd>
-            <dt className="text-center text-xs font-medium text-muted-foreground">
-              xxxx
-            </dt>
+            <dd className="text-xl font-semibold tracking-tight tabular-nums">xx</dd>
+            <dt className="text-center text-xs font-medium text-muted-foreground">xxxx</dt>
           </div>
 
           <Separator orientation="vertical" className="hidden h-8 lg:block" />
 
           <div className="flex flex-col items-center justify-center gap-1">
-            <dd className="text-xl font-semibold tracking-tight tabular-nums">
-              xx
-            </dd>
-            <dt className="text-center text-xs font-medium text-muted-foreground">
-              xxx
-            </dt>
+            <dd className="text-xl font-semibold tracking-tight tabular-nums">xx</dd>
+            <dt className="text-center text-xs font-medium text-muted-foreground">xxx</dt>
           </div>
 
           <Separator orientation="vertical" className="hidden h-8 lg:block" />
 
           <div className="flex flex-col items-center justify-center gap-1">
-            <dd className="text-xl font-semibold tracking-tight tabular-nums">
-              xxx
-            </dd>
-            <dt className="text-center text-xs font-medium text-muted-foreground">
-              xxxx
-            </dt>
+            <dd className="text-xl font-semibold tracking-tight tabular-nums">xxx</dd>
+            <dt className="text-center text-xs font-medium text-muted-foreground">xxxx</dt>
           </div>
 
           <Separator orientation="vertical" className="hidden h-8 lg:block" />
 
           <div className="flex flex-col items-center justify-center gap-1">
-            <dd className="text-xl font-semibold tracking-tight tabular-nums">
-              xxx
-            </dd>
-            <dt className="text-center text-xs font-medium text-muted-foreground">
-              xxx
-            </dt>
+            <dd className="text-xl font-semibold tracking-tight tabular-nums">xxx</dd>
+            <dt className="text-center text-xs font-medium text-muted-foreground">xxx</dt>
           </div>
         </dl>
 

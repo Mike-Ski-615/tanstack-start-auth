@@ -102,9 +102,8 @@ describe("登录 — 成功路径", () => {
     const { user, email } = await createUser({ verified: true });
     created.push(user.id);
 
-    await withRequest(
-      { ip: "198.51.100.42", headers: { "user-agent": "TestBrowser/1.0" } },
-      () => login({ data: { email, password: TEST_PASSWORD } }),
+    await withRequest({ ip: "198.51.100.42", headers: { "user-agent": "TestBrowser/1.0" } }, () =>
+      login({ data: { email, password: TEST_PASSWORD } }),
     );
 
     const [s] = await getSessions(user.id);
@@ -216,9 +215,7 @@ describe("登录 — 凭据失败", () => {
     const { user, email } = await createUser({ verified: true });
     created.push(user.id);
 
-    await expect(
-      doLogin({ email, password: "wrong-password" }),
-    ).rejects.toThrow();
+    await expect(doLogin({ email, password: "wrong-password" })).rejects.toThrow();
 
     expect(await getSessions(user.id)).toHaveLength(0);
   });
@@ -236,9 +233,7 @@ describe("登录 — 凭据失败", () => {
     });
     created.push(user.id);
 
-    await expect(
-      doLogin({ email, password: "casesensitive1" }),
-    ).rejects.toThrow();
+    await expect(doLogin({ email, password: "casesensitive1" })).rejects.toThrow();
     expect(await getSessions(user.id)).toHaveLength(0);
   });
 
@@ -276,9 +271,7 @@ describe("登录 — 限速", () => {
     await clearRateLimit("login");
 
     for (let i = 0; i < 5; i++) {
-      await doLogin({ email, password: "wrong" }, "198.51.100.1").catch(
-        () => {},
-      );
+      await doLogin({ email, password: "wrong" }, "198.51.100.1").catch(() => {});
     }
 
     // 换 IP，正确密码仍可登录
@@ -321,21 +314,15 @@ describe("登录 — 限速", () => {
 
 describe("登录 — 输入校验", () => {
   it("邮箱格式非法被校验拦下", async () => {
-    await expect(
-      loginValidated({ email: "bad", password: TEST_PASSWORD }),
-    ).rejects.toThrow();
+    await expect(loginValidated({ email: "bad", password: TEST_PASSWORD })).rejects.toThrow();
   });
 
   it("密码为空被校验拦下", async () => {
-    await expect(
-      loginValidated({ email: uniqueEmail(), password: "" }),
-    ).rejects.toThrow();
+    await expect(loginValidated({ email: uniqueEmail(), password: "" })).rejects.toThrow();
   });
 
   it("邮箱为空被校验拦下", async () => {
-    await expect(
-      loginValidated({ email: "", password: TEST_PASSWORD }),
-    ).rejects.toThrow();
+    await expect(loginValidated({ email: "", password: TEST_PASSWORD })).rejects.toThrow();
   });
 
   it("密码刚好 6 位通过校验（随后因凭据错误失败）", async () => {
@@ -343,9 +330,7 @@ describe("登录 — 输入校验", () => {
     created.push(user.id);
 
     // 校验通过 → 进入凭据比对 → 密码错误
-    await expect(
-      loginValidated({ email, password: "123456" }),
-    ).rejects.toThrow();
+    await expect(loginValidated({ email, password: "123456" })).rejects.toThrow();
     expect(await getSessions(user.id)).toHaveLength(0);
   });
 });

@@ -54,18 +54,13 @@ export function UserNav({ user }: { user: User }) {
               <SidebarMenuButton size="lg">
                 <Avatar>
                   <AvatarImage src={user.image} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">
-                    {user.name.charAt(0)}
-                  </AvatarFallback>
+                  <AvatarFallback className="rounded-lg">{user.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user.name}</span>
                   <span className="truncate text-xs">{user.email}</span>
                 </div>
-                <HugeiconsIcon
-                  icon={ArrowUpDownIcon}
-                  className="ml-auto size-4"
-                />
+                <HugeiconsIcon icon={ArrowUpDownIcon} className="ml-auto size-4" />
               </SidebarMenuButton>
             </DropdownMenuTrigger>
             <DropdownMenuContent
@@ -78,9 +73,7 @@ export function UserNav({ user }: { user: User }) {
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                   <Avatar className="h-8 w-8 rounded-lg">
                     <AvatarImage src={user.image} alt={user.name} />
-                    <AvatarFallback className="rounded-lg">
-                      {user.name.charAt(0)}
-                    </AvatarFallback>
+                    <AvatarFallback className="rounded-lg">{user.name.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-medium">{user.name}</span>
@@ -101,9 +94,7 @@ export function UserNav({ user }: { user: User }) {
                         <DropdownMenuLabel>主题切换</DropdownMenuLabel>
                         <DropdownMenuRadioGroup
                           value={theme}
-                          onValueChange={(value) =>
-                            setTheme(value === "dark" ? "dark" : "light")
-                          }
+                          onValueChange={(value) => setTheme(value === "dark" ? "dark" : "light")}
                         >
                           <DropdownMenuRadioItem value="light">
                             <HugeiconsIcon icon={Sun01Icon} />
@@ -138,25 +129,19 @@ export function UserNav({ user }: { user: User }) {
                           设置主页
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onSelect={() =>
-                            navigate({ to: "/authenticated/settings/bell" })
-                          }
+                          onSelect={() => navigate({ to: "/authenticated/settings/bell" })}
                         >
                           <HugeiconsIcon icon={Notification01Icon} />
                           通知
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onSelect={() =>
-                            navigate({ to: "/authenticated/settings/password" })
-                          }
+                          onSelect={() => navigate({ to: "/authenticated/settings/password" })}
                         >
                           <HugeiconsIcon icon={Key02Icon} />
                           修改密码
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onSelect={() =>
-                            navigate({ to: "/authenticated/settings/profile" })
-                          }
+                          onSelect={() => navigate({ to: "/authenticated/settings/profile" })}
                         >
                           <HugeiconsIcon icon={Key02Icon} />
                           修改个人信息
@@ -178,10 +163,7 @@ export function UserNav({ user }: { user: User }) {
                 </DropdownMenuSub>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                variant="destructive"
-                onSelect={() => logoutMutation.mutate()}
-              >
+              <DropdownMenuItem variant="destructive" onSelect={() => logoutMutation.mutate()}>
                 <HugeiconsIcon icon={Logout01Icon} />
                 登出
                 <DropdownMenuShortcut>Ctrl+Shift+L</DropdownMenuShortcut>

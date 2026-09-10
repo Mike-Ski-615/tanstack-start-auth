@@ -34,8 +34,7 @@ export function lastOtp(): string | undefined {
 }
 
 vi.mock("@tanstack/react-start/server", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("@tanstack/react-start/server")>();
+  const actual = await importOriginal<typeof import("@tanstack/react-start/server")>();
   return {
     ...actual,
     getRequestIP: () => currentRequestIP(),

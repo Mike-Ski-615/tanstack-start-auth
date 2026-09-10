@@ -8,11 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "#components/ui/dropdown-menu";
 
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "#components/ui/sidebar";
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "#components/ui/sidebar";
 
 import { LOGOS } from "#data/logo";
 
@@ -34,33 +30,22 @@ export function SidebarBrand() {
                 <HugeiconsIcon icon={selected.icon} className="size-4" />
               </div>
 
-              <span className="truncate font-bold text-base">
-                {selected.title}
-              </span>
+              <span className="truncate font-bold text-base">{selected.title}</span>
 
-              <HugeiconsIcon
-                icon={ArrowDown01Icon}
-                className="size-4 shrink-0"
-              />
+              <HugeiconsIcon icon={ArrowDown01Icon} className="size-4 shrink-0" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
 
           <DropdownMenuContent>
             {LOGOS.map((logo) => {
               return (
-                <DropdownMenuItem
-                  key={logo.title}
-                  onSelect={() => setSelected(logo)}
-                >
+                <DropdownMenuItem key={logo.title} onSelect={() => setSelected(logo)}>
                   <HugeiconsIcon icon={logo.icon} className="size-4" />
 
                   <span>{logo.title}</span>
 
                   {logo.title === selected.title && (
-                    <HugeiconsIcon
-                      icon={Tick01Icon}
-                      className="ml-auto size-4"
-                    />
+                    <HugeiconsIcon icon={Tick01Icon} className="ml-auto size-4" />
                   )}
                 </DropdownMenuItem>
               );

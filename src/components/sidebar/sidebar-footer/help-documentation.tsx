@@ -1,10 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Book02Icon, LinkSquare01Icon } from "@hugeicons/core-free-icons";
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "#components/ui/sidebar";
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "#components/ui/sidebar";
 import { Link } from "@tanstack/react-router";
 
 export function HelpDocumentation() {

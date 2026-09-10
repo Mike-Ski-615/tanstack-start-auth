@@ -89,15 +89,13 @@ describe("被限速时返回 429", () => {
     const ip = "203.0.113.241";
 
     for (let i = 0; i < 5; i++) {
-      await withRequest({ ip }, () =>
-        login({ data: { email, password: "wrongpass" } }),
-      ).catch(() => {});
+      await withRequest({ ip }, () => login({ data: { email, password: "wrongpass" } })).catch(
+        () => {},
+      );
     }
 
     const { threw, status } = await call(() =>
-      withRequest({ ip }, () =>
-        login({ data: { email, password: TEST_PASSWORD } }),
-      ),
+      withRequest({ ip }, () => login({ data: { email, password: TEST_PASSWORD } })),
     );
 
     expect(threw).toBe(true);
@@ -110,9 +108,7 @@ describe("被限速时返回 429", () => {
     const ip = "203.0.113.242";
 
     for (let i = 0; i < 3; i++) {
-      await withRequest({ ip }, () =>
-        requestPasswordResetFn({ data: { email } }),
-      );
+      await withRequest({ ip }, () => requestPasswordResetFn({ data: { email } }));
     }
 
     const { threw, status } = await call(() =>
@@ -129,9 +125,7 @@ describe("被限速时返回 429", () => {
     const ip = "203.0.113.243";
 
     for (let i = 0; i < 3; i++) {
-      await withRequest({ ip }, () =>
-        resendVerificationEmailFn({ data: { email } }),
-      );
+      await withRequest({ ip }, () => resendVerificationEmailFn({ data: { email } }));
     }
 
     const { threw, status } = await call(() =>
@@ -154,9 +148,7 @@ describe("被限速时返回 429", () => {
     }
 
     const { threw, status } = await call(() =>
-      withRequest({ ip: "203.0.113.244" }, () =>
-        resendVerificationEmailFn({ data: { email } }),
-      ),
+      withRequest({ ip: "203.0.113.244" }, () => resendVerificationEmailFn({ data: { email } })),
     );
 
     expect(threw).toBe(true);

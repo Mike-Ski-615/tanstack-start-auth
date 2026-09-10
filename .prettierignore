@@ -5,3 +5,17 @@ src/routeTree.gen.ts
 src/prisma/contract.d.ts
 src/prisma/contract.json
 migrations/
+
+# AI 工具配置（skills / agents 定义 / hooks），不是项目代码
+.agents/
+.claude/
+.cursor/
+.devin/
+.codex/
+.intent/
+# 说明性文档（prettier 会往标题后塞空行，破坏原有排版，无实际收益）
+AGENTS.md
+docs/adr/
+
+# Prisma Next 生成的说明文档（代码块按 TS 语法会被 prettier 改乱）
+prisma-next.md

@@ -38,10 +38,8 @@ async function userByEmail(email: string) {
   return u;
 }
 
-const reg = (
-  data: { name: string; email: string; password: string },
-  ip = IP,
-) => withRequest({ ip }, () => register({ data }));
+const reg = (data: { name: string; email: string; password: string }, ip = IP) =>
+  withRequest({ ip }, () => register({ data }));
 
 /**
  * 带 schema 校验的注册调用。
@@ -50,10 +48,8 @@ const reg = (
  * env === "server" 才校验），所以非法输入会直接进 handler 落库。
  * 要验证「输入校验」就必须显式跑一遍，与生产行为对齐。
  */
-const regValidated = (
-  data: { name: string; email: string; password: string },
-  ip = IP,
-) => callServerFnValidated(register, registerSchema, data, { ip });
+const regValidated = (data: { name: string; email: string; password: string }, ip = IP) =>
+  callServerFnValidated(register, registerSchema, data, { ip });
 
 beforeEach(async () => {
   clearMails();
@@ -134,12 +130,8 @@ describe("注册 — 成功路径", () => {
     await reg({ name: "A", email, password: TEST_PASSWORD });
 
     const u = await userByEmail(email);
-    const devices = await db.orm.public.Device.where((d) =>
-      d.userId.eq(u!.id),
-    ).all();
-    const sessions = await db.orm.public.Session.where((s) =>
-      s.userId.eq(u!.id),
-    ).all();
+    const devices = await db.orm.public.Device.where((d) => d.userId.eq(u!.id)).all();
+    const sessions = await db.orm.public.Session.where((s) => s.userId.eq(u!.id)).all();
     expect(devices).toHaveLength(0);
     expect(sessions).toHaveLength(0);
   });
@@ -197,9 +189,7 @@ describe("注册 — 邮箱冲突", () => {
     await reg({ name: "A", email, password: TEST_PASSWORD });
     await userByEmail(email);
 
-    await expect(
-      reg({ name: "B", email, password: TEST_PASSWORD }),
-    ).rejects.toThrow();
+    await expect(reg({ name: "B", email, password: TEST_PASSWORD })).rejects.toThrow();
   });
 
   it("重复注册不产生第二个用户", async () => {
@@ -243,28 +233,14 @@ describe("注册 — 邮箱冲突", () => {
 // ============================================================
 
 describe("注册 — 输入校验", () => {
-  const cases: Array<
-    [string, { name: string; email: string; password: string }]
-  > = [
-    [
-      "邮箱格式非法",
-      { name: "A", email: "not-an-email", password: TEST_PASSWORD },
-    ],
+  const cases: Array<[string, { name: string; email: string; password: string }]> = [
+    ["邮箱格式非法", { name: "A", email: "not-an-email", password: TEST_PASSWORD }],
     ["邮箱为空", { name: "A", email: "", password: TEST_PASSWORD }],
-    [
-      "密码过短（5 位）",
-      { name: "A", email: uniqueEmail(), password: "12345" },
-    ],
+    ["密码过短（5 位）", { name: "A", email: uniqueEmail(), password: "12345" }],
     ["密码为空", { name: "A", email: uniqueEmail(), password: "" }],
-    [
-      "密码过长（33 位）",
-      { name: "A", email: uniqueEmail(), password: "a".repeat(33) },
-    ],
+    ["密码过长（33 位）", { name: "A", email: uniqueEmail(), password: "a".repeat(33) }],
     ["name 为空", { name: "", email: uniqueEmail(), password: TEST_PASSWORD }],
-    [
-      "name 过长（51 字）",
-      { name: "x".repeat(51), email: uniqueEmail(), password: TEST_PASSWORD },
-    ],
+    ["name 过长（51 字）", { name: "x".repeat(51), email: uniqueEmail(), password: TEST_PASSWORD }],
   ];
 
   for (const [label, data] of cases) {
@@ -348,9 +324,7 @@ describe("注册 — 限速", () => {
     }
 
     const blocked = uniqueEmail("blocked");
-    await reg({ name: "A", email: blocked, password: TEST_PASSWORD }, ip).catch(
-      () => {},
-    );
+    await reg({ name: "A", email: blocked, password: TEST_PASSWORD }, ip).catch(() => {});
 
     const u = await db.orm.public.User.where({ email: blocked }).first();
     expect(u ?? null).toBeNull();
@@ -367,10 +341,7 @@ describe("注册 — 限速", () => {
     }
 
     clearMails();
-    await reg(
-      { name: "A", email: uniqueEmail("x"), password: TEST_PASSWORD },
-      ip,
-    ).catch(() => {});
+    await reg({ name: "A", email: uniqueEmail("x"), password: TEST_PASSWORD }, ip).catch(() => {});
     expect(mails).toHaveLength(0);
   });
 
@@ -384,10 +355,7 @@ describe("注册 — 限速", () => {
     }
 
     const emailB = uniqueEmail("ipB");
-    await reg(
-      { name: "B", email: emailB, password: TEST_PASSWORD },
-      "203.0.113.2",
-    );
+    await reg({ name: "B", email: emailB, password: TEST_PASSWORD }, "203.0.113.2");
     const u = await userByEmail(emailB);
     expect(u).toBeTruthy();
   });
@@ -403,9 +371,7 @@ describe("注册 — 限速", () => {
     }
 
     const email4 = uniqueEmail("shared4");
-    await expect(
-      reg({ name: "A", email: email4, password: TEST_PASSWORD }, ip),
-    ).rejects.toThrow();
+    await expect(reg({ name: "A", email: email4, password: TEST_PASSWORD }, ip)).rejects.toThrow();
   });
 });
 
@@ -448,9 +414,7 @@ describe("注册 — 数据完整性", () => {
   it("并发注册不同邮箱互不影响", async () => {
     const emails = [uniqueEmail("p1"), uniqueEmail("p2"), uniqueEmail("p3")];
     await Promise.all(
-      emails.map((email, i) =>
-        reg({ name: `U${i}`, email, password: TEST_PASSWORD }),
-      ),
+      emails.map((email, i) => reg({ name: `U${i}`, email, password: TEST_PASSWORD })),
     );
 
     for (const email of emails) {

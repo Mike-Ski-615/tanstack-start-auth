@@ -21,8 +21,7 @@ if (fromEnv) process.env["DATABASE_URL"] = fromEnv;
 const url = process.env["DATABASE_URL"] ?? "";
 if (!url) {
   throw new Error(
-    "[test setup] 缺少 DATABASE_URL。\n" +
-      "本地：复制 .env.test.example 为 .env.test。",
+    "[test setup] 缺少 DATABASE_URL。\n" + "本地：复制 .env.test.example 为 .env.test。",
   );
 }
 if (/neon\.tech|aws\.neon/.test(url)) {

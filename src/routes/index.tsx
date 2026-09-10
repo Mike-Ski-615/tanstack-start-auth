@@ -22,8 +22,7 @@ function Home() {
         欢迎来到 TanStack 认证示例
       </h1>
       <p className="max-w-md text-center text-muted-foreground">
-        登录后可进入仪表盘。这是一个基于 TanStack Start、React Router
-        与无状态会话的标准认证起点。
+        登录后可进入仪表盘。这是一个基于 TanStack Start、React Router 与无状态会话的标准认证起点。
       </p>
       <div className="flex gap-3">
         <Button asChild>

@@ -8,11 +8,7 @@ const DAY_LABELS = ["日", "一", "二", "三", "四", "五", "六"];
 // UTC helpers so the card agrees with activity.ts (same day boundary on the
 // server and the browser → no hydration mismatch on the week total).
 const now = new Date();
-const todayStartUTC = Date.UTC(
-  now.getUTCFullYear(),
-  now.getUTCMonth(),
-  now.getUTCDate(),
-);
+const todayStartUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
 function isoUTC(ms: number) {
   const d = new Date(ms);
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
@@ -52,12 +48,8 @@ export default function ThisWeek() {
 
       <div className="flex items-end justify-between gap-4">
         <div>
-          <p className="text-3xl font-bold tracking-tight tabular-nums">
-            {weekTotal}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            本周活动合计（次）
-          </p>
+          <p className="text-3xl font-bold tracking-tight tabular-nums">{weekTotal}</p>
+          <p className="mt-1 text-xs text-muted-foreground">本周活动合计（次）</p>
         </div>
 
         <div className="flex flex-wrap gap-1">
@@ -68,16 +60,12 @@ export default function ThisWeek() {
               className="flex w-4 flex-col items-center gap-0.5"
             >
               <span
-                className={`block size-3 rounded-xs ${
-                  d.isToday ? "ring-1 ring-foreground" : ""
-                }`}
+                className={`block size-3 rounded-xs ${d.isToday ? "ring-1 ring-foreground" : ""}`}
                 style={{ background: palette[d.level] }}
               />
               <span
                 className={`text-[9px] leading-none ${
-                  d.isToday
-                    ? "font-semibold text-foreground"
-                    : "text-muted-foreground"
+                  d.isToday ? "font-semibold text-foreground" : "text-muted-foreground"
                 }`}
               >
                 {d.label}

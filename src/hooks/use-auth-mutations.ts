@@ -2,18 +2,11 @@ import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useAuthCacheSync } from "#lib/queries/auth-sync";
-import type {
-  EmailOnlyValues,
-  LoginValues,
-  RegisterValues,
-} from "#schemas/auth";
+import type { EmailOnlyValues, LoginValues, RegisterValues } from "#schemas/auth";
 import { login } from "#server/login.functions";
 import { register } from "#server/register.functions";
 import { logout } from "#server/logout.functions";
-import {
-  requestPasswordResetFn,
-  resetPasswordFn,
-} from "#server/reset.functions";
+import { requestPasswordResetFn, resetPasswordFn } from "#server/reset.functions";
 
 export function useLoginMutation() {
   const navigate = useNavigate();
@@ -71,8 +64,7 @@ export function useResetPasswordMutation(email: string, otp: string) {
   const navigate = useNavigate();
   const authSync = useAuthCacheSync();
   return useMutation({
-    mutationFn: (password: string) =>
-      resetPasswordFn({ data: { email, otp, password } }),
+    mutationFn: (password: string) => resetPasswordFn({ data: { email, otp, password } }),
     onSuccess: async () => {
       await authSync.onSignedIn();
       toast.success("密码重置成功，欢迎回来");

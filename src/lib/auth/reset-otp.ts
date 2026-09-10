@@ -23,9 +23,7 @@ export async function createResetOtp(userId: string): Promise<string> {
   const now = new Date().toISOString();
 
   // 旧 OTP 一律作废，保证一个用户同一时刻只有一个可用重置 OTP
-  const unused = await db.orm.public.ResetToken.where((t) =>
-    t.userId.eq(userId),
-  )
+  const unused = await db.orm.public.ResetToken.where((t) => t.userId.eq(userId))
     .where((t) => t.usedAt.isNull())
     .all();
 
@@ -48,10 +46,7 @@ export async function createResetOtp(userId: string): Promise<string> {
  * 规则在 otp-store.consumeOtp 里，与邮箱验证共用。这里只声明本流程的表：
  * 查 ResetToken、以 usedAt 作废、成功时无额外动作。
  */
-export async function verifyResetOtp(
-  userId: string,
-  otp: string,
-): Promise<OtpResult> {
+export async function verifyResetOtp(userId: string, otp: string): Promise<OtpResult> {
   return consumeOtp(
     {
       findLive: (uid) =>
