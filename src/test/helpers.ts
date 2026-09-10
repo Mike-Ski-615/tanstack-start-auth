@@ -47,7 +47,9 @@ export async function createUser(
 
 /** 删掉用户及其关联数据（Device/Session/OTP 均以 userId 关联）。 */
 export async function deleteUser(userId: string): Promise<void> {
-  await db.orm.public.EmailVerificationToken.where((t) => t.userId.eq(userId)).delete();
+  await db.orm.public.EmailVerificationToken.where((t) =>
+    t.userId.eq(userId),
+  ).delete();
   await db.orm.public.ResetToken.where((t) => t.userId.eq(userId)).delete();
   await db.orm.public.Session.where((s) => s.userId.eq(userId)).delete();
   await db.orm.public.Device.where((d) => d.userId.eq(userId)).delete();
@@ -92,9 +94,4 @@ export async function getDevices(userId: string) {
   return db.orm.public.Device.where((d) => d.userId.eq(userId)).all();
 }
 
-export {
-  withRequest,
-  callServerFn,
-  callServerFnValidated,
-  type CallContext,
-};
+export { withRequest, callServerFn, callServerFnValidated, type CallContext };

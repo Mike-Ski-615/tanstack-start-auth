@@ -38,7 +38,8 @@ afterEach(cleanup);
 async function sessionFor(verified = true) {
   const { user, email } = await createUser({ verified });
   created.push(user.id);
-  const { createAuthenticatedSession } = await import("#lib/auth/session-manager");
+  const { createAuthenticatedSession } =
+    await import("#lib/auth/session-manager");
   const { token } = await createAuthenticatedSession({
     userId: user.id,
     userAgent: "vitest",
@@ -111,7 +112,9 @@ describe("登出", () => {
 
 describe("全局登出（撤销所有会话）", () => {
   it("未登录抛错", async () => {
-    await expect(withRequest({}, () => revokeAllSessionsFn())).rejects.toThrow();
+    await expect(
+      withRequest({}, () => revokeAllSessionsFn()),
+    ).rejects.toThrow();
   });
 
   it("递增 sessionVersion", async () => {

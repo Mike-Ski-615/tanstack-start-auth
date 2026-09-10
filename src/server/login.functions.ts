@@ -62,14 +62,12 @@ export const login = createServerFn({
     // 读取 cookie 中的 deviceKey（同设备复用）
     const existingDeviceKey = getDeviceKey();
 
-    const { token, deviceKey } = await createAuthenticatedSession(
-      {
-        userId: user.id,
-        deviceKey: existingDeviceKey,
-        userAgent: getRequestHeader("user-agent"),
-        ip: getRequestIP(),
-      },
-    );
+    const { token, deviceKey } = await createAuthenticatedSession({
+      userId: user.id,
+      deviceKey: existingDeviceKey,
+      userAgent: getRequestHeader("user-agent"),
+      ip: getRequestIP(),
+    });
 
     setSessionCookie(token);
     setDeviceCookie(deviceKey);

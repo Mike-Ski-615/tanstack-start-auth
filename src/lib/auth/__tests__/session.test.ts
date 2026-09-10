@@ -23,7 +23,8 @@ afterEach(cleanup);
 async function makeSession(verified = true) {
   const { user, email } = await createUser({ verified });
   created.push(user.id);
-  const { createAuthenticatedSession } = await import("#lib/auth/session-manager");
+  const { createAuthenticatedSession } =
+    await import("#lib/auth/session-manager");
   const { token } = await createAuthenticatedSession({
     userId: user.id,
     userAgent: "vitest",

@@ -55,11 +55,13 @@ export const verifyEmailFn = createServerFn({
     if (!result.ok) throw new Error(result.reason);
 
     // 验证通过 → 创建 Session（自动登录）
-    const { token: sessionToken, deviceKey } = await createAuthenticatedSession({
-      userId: result.userId,
-      userAgent: getRequestHeader("user-agent"),
-      ip: getRequestIP(),
-    });
+    const { token: sessionToken, deviceKey } = await createAuthenticatedSession(
+      {
+        userId: result.userId,
+        userAgent: getRequestHeader("user-agent"),
+        ip: getRequestIP(),
+      },
+    );
 
     setSessionCookie(sessionToken);
     setDeviceCookie(deviceKey);

@@ -108,11 +108,13 @@ export const resetPasswordFn = createServerFn({
     });
 
     // 创建新 Device + Session（自动登录）
-    const { token: sessionToken, deviceKey } = await createAuthenticatedSession({
-      userId,
-      userAgent: getRequestHeader("user-agent"),
-      ip: getRequestIP(),
-    });
+    const { token: sessionToken, deviceKey } = await createAuthenticatedSession(
+      {
+        userId,
+        userAgent: getRequestHeader("user-agent"),
+        ip: getRequestIP(),
+      },
+    );
 
     setSessionCookie(sessionToken);
     setDeviceCookie(deviceKey);

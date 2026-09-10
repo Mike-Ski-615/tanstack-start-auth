@@ -10,9 +10,7 @@ const passwordField = z
   .max(32, "密码最多 32 位");
 
 /** 6 位数字验证码。 */
-const otpField = z
-  .string()
-  .regex(/^\d{6}$/, "验证码为 6 位数字");
+const otpField = z.string().regex(/^\d{6}$/, "验证码为 6 位数字");
 
 export const loginSchema = z.object({
   email: emailField,
@@ -64,10 +62,7 @@ export type RegisterValues = z.infer<typeof registerSchema>;
 export type EmailOnlyValues = z.infer<typeof emailOnlySchema>;
 type UpdateProfileValues = z.infer<typeof updateProfileSchema>;
 type ChangePasswordValues = z.infer<typeof changePasswordSchema>;
-export {
-  type UpdateProfileValues,
-  type ChangePasswordValues,
-};
+export { type UpdateProfileValues, type ChangePasswordValues };
 export type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
 export type VerifyEmailOtpValues = z.infer<typeof verifyEmailOtpSchema>;
 export type UserIdValues = z.infer<typeof userIdSchema>;

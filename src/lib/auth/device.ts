@@ -52,7 +52,9 @@ export async function ensureDevice(params: {
 
   // 1. 尝试按 deviceKey 查找（同设备复用）
   if (existingDeviceKey) {
-    const existing = await db.orm.public.Device.where({ deviceKey: existingDeviceKey }).first();
+    const existing = await db.orm.public.Device.where({
+      deviceKey: existingDeviceKey,
+    }).first();
     if (existing && existing.userId === userIdStr) {
       // 数据库有默认值，运行时不会是 null
       return { device: existing, deviceKey: existingDeviceKey };
@@ -92,11 +94,15 @@ export async function ensureDevice(params: {
  */
 export async function touchLastSeen(deviceId: string): Promise<void> {
   try {
-    const device = await db.orm.public.Device.where({ id: deviceId }).select("lastSeenAt").first();
+    const device = await db.orm.public.Device.where({ id: deviceId })
+      .select("lastSeenAt")
+      .first();
     if (!device) return;
 
     const now = Date.now();
-    const lastSeen = device.lastSeenAt ? new Date(device.lastSeenAt).getTime() : 0;
+    const lastSeen = device.lastSeenAt
+      ? new Date(device.lastSeenAt).getTime()
+      : 0;
 
     if (now - lastSeen < LAST_SEEN_THROTTLE_MS) return;
 
@@ -110,11 +116,15 @@ export async function touchLastSeen(deviceId: string): Promise<void> {
 }
 
 /** 根据 deviceKey 查找 Device。 */
-export async function findDeviceByKey(deviceKey: string): Promise<Device | null> {
+export async function findDeviceByKey(
+  deviceKey: string,
+): Promise<Device | null> {
   return await db.orm.public.Device.where({ deviceKey }).first();
 }
 
 /** 根据 userId 查找 Device。 */
-export async function findDeviceByUserId(userId: string): Promise<Device | null> {
+export async function findDeviceByUserId(
+  userId: string,
+): Promise<Device | null> {
   return await db.orm.public.Device.where({ userId }).first();
 }

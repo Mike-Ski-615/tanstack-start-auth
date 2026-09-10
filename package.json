@@ -7,8 +7,10 @@
     "start": "bun .output/server/index.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
     "postinstall": "prisma skills sync || exit 0",
-    "contract:emit": "prisma contract emit"
+    "contract:emit": "prisma contract emit",
+    "prepare": "husky"
   },
   "imports": {
     "#lib/*": "./src/lib/*",
@@ -29,6 +31,9 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
     "@vitejs/plugin-react": "^6.1.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.5.1",
+    "prettier": "^3.9.6",
     "prisma": "^8.0.0-rc.10",
     "shadcn": "^4.19.0",
     "typescript": "^7.0.2",

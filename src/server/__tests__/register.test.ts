@@ -9,7 +9,6 @@ import {
   deleteUser,
   clearRateLimit,
   withRequest,
-
   callServerFnValidated,
   getEmailOtps,
 } from "#test/helpers";
@@ -131,8 +130,12 @@ describe("注册 — 成功路径", () => {
     await reg({ name: "A", email, password: TEST_PASSWORD });
 
     const u = await userByEmail(email);
-    const devices = await db.orm.public.Device.where((d) => d.userId.eq(u!.id)).all();
-    const sessions = await db.orm.public.Session.where((s) => s.userId.eq(u!.id)).all();
+    const devices = await db.orm.public.Device.where((d) =>
+      d.userId.eq(u!.id),
+    ).all();
+    const sessions = await db.orm.public.Session.where((s) =>
+      s.userId.eq(u!.id),
+    ).all();
     expect(devices).toHaveLength(0);
     expect(sessions).toHaveLength(0);
   });
@@ -166,9 +169,11 @@ describe("注册 — 成功路径", () => {
     expect(lower).toBeTruthy();
 
     // 大写形式视为另一个账号 —— 记录现状；若将来做大小写折叠，此处会失败
-    const r = await reg({ name: "B", email: upper, password: TEST_PASSWORD }).catch(
-      (e) => e,
-    );
+    const r = await reg({
+      name: "B",
+      email: upper,
+      password: TEST_PASSWORD,
+    }).catch((e) => e);
     const up = await userByEmail(upper);
     if (up) {
       expect(up.id).not.toBe(lower!.id);
@@ -234,14 +239,28 @@ describe("注册 — 邮箱冲突", () => {
 // ============================================================
 
 describe("注册 — 输入校验", () => {
-  const cases: Array<[string, { name: string; email: string; password: string }]> = [
-    ["邮箱格式非法", { name: "A", email: "not-an-email", password: TEST_PASSWORD }],
+  const cases: Array<
+    [string, { name: string; email: string; password: string }]
+  > = [
+    [
+      "邮箱格式非法",
+      { name: "A", email: "not-an-email", password: TEST_PASSWORD },
+    ],
     ["邮箱为空", { name: "A", email: "", password: TEST_PASSWORD }],
-    ["密码过短（5 位）", { name: "A", email: uniqueEmail(), password: "12345" }],
+    [
+      "密码过短（5 位）",
+      { name: "A", email: uniqueEmail(), password: "12345" },
+    ],
     ["密码为空", { name: "A", email: uniqueEmail(), password: "" }],
-    ["密码过长（33 位）", { name: "A", email: uniqueEmail(), password: "a".repeat(33) }],
+    [
+      "密码过长（33 位）",
+      { name: "A", email: uniqueEmail(), password: "a".repeat(33) },
+    ],
     ["name 为空", { name: "", email: uniqueEmail(), password: TEST_PASSWORD }],
-    ["name 过长（51 字）", { name: "x".repeat(51), email: uniqueEmail(), password: TEST_PASSWORD }],
+    [
+      "name 过长（51 字）",
+      { name: "x".repeat(51), email: uniqueEmail(), password: TEST_PASSWORD },
+    ],
   ];
 
   for (const [label, data] of cases) {
@@ -256,9 +275,11 @@ describe("注册 — 输入校验", () => {
 
   it("校验失败不发邮件", async () => {
     clearMails();
-    await regValidated({ name: "A", email: "bad", password: TEST_PASSWORD }).catch(
-      () => {},
-    );
+    await regValidated({
+      name: "A",
+      email: "bad",
+      password: TEST_PASSWORD,
+    }).catch(() => {});
     expect(mails).toHaveLength(0);
   });
 
@@ -278,7 +299,11 @@ describe("注册 — 输入校验", () => {
 
   it("边界值：50 字 name 被接受", async () => {
     const email = uniqueEmail();
-    await regValidated({ name: "x".repeat(50), email, password: TEST_PASSWORD });
+    await regValidated({
+      name: "x".repeat(50),
+      email,
+      password: TEST_PASSWORD,
+    });
     const u = await userByEmail(email);
     expect(u).toBeTruthy();
   });
@@ -319,7 +344,9 @@ describe("注册 — 限速", () => {
     }
 
     const blocked = uniqueEmail("blocked");
-    await reg({ name: "A", email: blocked, password: TEST_PASSWORD }, ip).catch(() => {});
+    await reg({ name: "A", email: blocked, password: TEST_PASSWORD }, ip).catch(
+      () => {},
+    );
 
     const u = await db.orm.public.User.where({ email: blocked }).first();
     expect(u ?? null).toBeNull();
@@ -353,7 +380,10 @@ describe("注册 — 限速", () => {
     }
 
     const emailB = uniqueEmail("ipB");
-    await reg({ name: "B", email: emailB, password: TEST_PASSWORD }, "203.0.113.2");
+    await reg(
+      { name: "B", email: emailB, password: TEST_PASSWORD },
+      "203.0.113.2",
+    );
     const u = await userByEmail(emailB);
     expect(u).toBeTruthy();
   });

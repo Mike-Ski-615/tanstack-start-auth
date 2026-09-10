@@ -71,14 +71,20 @@ function SettingsAccountPage() {
           </div>
           <div className="grid grid-cols-[100px_1fr] gap-1 p-4">
             <span className="text-xs text-muted-foreground">
-              <HugeiconsIcon icon={Mail01Icon} className="mr-1 inline size-3.5 align-[-2px]" />
+              <HugeiconsIcon
+                icon={Mail01Icon}
+                className="mr-1 inline size-3.5 align-[-2px]"
+              />
               邮箱
             </span>
             <span className="text-sm">{user.email}</span>
           </div>
           <div className="grid grid-cols-[100px_1fr] gap-1 p-4">
             <span className="text-xs text-muted-foreground">
-              <HugeiconsIcon icon={Calendar01Icon} className="mr-1 inline size-3.5 align-[-2px]" />
+              <HugeiconsIcon
+                icon={Calendar01Icon}
+                className="mr-1 inline size-3.5 align-[-2px]"
+              />
               注册时间
             </span>
             <span className="text-sm">

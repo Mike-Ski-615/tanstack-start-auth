@@ -172,9 +172,8 @@ describe("登录 — 单设备模型", () => {
     const [d1] = await getDevices(user.id);
 
     // 模拟同设备再登录：带上 deviceKey cookie
-    await withRequest(
-      { ip: IP, cookies: { device_key: d1.deviceKey } },
-      () => login({ data: { email, password: TEST_PASSWORD } }),
+    await withRequest({ ip: IP, cookies: { device_key: d1.deviceKey } }, () =>
+      login({ data: { email, password: TEST_PASSWORD } }),
     );
 
     const devices = await getDevices(user.id);
@@ -266,9 +265,7 @@ describe("登录 — 限速", () => {
       await doLogin({ email, password: "wrong" }).catch(() => {});
     }
     // 第 6 次：即使密码正确也应被限速拦住
-    await expect(
-      doLogin({ email, password: TEST_PASSWORD }),
-    ).rejects.toThrow();
+    await expect(doLogin({ email, password: TEST_PASSWORD })).rejects.toThrow();
 
     expect(await getSessions(user.id)).toHaveLength(0);
   });
@@ -279,7 +276,9 @@ describe("登录 — 限速", () => {
     await clearRateLimit("login");
 
     for (let i = 0; i < 5; i++) {
-      await doLogin({ email, password: "wrong" }, "198.51.100.1").catch(() => {});
+      await doLogin({ email, password: "wrong" }, "198.51.100.1").catch(
+        () => {},
+      );
     }
 
     // 换 IP，正确密码仍可登录

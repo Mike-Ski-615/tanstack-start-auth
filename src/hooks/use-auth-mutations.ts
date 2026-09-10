@@ -15,7 +15,6 @@ import {
   resetPasswordFn,
 } from "#server/reset.functions";
 
-
 export function useLoginMutation() {
   const navigate = useNavigate();
   const authSync = useAuthCacheSync();
@@ -50,8 +49,6 @@ export function useRegisterMutation() {
     },
   });
 }
-
-
 
 export function useRequestPasswordResetMutation() {
   const navigate = useNavigate();

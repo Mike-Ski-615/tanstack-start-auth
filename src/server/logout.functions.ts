@@ -1,9 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { revokeSession } from "#lib/auth/session-manager";
-import {
-  getSessionToken,
-  clearSessionCookie,
-} from "#lib/auth/session";
+import { getSessionToken, clearSessionCookie } from "#lib/auth/session";
 
 /**
  * 登出用例：撤销会话（DB 标记 revokedAt）→ 清 session cookie。

@@ -25,13 +25,15 @@ function isoUTC(d: Date) {
 // Current day boundary as UTC ms since epoch (both runtimes share this).
 const now = new Date();
 const year = now.getUTCFullYear();
-const dayStartUTC =
-  Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+const dayStartUTC = Date.UTC(
+  now.getUTCFullYear(),
+  now.getUTCMonth(),
+  now.getUTCDate(),
+);
 
 const startUTC = Date.UTC(year, 0, 1); // Jan 1 midnight UTC
 const daysSoFar = Math.round((dayStartUTC - startUTC) / DAY) + 1; // state through today
-const totalDays =
-  Math.round((Date.UTC(year, 11, 31) - startUTC) / DAY) + 1;
+const totalDays = Math.round((Date.UTC(year, 11, 31) - startUTC) / DAY) + 1;
 
 // Activity grade 0…4 for a given count.
 function levelFor(count: number) {

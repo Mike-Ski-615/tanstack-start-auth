@@ -59,7 +59,10 @@ function SettingsProfilePage() {
     >
       <header>
         <div className="flex items-center gap-2">
-          <HugeiconsIcon icon={UserIcon} className="size-5 text-muted-foreground" />
+          <HugeiconsIcon
+            icon={UserIcon}
+            className="size-5 text-muted-foreground"
+          />
           <h1 className="text-xl font-semibold">个人信息</h1>
         </div>
         <p className="mt-1 text-sm text-muted-foreground">

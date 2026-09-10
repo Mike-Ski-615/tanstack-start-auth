@@ -80,7 +80,7 @@ export async function rateLimit(
 export async function purgeExpiredRateLimit(): Promise<void> {
   const now = new Date().toISOString();
   // DB-side 条件删除
-  await db.orm.public.RateLimit.where(
-    (r) => r.expiresAt.lt(now),
+  await db.orm.public.RateLimit.where((r) =>
+    r.expiresAt.lt(now),
   ).deleteAndCount();
 }

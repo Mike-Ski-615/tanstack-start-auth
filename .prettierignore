@@ -1,0 +1,7 @@
+# shadcn 生成的 UI 组件：第三方源码，格式化只会制造与上游的 diff 噪音
+src/components/ui/
+# 生成物
+src/routeTree.gen.ts
+src/prisma/contract.d.ts
+src/prisma/contract.json
+migrations/

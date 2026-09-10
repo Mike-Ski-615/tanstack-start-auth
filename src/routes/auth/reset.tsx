@@ -139,9 +139,7 @@ function ResetPage() {
         <Field>
           <Button
             type="submit"
-            disabled={
-              otp.length !== 6 || resetMutation.isPending
-            }
+            disabled={otp.length !== 6 || resetMutation.isPending}
           >
             {resetMutation.isPending ? "重置中..." : "重置密码"}
           </Button>

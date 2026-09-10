@@ -39,7 +39,8 @@ async function cleanup() {
 async function pendingUser() {
   const { user, email } = await createUser({ verified: false });
   created.push(user.id);
-  const { createVerificationOtp } = await import("#lib/auth/email-verification");
+  const { createVerificationOtp } =
+    await import("#lib/auth/email-verification");
   const otp = await createVerificationOtp(user.id);
   return { user, email, otp };
 }
@@ -103,7 +104,8 @@ describe("OTP 验证 — 成功", () => {
     const { user, email } = await createUser({ verified: false });
     created.push(user.id);
     // 直接造一条 tokenHash 对应 "000000" 的记录
-    const { createVerificationOtp } = await import("#lib/auth/email-verification");
+    const { createVerificationOtp } =
+      await import("#lib/auth/email-verification");
     const real = await createVerificationOtp(user.id);
 
     // 用真实 otp 验证（前导零由生成器保证，这里验证往返一致）
@@ -253,7 +255,8 @@ describe("OTP 验证 — 错误次数上限", () => {
       resendVerificationEmailFn({ data: { email } }),
     );
 
-    const fresh = mails[mails.length - 1]?.text.match(/^\s{4}(\d{6})\s*$/m)?.[1];
+    const fresh =
+      mails[mails.length - 1]?.text.match(/^\s{4}(\d{6})\s*$/m)?.[1];
     expect(fresh).toBeTruthy();
     await clearRateLimit("verify-otp");
     await doVerify({ email, otp: fresh! });
@@ -272,7 +275,9 @@ describe("OTP 验证 — 过期", () => {
     const { user, email, otp } = await pendingUser();
 
     // 把 expiresAt 改到过去
-    await db.orm.public.EmailVerificationToken.where((t) => t.userId.eq(user.id)).update({
+    await db.orm.public.EmailVerificationToken.where((t) =>
+      t.userId.eq(user.id),
+    ).update({
       expiresAt: new Date(Date.now() - 1000).toISOString(),
     });
 
@@ -284,7 +289,9 @@ describe("OTP 验证 — 过期", () => {
 
   it("刚过期仍然失败（边界）", async () => {
     const { user, email, otp } = await pendingUser();
-    await db.orm.public.EmailVerificationToken.where((t) => t.userId.eq(user.id)).update({
+    await db.orm.public.EmailVerificationToken.where((t) =>
+      t.userId.eq(user.id),
+    ).update({
       expiresAt: new Date(Date.now() - 1).toISOString(),
     });
 
@@ -305,7 +312,8 @@ describe("OTP 重发", () => {
       resendVerificationEmailFn({ data: { email } }),
     );
 
-    const newOtp = mails[mails.length - 1].text.match(/^\s{4}(\d{6})\s*$/m)?.[1];
+    const newOtp =
+      mails[mails.length - 1].text.match(/^\s{4}(\d{6})\s*$/m)?.[1];
     expect(newOtp).toBeTruthy();
 
     // 旧 OTP 失效（防枚举：即使用户不存在也返回成功，这里用户存在）
@@ -332,7 +340,9 @@ describe("OTP 重发", () => {
     }
 
     const otps = await getEmailOtps(user.id);
-    const live = otps.filter((o) => o.verifiedAt === null || o.verifiedAt === undefined);
+    const live = otps.filter(
+      (o) => o.verifiedAt === null || o.verifiedAt === undefined,
+    );
     expect(live).toHaveLength(1);
   });
 
@@ -340,7 +350,9 @@ describe("OTP 重发", () => {
     await clearRateLimit("resend");
     // 不抛错即为通过
     await withRequest({ ip: IP }, () =>
-      resendVerificationEmailFn({ data: { email: uniqueEmail("nonexistent") } }),
+      resendVerificationEmailFn({
+        data: { email: uniqueEmail("nonexistent") },
+      }),
     );
     expect(mails).toHaveLength(0); // 但不真发邮件
   });
@@ -462,7 +474,8 @@ describe("OTP 验证 — 并发", () => {
   it("并发生成 OTP 后只保留一条未消费记录", async () => {
     const { user } = await createUser({ verified: false });
     created.push(user.id);
-    const { createVerificationOtp } = await import("#lib/auth/email-verification");
+    const { createVerificationOtp } =
+      await import("#lib/auth/email-verification");
 
     await Promise.all([
       createVerificationOtp(user.id),

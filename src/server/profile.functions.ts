@@ -1,14 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
-import {
-  getRequestHeader,
-  getRequestIP,
-} from "@tanstack/react-start/server";
+import { getRequestHeader, getRequestIP } from "@tanstack/react-start/server";
 import { db } from "#prisma/db";
 import { hashPassword, verifyPassword } from "#lib/auth/password";
-import {
-  changePasswordSchema,
-  updateProfileSchema,
-} from "#schemas/auth";
+import { changePasswordSchema, updateProfileSchema } from "#schemas/auth";
 import { getCurrentUser } from "#lib/auth/guard";
 import {
   createAuthenticatedSession,

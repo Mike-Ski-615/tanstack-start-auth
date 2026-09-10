@@ -1,4 +1,8 @@
-import { deleteCookie, getCookie, setCookie } from "@tanstack/react-start/server";
+import {
+  deleteCookie,
+  getCookie,
+  setCookie,
+} from "@tanstack/react-start/server";
 import type { CookieSerializeOptions } from "cookie-es";
 
 /** cookie 名：只存不透明会话令牌。 */

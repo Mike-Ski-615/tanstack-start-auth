@@ -99,9 +99,9 @@ export function callServerFn<TArgs, TResult>(
 
 /** zod 风格的 schema（只用到 safeParse）。 */
 export interface ValidatorLike<T> {
-  safeParse: (v: unknown) =>
-    | { success: true; data: T }
-    | { success: false; error: unknown };
+  safeParse: (
+    v: unknown,
+  ) => { success: true; data: T } | { success: false; error: unknown };
 }
 
 /**
@@ -193,7 +193,9 @@ export function readSetCookies(event: H3Event): Record<string, string> {
   const res = (event as unknown as { res?: { headers?: Headers } }).res;
   if (!res?.headers) return {};
   const raw =
-    (res.headers as unknown as { getSetCookie?: () => string[] }).getSetCookie?.() ?? [];
+    (
+      res.headers as unknown as { getSetCookie?: () => string[] }
+    ).getSetCookie?.() ?? [];
   const out: Record<string, string> = {};
   for (const line of raw) {
     const [pair] = line.split(";");

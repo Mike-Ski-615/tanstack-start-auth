@@ -230,7 +230,8 @@ describe("执行重置 — 成功", () => {
     const { user, email, otp } = await userWithResetOtp();
 
     // 先建一个「攻击者持有的旧会话」
-    const { createAuthenticatedSession } = await import("#lib/auth/session-manager");
+    const { createAuthenticatedSession } =
+      await import("#lib/auth/session-manager");
     const { token: oldToken } = await createAuthenticatedSession({
       userId: user.id,
       userAgent: "attacker",
@@ -271,7 +272,11 @@ describe("执行重置 — 失败", () => {
 
   it("未注册邮箱抛错（防枚举：与错误验证码同文案）", async () => {
     await expect(
-      doReset({ email: uniqueEmail("nobody"), otp: "123456", password: "brandnew123" }),
+      doReset({
+        email: uniqueEmail("nobody"),
+        otp: "123456",
+        password: "brandnew123",
+      }),
     ).rejects.toThrow();
   });
 
@@ -312,7 +317,9 @@ describe("执行重置 — 错误次数上限", () => {
 
     const after = await db.orm.public.User.where({ id: user.id }).first();
     const { verifyPassword } = await import("#lib/auth/password");
-    expect(await verifyPassword(after!.passwordHash, "brandnew123")).toBe(false);
+    expect(await verifyPassword(after!.passwordHash, "brandnew123")).toBe(
+      false,
+    );
   });
 
   it("上限内错误后正确 OTP 仍可用", async () => {

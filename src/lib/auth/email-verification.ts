@@ -20,12 +20,14 @@ const VERIFICATION_OTP_TTL_MS = 15 * 60 * 1000; // 15 分钟
 export async function createVerificationOtp(userId: string): Promise<string> {
   const otp = generateOtp();
   const tokenHash = hashOtp(otp);
-  const expiresAt = new Date(Date.now() + VERIFICATION_OTP_TTL_MS).toISOString();
+  const expiresAt = new Date(
+    Date.now() + VERIFICATION_OTP_TTL_MS,
+  ).toISOString();
   const now = new Date().toISOString();
 
   // 令该用户所有未验证的旧 OTP 失效
-  const unverified = await db.orm.public.EmailVerificationToken.where(
-    (t) => t.userId.eq(userId),
+  const unverified = await db.orm.public.EmailVerificationToken.where((t) =>
+    t.userId.eq(userId),
   )
     .where((t) => t.verifiedAt.isNull())
     .all();
@@ -66,8 +68,8 @@ export async function verifyEmailOtp(
 ): Promise<VerifyOtpResult> {
   const now = new Date();
 
-  const record = await db.orm.public.EmailVerificationToken.where(
-    (t) => t.userId.eq(userId),
+  const record = await db.orm.public.EmailVerificationToken.where((t) =>
+    t.userId.eq(userId),
   )
     .where((t) => t.verifiedAt.isNull())
     .first();

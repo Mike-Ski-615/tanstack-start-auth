@@ -38,7 +38,10 @@ export function SidebarBrand() {
                 {selected.title}
               </span>
 
-              <HugeiconsIcon icon={ArrowDown01Icon} className="size-4 shrink-0" />
+              <HugeiconsIcon
+                icon={ArrowDown01Icon}
+                className="size-4 shrink-0"
+              />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
 
@@ -54,7 +57,10 @@ export function SidebarBrand() {
                   <span>{logo.title}</span>
 
                   {logo.title === selected.title && (
-                    <HugeiconsIcon icon={Tick01Icon} className="ml-auto size-4" />
+                    <HugeiconsIcon
+                      icon={Tick01Icon}
+                      className="ml-auto size-4"
+                    />
                   )}
                 </DropdownMenuItem>
               );

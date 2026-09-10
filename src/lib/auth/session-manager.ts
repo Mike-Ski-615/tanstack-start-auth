@@ -115,10 +115,11 @@ export async function createAuthenticatedSession(params: {
  */
 export async function invalidateAllSessions(userId: string): Promise<void> {
   await db.runtime().execute(
-    db.sql.public.User
-      .update((f, fns) => ({
-        sessionVersion: fns.raw`${f.sessionVersion} + 1`.returns({ codecId: "pg/int4@1" }),
-      }))
+    db.sql.public.User.update((f, fns) => ({
+      sessionVersion: fns.raw`${f.sessionVersion} + 1`.returns({
+        codecId: "pg/int4@1",
+      }),
+    }))
       .where((f, fns) => fns.eq(f.id, userId))
       .build(),
   );
@@ -177,8 +178,8 @@ export async function revokeSession(rawToken: string): Promise<void> {
 export async function purgeExpiredSessions(): Promise<number> {
   const now = new Date().toISOString();
   // DB-side 条件删除，避免 O(N) 读取 + JS 过滤
-  const deleted = await db.orm.public.Session.where(
-    (s) => s.expiresAt.lt(now),
+  const deleted = await db.orm.public.Session.where((s) =>
+    s.expiresAt.lt(now),
   ).deleteAndCount();
   return deleted;
 }
@@ -195,7 +196,9 @@ export async function createResetOtp(userId: string): Promise<string> {
   const now = new Date().toISOString();
 
   // 旧 OTP 一律作废，保证一个用户同一时刻只有一个可用重置 OTP
-  const unused = await db.orm.public.ResetToken.where((t) => t.userId.eq(userId))
+  const unused = await db.orm.public.ResetToken.where((t) =>
+    t.userId.eq(userId),
+  )
     .where((t) => t.usedAt.isNull())
     .all();
 
@@ -230,8 +233,8 @@ export async function verifyResetOtp(
 ): Promise<VerifyResetOtpResult> {
   const now = new Date();
 
-  const record = await db.orm.public.ResetToken.where(
-    (t) => t.userId.eq(userId),
+  const record = await db.orm.public.ResetToken.where((t) =>
+    t.userId.eq(userId),
   )
     .where((t) => t.usedAt.isNull())
     .first();

@@ -11,7 +11,10 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "#components/ui/input-otp";
-import { verifyEmailFn, resendVerificationEmailFn } from "#server/email-verification.functions";
+import {
+  verifyEmailFn,
+  resendVerificationEmailFn,
+} from "#server/email-verification.functions";
 import { useAuthCacheSync } from "#lib/queries/auth-sync";
 
 const verifyEmailSearchSchema = z.object({
@@ -52,7 +55,10 @@ function VerifyEmailPage() {
   if (!email) {
     return (
       <div className="flex flex-col items-center gap-4 text-center">
-        <HugeiconsIcon icon={Mail01Icon} className="size-12 text-muted-foreground" />
+        <HugeiconsIcon
+          icon={Mail01Icon}
+          className="size-12 text-muted-foreground"
+        />
         <h1 className="text-xl font-bold">缺少邮箱信息</h1>
         <p className="text-sm text-muted-foreground">
           请从注册页重新开始，或返回登录。
@@ -79,8 +85,8 @@ function VerifyEmailPage() {
       <HugeiconsIcon icon={Mail01Icon} className="size-12 text-primary" />
       <h1 className="text-xl font-bold">输入邮箱验证码</h1>
       <p className="max-w-sm text-sm text-muted-foreground">
-        验证码已发送至 <span className="font-medium">{email}</span>，
-        15 分钟内有效。
+        验证码已发送至 <span className="font-medium">{email}</span>， 15
+        分钟内有效。
       </p>
 
       <form

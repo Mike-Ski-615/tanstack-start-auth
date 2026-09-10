@@ -14,7 +14,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "#lib/query-keys";
 import { toast } from "sonner";
 import { Button } from "#components/ui/button";
-import { listSessionsFn, revokeAllSessionsFn } from "#server/sessions.functions";
+import {
+  listSessionsFn,
+  revokeAllSessionsFn,
+} from "#server/sessions.functions";
 import { LoadingPage } from "#components/status/authenticated/settings/privacy-security/loading";
 import { ErrorPage } from "#components/status/authenticated/settings/privacy-security/error";
 import { NotFoundPage } from "#components/status/authenticated/settings/privacy-security/not-found";
@@ -156,7 +159,11 @@ function SettingsPrivacySecurityPage() {
                   {device.platform} · {device.ip} · 登录于{" "}
                   {new Date(device.createdAt).toLocaleString("zh-CN")}
                   {device.lastSeenAt && (
-                    <> · 最后活动 {new Date(device.lastSeenAt).toLocaleString("zh-CN")}</>
+                    <>
+                      {" "}
+                      · 最后活动{" "}
+                      {new Date(device.lastSeenAt).toLocaleString("zh-CN")}
+                    </>
                   )}
                 </p>
               </div>
@@ -198,7 +205,10 @@ function SettingsPrivacySecurityPage() {
             </div>
             <div className="grid grid-cols-[100px_1fr] gap-1 p-4">
               <span className="text-xs text-muted-foreground">
-                <HugeiconsIcon icon={Calendar01Icon} className="mr-1 inline size-3.5 align-[-2px]" />
+                <HugeiconsIcon
+                  icon={Calendar01Icon}
+                  className="mr-1 inline size-3.5 align-[-2px]"
+                />
                 创建时间
               </span>
               <span className="text-sm">
@@ -207,7 +217,10 @@ function SettingsPrivacySecurityPage() {
             </div>
             <div className="grid grid-cols-[100px_1fr] gap-1 p-4">
               <span className="text-xs text-muted-foreground">
-                <HugeiconsIcon icon={Time01Icon} className="mr-1 inline size-3.5 align-[-2px]" />
+                <HugeiconsIcon
+                  icon={Time01Icon}
+                  className="mr-1 inline size-3.5 align-[-2px]"
+                />
                 过期时间
               </span>
               <span className="text-sm">

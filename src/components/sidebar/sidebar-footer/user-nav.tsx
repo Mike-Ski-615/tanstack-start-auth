@@ -1,10 +1,17 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowUpDownIcon, ColorPickerIcon, Home01Icon, Key02Icon, Logout01Icon, MoonIcon, Notification01Icon, Settings01Icon, Shield01Icon, Sun01Icon } from "@hugeicons/core-free-icons";
 import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "#components/ui/avatar";
+  ArrowUpDownIcon,
+  ColorPickerIcon,
+  Home01Icon,
+  Key02Icon,
+  Logout01Icon,
+  MoonIcon,
+  Notification01Icon,
+  Settings01Icon,
+  Shield01Icon,
+  Sun01Icon,
+} from "@hugeicons/core-free-icons";
+import { Avatar, AvatarFallback, AvatarImage } from "#components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,7 +62,10 @@ export function UserNav({ user }: { user: User }) {
                   <span className="truncate font-medium">{user.name}</span>
                   <span className="truncate text-xs">{user.email}</span>
                 </div>
-                <HugeiconsIcon icon={ArrowUpDownIcon} className="ml-auto size-4" />
+                <HugeiconsIcon
+                  icon={ArrowUpDownIcon}
+                  className="ml-auto size-4"
+                />
               </SidebarMenuButton>
             </DropdownMenuTrigger>
             <DropdownMenuContent
