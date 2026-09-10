@@ -955,13 +955,7 @@
                   "id"
                 ]
               },
-              "uniques": [
-                {
-                  "columns": [
-                    "tokenHash"
-                  ]
-                }
-              ]
+              "uniques": []
             },
             "RateLimit": {
               "columns": {
@@ -1076,13 +1070,7 @@
                   "id"
                 ]
               },
-              "uniques": [
-                {
-                  "columns": [
-                    "tokenHash"
-                  ]
-                }
-              ]
+              "uniques": []
             },
             "Session": {
               "columns": {
@@ -1320,7 +1308,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "bbf23809b14e7debf6b39db700432f5038863e54cc333c241b9ab94c8882b401"
+    "storageHash": "ac68c9d0c9e45afcb3226a81a776501449e37ebbb28000f850ccd5c7891c730d"
   },
   "execution": {
     "executionHash": "36f197e5006048d2e21aae611ce92a6878be7fe42d75df7b1254cc6a07965f81",

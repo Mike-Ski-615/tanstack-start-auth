@@ -105,7 +105,10 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
     fields: {
       id: field.id.uuidv7Native(),
       userId: field.uuidNative(),
-      tokenHash: field.text().unique(),
+      // tokenHash 刻意不加 unique：OTP 只有 6 位数字（100 万种），两个用户
+      // 撞到同一个码是正常的，校验时按 userId 查记录、互不影响。
+      // 加全局唯一会让第二个人的注册/重置直接 500 —— 见 ADR-0006。
+      tokenHash: field.text(),
       // OTP 只有 6 位数字（100 万种），必须计数错误尝试，否则可被暴力撞开
       attempts: field.int().default(0),
       expiresAt: field.temporal.timestamptzString(),
@@ -125,7 +128,8 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
     fields: {
       id: field.id.uuidv7Native(),
       userId: field.uuidNative(),
-      tokenHash: field.text().unique(),
+      // 同 ResetToken：不加 unique，撞码是正常的（校验按 userId 查）—— 见 ADR-0006
+      tokenHash: field.text(),
       // 同 ResetToken：6 位 OTP 需计错误尝试
       attempts: field.int().default(0),
       expiresAt: field.temporal.timestamptzString(),

@@ -83,6 +83,8 @@ serverFn 都能被任何角色调用。要加真权限时，得先补服务端�
 ### ResetToken（重置 OTP）
 
 DB 承载：ResetToken 表存 SHA-256(6 位数字) + userId + attempts + expiresAt + usedAt。
+**tokenHash 没有唯一约束** —— 两个用户撞到同一个 6 位数字是正常的，校验按
+userId 查记录（见 ADR-0006；加唯一会让第二个人直接 500）。
 15 分钟有效，一次性（usedAt 标记已使用），单个 OTP 错 5 次即作废。
 
 使用流程：用户在忘记密码页提交邮箱 → 邮件收到 6 位验证码 → 在
@@ -96,6 +98,7 @@ DB 承载：ResetToken 表存 SHA-256(6 位数字) + userId + attempts + expires
 ### EmailVerificationToken（邮箱验证 OTP）
 
 DB 承载：EmailVerificationToken 表存 SHA-256(6 位数字) + userId + attempts +
+**tokenHash 同样无唯一约束**（理由同上，见 ADR-0006）。
 expiresAt + verifiedAt。15 分钟有效，一次性（verifiedAt 标记已验证），
 单个 OTP 错 5 次即作废。
 

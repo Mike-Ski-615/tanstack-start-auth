@@ -165,6 +165,8 @@ http://localhost:3000/auth/verify-email ✅（需带 ?token=...）
 - [`0002-remove-email-verification.md`](docs/adr/0002-remove-email-verification.md) —— 移除邮箱验证，注册即登录（**已废弃**，邮箱验证已重新引入）
 - [`0003-native-uuid-ids-and-relations.md`](docs/adr/0003-native-uuid-ids-and-relations.md) —— 主键改用原生 uuid，并声明关系恢复外键完整性（已接受）
 - [`0004-atomic-counter-increments.md`](docs/adr/0004-atomic-counter-increments.md) —— 计数值改用原子 UPDATE/UPSERT（已接受，含一次真实事故的实测数据）
+- [`0005-otp-instead-of-url-tokens.md`](docs/adr/0005-otp-instead-of-url-tokens.md) —— 邮箱验证与密码重置改用 6 位 OTP，取代 URL 里的长令牌（已接受）
+- [`0006-otp-tokenhash-not-unique.md`](docs/adr/0006-otp-tokenhash-not-unique.md) —— OTP 的 tokenHash 去掉全局唯一约束（已采纳：6 位数字必然撞码，而校验按 userId 查，撞码本就无害）
 
 ## Agent 配置
 
