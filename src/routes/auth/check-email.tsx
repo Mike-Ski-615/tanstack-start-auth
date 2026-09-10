@@ -3,6 +3,7 @@ import { Mail01Icon } from "@hugeicons/core-free-icons";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "#components/ui/button";
 import { Input } from "#components/ui/input";
 import { resendVerificationEmailFn } from "#server/email-verification.functions";
@@ -18,24 +19,26 @@ export const Route = createFileRoute("/auth/check-email")({
 
 function CheckEmailPage() {
   const { email: emailFromQuery } = Route.useSearch();
+  // 邮箱本身是受控输入（用户可改），不是请求状态，所以留在 useState
   const [email, setEmail] = useState(emailFromQuery);
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
-    "idle",
-  );
+  // 空邮箱的本地校验：请求根本没发出，isError 不会为真
+  const [emailError, setEmailError] = useState(false);
 
-  const handleResend = async () => {
+  // 请求状态交给 Query：不再手写 idle/sending/sent/error 四态
+  // 与 try/catch 的转换，也与其他 6 个 mutation 的写法保持一致。
+  const resendMutation = useMutation({
+    mutationFn: () => resendVerificationEmailFn({ data: { email } }),
+    // 防枚举：服务端无论邮箱是否存在恒返回成功，客户端不做区分
+  });
+
+  const handleResend = () => {
+    // 空邮箱不发请求（不发请求就不会有 isError，所以在此直接标记失败）
     if (!email) {
-      setStatus("error");
+      setEmailError(true);
       return;
     }
-
-    setStatus("sending");
-    try {
-      await resendVerificationEmailFn({ data: { email } });
-      setStatus("sent");
-    } catch {
-      setStatus("error");
-    }
+    setEmailError(false);
+    resendMutation.mutate();
   };
 
   return (
@@ -49,7 +52,7 @@ function CheckEmailPage() {
         验证通过后将自动登录。
       </p>
 
-      {status === "sent" ? (
+      {resendMutation.isSuccess ? (
         <p className="text-sm text-green-600">验证邮件已重新发送，请查收</p>
       ) : (
         <div className="flex w-full max-w-xs gap-2">
@@ -61,15 +64,15 @@ function CheckEmailPage() {
           />
           <Button
             variant="outline"
-            disabled={status === "sending"}
+            disabled={resendMutation.isPending}
             onClick={handleResend}
           >
-            {status === "sending" ? "发送中..." : "重新发送"}
+            {resendMutation.isPending ? "发送中..." : "重新发送"}
           </Button>
         </div>
       )}
 
-      {status === "error" && (
+      {(resendMutation.isError || emailError) && (
         <p className="text-sm text-destructive">发送失败，请稍后重试</p>
       )}
 
