@@ -41,7 +41,7 @@ export type Role = (typeof ROLES)[number];
 export const ROLE_HOME: Record<Role, string> = {
   student: "/authenticated/student",
   teacher: "/authenticated/teacher",
-  admin: "/authenticated/admin",
+  admin: "/authenticated/admin/teachers",
 };
 
 export type User = {

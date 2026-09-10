@@ -67,8 +67,8 @@ describe("角色枚举的完整性", () => {
     expect(PUBLIC_COLUMNS).toContain("role");
   });
 
-  it("admin 的工作台是 /authenticated/admin", () => {
-    expect(ROLE_HOME.admin).toBe("/authenticated/admin");
+  it("admin 的工作台是教师管理页（管理区的入口）", () => {
+    expect(ROLE_HOME.admin).toBe("/authenticated/admin/teachers");
   });
 });
 
@@ -144,6 +144,6 @@ describe("admin 用户的认证链路", () => {
     const me = await withRequest({ cookies: { "session-token": token } }, () => getCurrentUser());
 
     // 模拟前端的路由判断：ROLE_HOME 必须查得到
-    expect(ROLE_HOME[me!.role]).toBe("/authenticated/admin");
+    expect(ROLE_HOME[me!.role]).toBe("/authenticated/admin/teachers");
   });
 });

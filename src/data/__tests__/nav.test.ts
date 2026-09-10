@@ -133,11 +133,16 @@ describe("菜单项的其他约束", () => {
     }
   });
 
-  it("当前全部指向占位地址 /authenticated", () => {
-    // 这条是「现状快照」而非需求：真实页面实现后应删掉或改成具体路径。
-    // 它的作用是提醒 —— 若有人开始写真实页面，这条会失败，从而被迫
-    // 回来更新这个断言与文档。
-    for (const role of ROLES) {
+  it("管理员的菜单指向真实页面（学生/教师管理已实现）", () => {
+    const admin = navItemsFor("admin");
+    expect(admin.find((i) => i.id === "manage-teachers")!.to).toBe("/authenticated/admin/teachers");
+    expect(admin.find((i) => i.id === "manage-students")!.to).toBe("/authenticated/admin/students");
+  });
+
+  it("师生的菜单仍指向占位地址（那些页面还没实现）", () => {
+    // 现状快照，不是需求。师生各页开始实现时这条会失败，从而提醒
+    // 回来更新断言与文档 —— 这正是它存在的意义。
+    for (const role of ["student", "teacher"] as const) {
       for (const item of navItemsFor(role)) {
         expect(item.to, `${role}/${item.id}`).toBe("/authenticated");
       }

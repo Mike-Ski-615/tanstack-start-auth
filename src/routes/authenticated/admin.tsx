@@ -1,40 +1,36 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { ROLE_HOME } from "#lib/auth/current-user";
-import { LoadingPage } from "#components/status/authenticated/teacher/loading";
-import { ErrorPage } from "#components/status/authenticated/teacher/error";
-import { NotFoundPage } from "#components/status/authenticated/teacher/not-found";
+import { LoadingPage } from "#components/status/authenticated/loading";
+import { ErrorPage } from "#components/status/authenticated/error";
+import { NotFoundPage } from "#components/status/authenticated/not-found";
 
 /**
- * 管理员工作台。
+ * 管理员区的父布局。
  *
- * 目前是占位页 —— `admin` 角色不比其他角色多任何权限，加它只是为了将来
- * 接入管理功能时有个落点。在这之前，它与 teacher / student 页功能等价
- * （都只是显示当前用户）。
+ * 它是 `/authenticated/admin` **及其子路由**（teachers / students）的共同
+ * 外壳 —— 所以组件必须是 `<Outlet />`，否则子页面的内容会被这里的组件
+ * 整个盖掉（表现为：访问 /admin/students 却只看到管理员的占位工作台）。
  *
- * 复用 teacher 那套 status 组件是因为它们是通用文案（无角色字样），
- * 复制一份只是多三份要同步维护的文件。
+ * 角色校验放在这里，子页面就不用各写一遍：不是 admin 一律送回自己的
+ * 工作台。访问 /admin 本身时，redirect 到教师管理（管理区的首页）。
  */
 export const Route = createFileRoute("/authenticated/admin")({
   pendingComponent: LoadingPage,
   errorComponent: ErrorPage,
   notFoundComponent: NotFoundPage,
-  component: AdminPage,
-  beforeLoad: ({ context }) => {
-    // 与 teacher / student 页同一套规则：不是本角色的工作台就跳回自己的。
+  component: AdminLayout,
+  beforeLoad: ({ context, location }) => {
     if (context.user.role !== "admin") {
       throw redirect({ to: ROLE_HOME[context.user.role] });
+    }
+
+    // 管理区首页：默认进教师管理
+    if (location.pathname === "/authenticated/admin") {
+      throw redirect({ to: "/authenticated/admin/teachers" });
     }
   },
 });
 
-function AdminPage() {
-  const { user } = Route.useRouteContext();
-
-  return (
-    <section className="p-4">
-      <h1 className="text-2xl font-bold">管理员</h1>
-      <p className="mt-2">欢迎，{user.name}</p>
-      <p className="text-sm text-muted-foreground">{user.email}</p>
-    </section>
-  );
+function AdminLayout() {
+  return <Outlet />;
 }

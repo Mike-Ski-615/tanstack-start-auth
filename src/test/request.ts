@@ -61,16 +61,12 @@ export interface CallContext {
 const CURRENT_CTX_KEY = Symbol.for("test:current-request-ctx");
 
 function setCurrentCtx(ctx: CallContext | undefined) {
-  (globalThis as unknown as Record<symbol, CallContext | undefined>)[
-    CURRENT_CTX_KEY
-  ] = ctx;
+  (globalThis as unknown as Record<symbol, CallContext | undefined>)[CURRENT_CTX_KEY] = ctx;
 }
 
 /** 供 module mock 读取当前注入的 IP。 */
 export function currentRequestIP(): string | undefined {
-  return (globalThis as unknown as Record<symbol, CallContext | undefined>)[
-    CURRENT_CTX_KEY
-  ]?.ip;
+  return (globalThis as unknown as Record<symbol, CallContext | undefined>)[CURRENT_CTX_KEY]?.ip;
 }
 
 /**
@@ -83,16 +79,12 @@ export function currentRequestIP(): string | undefined {
 const LAST_STATUS_KEY = Symbol.for("test:last-response-status");
 
 function setLastStatus(code: number | undefined) {
-  (globalThis as unknown as Record<symbol, number | undefined>)[
-    LAST_STATUS_KEY
-  ] = code;
+  (globalThis as unknown as Record<symbol, number | undefined>)[LAST_STATUS_KEY] = code;
 }
 
 /** 读取最近一次 withRequest 结束时的响应状态码。 */
 export function lastResponseStatus(): number | undefined {
-  return (globalThis as unknown as Record<symbol, number | undefined>)[
-    LAST_STATUS_KEY
-  ];
+  return (globalThis as unknown as Record<symbol, number | undefined>)[LAST_STATUS_KEY];
 }
 
 /**
@@ -119,11 +111,61 @@ export function callServerFn<TArgs, TResult>(
   return withRequest(ctx, () => fn({ data: args }));
 }
 
+/**
+ * serverFn 对象上真正的服务端执行入口。
+ *
+ * 类型故意放宽（fn 用 unknown 收）：serverFn 的实际类型是 TanStack 生成的
+ * 复杂泛型，与这里的签名对不上。测试里传进来的参数是手写的，语义正确即可。
+ */
+type ExecutableServerFn = {
+  __executeServer?: (opts: {
+    method: "GET" | "POST";
+    data: unknown;
+    headers?: HeadersInit;
+    context?: unknown;
+  }) => Promise<unknown>;
+};
+
+/**
+ * 调用 serverFn 并**拿到返回值**（callServerFn 拿不到，原因见文件头）。
+ *
+ * 走的是 serverFn 上的 `__executeServer`，即服务端真正执行 handler 的那条
+ * 路径 —— 所以返回值是 handler 的原值，不经 RPC 传输层。
+ *
+ * 仅用于必须断言返回值的读接口（比如列表）。写接口优先用 callServerFn /
+ * callServerFnValidated 并断言数据库副作用 —— 那比断言返回值更严格。
+ */
+export function callServerFnResult<TArgs, TResult>(
+  fn: ExecutableServerFn,
+  args: TArgs,
+  ctx: CallContext = {},
+): Promise<TResult> {
+  const exec = fn.__executeServer;
+  if (!exec) {
+    throw new Error("callServerFnResult: 该函数没有 __executeServer（不是 serverFn？）");
+  }
+  return withRequest(ctx, async () => {
+    const r = await exec({ method: "POST", data: args });
+    // 服务端路径的返回值可能被包了一层 { result }，也可能就是原值。
+    return ((r as { result?: unknown })?.result ?? r) as TResult;
+  });
+}
+
+/** 带校验、且能拿到返回值。 */
+export function callServerFnResultValidated<TArgs, TResult>(
+  fn: ExecutableServerFn,
+  schema: ValidatorLike<TArgs>,
+  args: TArgs,
+  ctx: CallContext = {},
+): Promise<TResult> {
+  const parsed = schema.safeParse(args);
+  if (!parsed.success) return Promise.reject(parsed.error);
+  return callServerFnResult<TArgs, TResult>(fn, parsed.data, ctx);
+}
+
 /** zod 风格的 schema（只用到 safeParse）。 */
 export interface ValidatorLike<T> {
-  safeParse: (
-    v: unknown,
-  ) => { success: true; data: T } | { success: false; error: unknown };
+  safeParse: (v: unknown) => { success: true; data: T } | { success: false; error: unknown };
 }
 
 /**
@@ -149,10 +191,7 @@ export function callServerFnValidated<TArgs, TResult>(
  *
  * 可嵌套 —— 外层上下文在 fn 返回后恢复。
  */
-export function withRequest<T>(
-  ctx: CallContext,
-  fn: () => Promise<T> | T,
-): Promise<T> {
+export function withRequest<T>(ctx: CallContext, fn: () => Promise<T> | T): Promise<T> {
   const headers = new Headers();
   for (const [k, v] of Object.entries(ctx.headers ?? {})) headers.set(k, v);
   if (ctx.cookies && Object.keys(ctx.cookies).length > 0) {

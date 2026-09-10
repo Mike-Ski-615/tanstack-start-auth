@@ -10,6 +10,8 @@ import {
   withRequest,
   callServerFn,
   callServerFnValidated,
+  callServerFnResult,
+  callServerFnResultValidated,
   lastResponseStatus,
   type CallContext,
 } from "./request";
@@ -31,6 +33,7 @@ export async function createUser(
     password?: string;
     name?: string;
     verified?: boolean;
+    role?: "student" | "teacher" | "admin";
   } = {},
 ) {
   const email = opts.email ?? uniqueEmail();
@@ -41,6 +44,7 @@ export async function createUser(
     passwordHash: await hashPassword(password),
     image: "",
     bio: "",
+    ...(opts.role ? { role: opts.role } : {}),
     ...(opts.verified ? { emailVerifiedAt: new Date().toISOString() } : {}),
   });
   return { user, email, password };
@@ -48,9 +52,7 @@ export async function createUser(
 
 /** 删掉用户及其关联数据（Device/Session/OTP 均以 userId 关联）。 */
 export async function deleteUser(userId: string): Promise<void> {
-  await db.orm.public.EmailVerificationToken.where((t) =>
-    t.userId.eq(userId),
-  ).delete();
+  await db.orm.public.EmailVerificationToken.where((t) => t.userId.eq(userId)).delete();
   await db.orm.public.ResetToken.where((t) => t.userId.eq(userId)).delete();
   await db.orm.public.Session.where((s) => s.userId.eq(userId)).delete();
   await db.orm.public.Device.where((d) => d.userId.eq(userId)).delete();
@@ -71,17 +73,13 @@ export async function clearRateLimit(...types: string[]): Promise<void> {
 
 /** 读用户当前的所有邮箱 OTP 记录（新→旧）。 */
 export async function getEmailOtps(userId: string) {
-  const rows = await db.orm.public.EmailVerificationToken.where((t) =>
-    t.userId.eq(userId),
-  ).all();
+  const rows = await db.orm.public.EmailVerificationToken.where((t) => t.userId.eq(userId)).all();
   return rows.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 }
 
 /** 读用户当前的所有重置 OTP 记录（新→旧）。 */
 export async function getResetOtps(userId: string) {
-  const rows = await db.orm.public.ResetToken.where((t) =>
-    t.userId.eq(userId),
-  ).all();
+  const rows = await db.orm.public.ResetToken.where((t) => t.userId.eq(userId)).all();
   return rows.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 }
 
@@ -99,6 +97,8 @@ export {
   withRequest,
   callServerFn,
   callServerFnValidated,
+  callServerFnResult,
+  callServerFnResultValidated,
   lastResponseStatus,
   type CallContext,
 };

@@ -22,6 +22,8 @@ import { Route as AuthenticatedHelpRouteImport } from './routes/authenticated/he
 import { Route as AuthenticatedSettingsRouteImport } from './routes/authenticated/settings'
 import { Route as AuthenticatedStudentRouteImport } from './routes/authenticated/student'
 import { Route as AuthenticatedTeacherRouteImport } from './routes/authenticated/teacher'
+import { Route as AuthenticatedAdminStudentsRouteImport } from './routes/authenticated/admin/students'
+import { Route as AuthenticatedAdminTeachersRouteImport } from './routes/authenticated/admin/teachers'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/authenticated/settings/account'
 import { Route as AuthenticatedSettingsBellRouteImport } from './routes/authenticated/settings/bell'
 import { Route as AuthenticatedSettingsHomeRouteImport } from './routes/authenticated/settings/home'
@@ -95,6 +97,18 @@ const AuthenticatedTeacherRoute = AuthenticatedTeacherRouteImport.update({
   path: '/teacher',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdminStudentsRoute =
+  AuthenticatedAdminStudentsRouteImport.update({
+    id: '/students',
+    path: '/students',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminTeachersRoute =
+  AuthenticatedAdminTeachersRouteImport.update({
+    id: '/teachers',
+    path: '/teachers',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedSettingsAccountRoute =
   AuthenticatedSettingsAccountRouteImport.update({
     id: '/account',
@@ -147,11 +161,13 @@ export interface FileRoutesByFullPath {
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset': typeof AuthResetRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
-  '/authenticated/admin': typeof AuthenticatedAdminRoute
+  '/authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/authenticated/help': typeof AuthenticatedHelpRoute
   '/authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/authenticated/student': typeof AuthenticatedStudentRoute
   '/authenticated/teacher': typeof AuthenticatedTeacherRoute
+  '/authenticated/admin/students': typeof AuthenticatedAdminStudentsRoute
+  '/authenticated/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/authenticated/settings/bell': typeof AuthenticatedSettingsBellRoute
   '/authenticated/settings/home': typeof AuthenticatedSettingsHomeRoute
@@ -169,11 +185,13 @@ export interface FileRoutesByTo {
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset': typeof AuthResetRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
-  '/authenticated/admin': typeof AuthenticatedAdminRoute
+  '/authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/authenticated/help': typeof AuthenticatedHelpRoute
   '/authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/authenticated/student': typeof AuthenticatedStudentRoute
   '/authenticated/teacher': typeof AuthenticatedTeacherRoute
+  '/authenticated/admin/students': typeof AuthenticatedAdminStudentsRoute
+  '/authenticated/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/authenticated/settings/bell': typeof AuthenticatedSettingsBellRoute
   '/authenticated/settings/home': typeof AuthenticatedSettingsHomeRoute
@@ -192,11 +210,13 @@ export interface FileRoutesById {
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset': typeof AuthResetRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
-  '/authenticated/admin': typeof AuthenticatedAdminRoute
+  '/authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/authenticated/help': typeof AuthenticatedHelpRoute
   '/authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/authenticated/student': typeof AuthenticatedStudentRoute
   '/authenticated/teacher': typeof AuthenticatedTeacherRoute
+  '/authenticated/admin/students': typeof AuthenticatedAdminStudentsRoute
+  '/authenticated/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/authenticated/settings/bell': typeof AuthenticatedSettingsBellRoute
   '/authenticated/settings/home': typeof AuthenticatedSettingsHomeRoute
@@ -221,6 +241,8 @@ export interface FileRouteTypes {
     | '/authenticated/settings'
     | '/authenticated/student'
     | '/authenticated/teacher'
+    | '/authenticated/admin/students'
+    | '/authenticated/admin/teachers'
     | '/authenticated/settings/account'
     | '/authenticated/settings/bell'
     | '/authenticated/settings/home'
@@ -243,6 +265,8 @@ export interface FileRouteTypes {
     | '/authenticated/settings'
     | '/authenticated/student'
     | '/authenticated/teacher'
+    | '/authenticated/admin/students'
+    | '/authenticated/admin/teachers'
     | '/authenticated/settings/account'
     | '/authenticated/settings/bell'
     | '/authenticated/settings/home'
@@ -265,6 +289,8 @@ export interface FileRouteTypes {
     | '/authenticated/settings'
     | '/authenticated/student'
     | '/authenticated/teacher'
+    | '/authenticated/admin/students'
+    | '/authenticated/admin/teachers'
     | '/authenticated/settings/account'
     | '/authenticated/settings/bell'
     | '/authenticated/settings/home'
@@ -373,6 +399,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTeacherRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/authenticated/admin/students': {
+      id: '/authenticated/admin/students'
+      path: '/students'
+      fullPath: '/authenticated/admin/students'
+      preLoaderRoute: typeof AuthenticatedAdminStudentsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/authenticated/admin/teachers': {
+      id: '/authenticated/admin/teachers'
+      path: '/teachers'
+      fullPath: '/authenticated/admin/teachers'
+      preLoaderRoute: typeof AuthenticatedAdminTeachersRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/authenticated/settings/account': {
       id: '/authenticated/settings/account'
       path: '/account'
@@ -443,6 +483,19 @@ const AuthRouteChildren: AuthRouteChildren = {
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminStudentsRoute: typeof AuthenticatedAdminStudentsRoute
+  AuthenticatedAdminTeachersRoute: typeof AuthenticatedAdminTeachersRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminStudentsRoute: AuthenticatedAdminStudentsRoute,
+  AuthenticatedAdminTeachersRoute: AuthenticatedAdminTeachersRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
 interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsAccountRoute: typeof AuthenticatedSettingsAccountRoute
   AuthenticatedSettingsBellRoute: typeof AuthenticatedSettingsBellRoute
@@ -468,7 +521,7 @@ const AuthenticatedSettingsRouteWithChildren =
   )
 
 interface AuthenticatedRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedHelpRoute: typeof AuthenticatedHelpRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
   AuthenticatedStudentRoute: typeof AuthenticatedStudentRoute
@@ -477,7 +530,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedHelpRoute: AuthenticatedHelpRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
   AuthenticatedStudentRoute: AuthenticatedStudentRoute,
