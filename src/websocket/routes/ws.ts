@@ -26,11 +26,17 @@ interface WsPeerContext {
  * 断言收在这里，且带运行校验：upgrade 改了 context 形状而忘了同步这里时，
  * 会当场报错而不是带着 undefined 继续跑（registerPeer 拿到 undefined 后
  * presence / kick 都会静默失效）。
+ *
+ * 返回 null 表示 context 不完整，而不是抛错：close handler 必须在任何情况下
+ * 都能完成 unregisterPeer，否则注册表会残留幽灵 peer（peers 永不归零、
+ * kick 打到幽灵上、真实连接继续存活）。
  */
-function getPeerContext(peer: { context: Record<string, unknown> }): WsPeerContext {
+function getPeerContext(
+  peer: { context: Record<string, unknown> },
+): WsPeerContext | null {
   const { userId, sessionId } = peer.context;
   if (typeof userId !== "string" || typeof sessionId !== "string") {
-    throw new Error("[WS] peer.context 缺少 userId/sessionId，upgrade 与 handler 不一致");
+    return null;
   }
   return { userId, sessionId };
 }
@@ -61,7 +67,14 @@ export default defineWebSocketHandler({
   },
 
   async open(peer) {
-    const { userId, sessionId } = getPeerContext(peer);
+    const ctx = getPeerContext(peer);
+    if (!ctx) {
+      // upgrade 与 handler 不一致，无法追踪这个连接：直接断开而不是让它成为幽灵
+      console.error("[WS] open 时 context 不完整，断开连接", peer.id);
+      peer.close(1011, "missing_context");
+      return;
+    }
+    const { userId, sessionId } = ctx;
 
     registerPeer(peer.id, userId, sessionId, peer);
 
@@ -96,9 +109,16 @@ export default defineWebSocketHandler({
   },
 
   async close(peer) {
-    const { userId } = getPeerContext(peer);
-
+    // 先无条件注销：无论 context 是否完整，注册表都必须清干净，
+    // 否则残留的 peer 会让 peersByUser 永不归零（在线状态永久错误）。
     unregisterPeer(peer.id);
+
+    const ctx = getPeerContext(peer);
+    if (!ctx) {
+      // context 不完整说明该连接从未被 registerPeer（open 时已拦），无需广播
+      return;
+    }
+    const { userId } = ctx;
 
     // 只有该用户最后一个连接关闭才算离线（多标签页场景）
     if (getUserConnectionCount(userId) === 0) {
