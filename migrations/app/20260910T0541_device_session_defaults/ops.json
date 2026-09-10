@@ -1,0 +1,452 @@
+[
+  {
+    "id": "setDefault.Device.name",
+    "label": "Set default on \"Device\".\"name\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "name",
+        "table": "Device"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"name\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Device",
+          "name"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "set default on \"name\"",
+        "sql": "ALTER TABLE \"public\".\"Device\" ALTER COLUMN \"name\" SET DEFAULT 'Unknown Device'"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"name\" has a default",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"column_default\" IS NOT NULL)) AS \"result\"",
+        "params": [
+          "public",
+          "Device",
+          "name"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "setDefault.Device.userAgent",
+    "label": "Set default on \"Device\".\"userAgent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "userAgent",
+        "table": "Device"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"userAgent\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Device",
+          "userAgent"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "set default on \"userAgent\"",
+        "sql": "ALTER TABLE \"public\".\"Device\" ALTER COLUMN \"userAgent\" SET DEFAULT ''"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"userAgent\" has a default",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"column_default\" IS NOT NULL)) AS \"result\"",
+        "params": [
+          "public",
+          "Device",
+          "userAgent"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "setDefault.Device.ip",
+    "label": "Set default on \"Device\".\"ip\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "ip",
+        "table": "Device"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"ip\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Device",
+          "ip"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "set default on \"ip\"",
+        "sql": "ALTER TABLE \"public\".\"Device\" ALTER COLUMN \"ip\" SET DEFAULT 'unknown'"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"ip\" has a default",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"column_default\" IS NOT NULL)) AS \"result\"",
+        "params": [
+          "public",
+          "Device",
+          "ip"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "alterNullability.setNotNull.Device.name",
+    "label": "Set NOT NULL on \"Device\".\"name\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "name",
+        "table": "Device"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"name\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Device",
+          "name"
+        ]
+      },
+      {
+        "description": "ensure no NULL values in \"name\"",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"public\".\"Device\" WHERE \"name\" IS NULL) AS \"result\"",
+        "params": []
+      }
+    ],
+    "execute": [
+      {
+        "description": "set NOT NULL on \"name\"",
+        "sql": "ALTER TABLE \"public\".\"Device\" ALTER COLUMN \"name\" SET NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"name\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "Device",
+          "name",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "alterNullability.setNotNull.Device.userAgent",
+    "label": "Set NOT NULL on \"Device\".\"userAgent\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "userAgent",
+        "table": "Device"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"userAgent\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Device",
+          "userAgent"
+        ]
+      },
+      {
+        "description": "ensure no NULL values in \"userAgent\"",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"public\".\"Device\" WHERE \"userAgent\" IS NULL) AS \"result\"",
+        "params": []
+      }
+    ],
+    "execute": [
+      {
+        "description": "set NOT NULL on \"userAgent\"",
+        "sql": "ALTER TABLE \"public\".\"Device\" ALTER COLUMN \"userAgent\" SET NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"userAgent\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "Device",
+          "userAgent",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "alterNullability.setNotNull.Device.ip",
+    "label": "Set NOT NULL on \"Device\".\"ip\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "ip",
+        "table": "Device"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"ip\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Device",
+          "ip"
+        ]
+      },
+      {
+        "description": "ensure no NULL values in \"ip\"",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"public\".\"Device\" WHERE \"ip\" IS NULL) AS \"result\"",
+        "params": []
+      }
+    ],
+    "execute": [
+      {
+        "description": "set NOT NULL on \"ip\"",
+        "sql": "ALTER TABLE \"public\".\"Device\" ALTER COLUMN \"ip\" SET NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"ip\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "Device",
+          "ip",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "setDefault.Session.userAgent",
+    "label": "Set default on \"Session\".\"userAgent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "userAgent",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"userAgent\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "userAgent"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "set default on \"userAgent\"",
+        "sql": "ALTER TABLE \"public\".\"Session\" ALTER COLUMN \"userAgent\" SET DEFAULT ''"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"userAgent\" has a default",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"column_default\" IS NOT NULL)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "userAgent"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "setDefault.Session.ip",
+    "label": "Set default on \"Session\".\"ip\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "ip",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"ip\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "ip"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "set default on \"ip\"",
+        "sql": "ALTER TABLE \"public\".\"Session\" ALTER COLUMN \"ip\" SET DEFAULT 'unknown'"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"ip\" has a default",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"column_default\" IS NOT NULL)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "ip"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "alterNullability.setNotNull.Session.userAgent",
+    "label": "Set NOT NULL on \"Session\".\"userAgent\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "userAgent",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"userAgent\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "userAgent"
+        ]
+      },
+      {
+        "description": "ensure no NULL values in \"userAgent\"",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"public\".\"Session\" WHERE \"userAgent\" IS NULL) AS \"result\"",
+        "params": []
+      }
+    ],
+    "execute": [
+      {
+        "description": "set NOT NULL on \"userAgent\"",
+        "sql": "ALTER TABLE \"public\".\"Session\" ALTER COLUMN \"userAgent\" SET NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"userAgent\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "userAgent",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "alterNullability.setNotNull.Session.ip",
+    "label": "Set NOT NULL on \"Session\".\"ip\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "ip",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"ip\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "ip"
+        ]
+      },
+      {
+        "description": "ensure no NULL values in \"ip\"",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"public\".\"Session\" WHERE \"ip\" IS NULL) AS \"result\"",
+        "params": []
+      }
+    ],
+    "execute": [
+      {
+        "description": "set NOT NULL on \"ip\"",
+        "sql": "ALTER TABLE \"public\".\"Session\" ALTER COLUMN \"ip\" SET NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"ip\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "ip",
+          "NO"
+        ]
+      }
+    ]
+  }
+]

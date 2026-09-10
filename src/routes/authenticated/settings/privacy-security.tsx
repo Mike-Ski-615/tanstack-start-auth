@@ -145,14 +145,14 @@ function SettingsPrivacySecurityPage() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <span className="truncate text-sm font-medium">
-                    {device.name || "未知设备"}
+                    {device.name}
                   </span>
                   <span className="shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
                     当前
                   </span>
                 </div>
                 <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                  {device.platform} · {device.ip || "未知 IP"} · 登录于{" "}
+                  {device.platform} · {device.ip} · 登录于{" "}
                   {new Date(device.createdAt).toLocaleString("zh-CN")}
                   {device.lastSeenAt && (
                     <> · 最后活动 {new Date(device.lastSeenAt).toLocaleString("zh-CN")}</>

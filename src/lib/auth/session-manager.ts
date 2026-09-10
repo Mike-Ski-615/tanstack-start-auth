@@ -21,8 +21,8 @@ export type Session = {
   deviceId: string;
   tokenHash: string;
   sessionVersion: number;
-  userAgent: string | null;
-  ip: string | null;
+  userAgent: string;
+  ip: string;
   createdAt: string;
   updatedAt: string;
   expiresAt: string;
@@ -90,8 +90,8 @@ export async function createAuthenticatedSession(params: {
     deviceId: device.id as unknown as string,
     tokenHash,
     sessionVersion,
-    userAgent,
-    ip,
+    userAgent: userAgent ?? "",
+    ip: ip ?? "unknown",
     expiresAt,
   });
 
@@ -144,7 +144,8 @@ export async function validateSession(rawToken: string): Promise<Session | null>
   const user = await db.orm.public.User.where({ id: session.userId as Char<36> }).first();
   if (!user || user.sessionVersion !== session.sessionVersion) return null;
 
-  return session;
+  // 数据库有默认值，运行时不会是 null
+  return session as unknown as Session;
 }
 
 // ============================================================

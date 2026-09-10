@@ -109,7 +109,7 @@
                 }
               },
               "ip": {
-                "nullable": true,
+                "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
@@ -123,7 +123,7 @@
                 }
               },
               "name": {
-                "nullable": true,
+                "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
@@ -150,7 +150,7 @@
                 }
               },
               "userAgent": {
-                "nullable": true,
+                "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
@@ -435,7 +435,7 @@
                 }
               },
               "ip": {
-                "nullable": true,
+                "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
@@ -470,7 +470,7 @@
                 }
               },
               "userAgent": {
-                "nullable": true,
+                "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
@@ -713,8 +713,12 @@
                 },
                 "ip": {
                   "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "unknown"
+                  },
                   "nativeType": "text",
-                  "nullable": true
+                  "nullable": false
                 },
                 "lastSeenAt": {
                   "codecId": "pg/timestamptz-string@1",
@@ -723,8 +727,12 @@
                 },
                 "name": {
                   "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "Unknown Device"
+                  },
                   "nativeType": "text",
-                  "nullable": true
+                  "nullable": false
                 },
                 "platform": {
                   "codecId": "pg/text@1",
@@ -744,8 +752,12 @@
                 },
                 "userAgent": {
                   "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": ""
+                  },
                   "nativeType": "text",
-                  "nullable": true
+                  "nullable": false
                 },
                 "userId": {
                   "codecId": "pg/text@1",
@@ -947,8 +959,12 @@
                 },
                 "ip": {
                   "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "unknown"
+                  },
                   "nativeType": "text",
-                  "nullable": true
+                  "nullable": false
                 },
                 "revokedAt": {
                   "codecId": "pg/timestamptz-string@1",
@@ -972,8 +988,12 @@
                 },
                 "userAgent": {
                   "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": ""
+                  },
                   "nativeType": "text",
-                  "nullable": true
+                  "nullable": false
                 },
                 "userId": {
                   "codecId": "pg/text@1",
@@ -1166,7 +1186,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "5d314dcfb0caf42e526949a2354cc8453903bae73705cc0cc612aedb9b4812b8"
+    "storageHash": "3be14ca5a3ec95f02add9150813dc729f38c8826731ea24d84b5d875bf2c4728"
   },
   "execution": {
     "executionHash": "36f197e5006048d2e21aae611ce92a6878be7fe42d75df7b1254cc6a07965f81",

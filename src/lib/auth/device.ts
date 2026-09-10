@@ -21,9 +21,9 @@ export type Device = {
   userId: string;
   deviceKey: string;
   platform: "web" | "android" | "ios" | "desktop";
-  name: string | null;
-  userAgent: string | null;
-  ip: string | null;
+  name: string;
+  userAgent: string;
+  ip: string;
   lastSeenAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -55,7 +55,8 @@ export async function ensureDevice(params: {
   if (existingDeviceKey) {
     const existing = await db.orm.public.Device.where({ deviceKey: existingDeviceKey }).first();
     if (existing && existing.userId === userIdStr) {
-      return { device: existing, deviceKey: existingDeviceKey };
+      // 数据库有默认值，运行时不会是 null
+      return { device: existing as unknown as Device, deviceKey: existingDeviceKey };
     }
     // deviceKey 存在但不属于该用户 → 继续走创建流程
   }
@@ -68,19 +69,20 @@ export async function ensureDevice(params: {
   const deviceKey = generateDeviceKey();
   const now = new Date().toISOString();
   const platform = inferPlatform(userAgent ?? "");
-  const name = userAgent ? formatDeviceName(userAgent) : null;
+  const name = userAgent ? formatDeviceName(userAgent) : "Unknown Device";
 
   const device = await db.orm.public.Device.create({
     userId: userIdStr,
     deviceKey,
     platform,
     name,
-    userAgent,
-    ip,
+    userAgent: userAgent ?? "",
+    ip: ip ?? "unknown",
     lastSeenAt: now,
   });
 
-  return { device, deviceKey };
+  // 数据库有默认值，运行时不会是 null
+  return { device: device as unknown as Device, deviceKey };
 }
 
 /**
@@ -110,10 +112,12 @@ export async function touchLastSeen(deviceId: Char<36>): Promise<void> {
 
 /** 根据 deviceKey 查找 Device。 */
 export async function findDeviceByKey(deviceKey: string): Promise<Device | null> {
-  return db.orm.public.Device.where({ deviceKey }).first();
+  const row = await db.orm.public.Device.where({ deviceKey }).first();
+  return row ? (row as unknown as Device) : null;
 }
 
 /** 根据 userId 查找 Device。 */
 export async function findDeviceByUserId(userId: Char<36>): Promise<Device | null> {
-  return db.orm.public.Device.where({ userId: userId as unknown as string }).first();
+  const row = await db.orm.public.Device.where({ userId: userId as unknown as string }).first();
+  return row ? (row as unknown as Device) : null;
 }
