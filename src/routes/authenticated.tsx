@@ -1,4 +1,5 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { currentUserQueryOptions } from "#lib/queries/current-user";
 import { ROLE_HOME } from "#lib/auth/current-user";
 import { useLogoutMutation } from "#hooks/use-auth-mutations";
@@ -41,11 +42,20 @@ function AuthenticatedLayout() {
   const { user } = Route.useRouteContext();
   const logoutMutation = useLogoutMutation();
 
+  /**
+   * 通知偏好从 query 读，不是从路由 context。
+   *
+   * context 里的 user 是 beforeLoad 那一刻的快照 —— 用户在设置页改了开关、
+   * mutation 失效了 query 缓存，context 不会跟着变，表现为「改了但弹窗行为
+   * 没变」。其余字段（name/role 等）用 context 没问题，它们在本会话内不变。
+   */
+  const { data: freshUser } = useQuery(currentUserQueryOptions);
+
   // 会话守卫 — 其它设备登录 / 全局登出后跳登录页
   useSessionGuard();
 
   // 新通知到达时弹 toast（开关在设置页，关掉就完全不打扰）
-  useNewNotificationToast(user.notifyOnNewMessage);
+  useNewNotificationToast(freshUser?.notifyOnNewMessage ?? true);
 
   // Ctrl + Shift + L 退出登录
   useHotkeys("ctrl+shift+l", () => logoutMutation.mutate(), {
