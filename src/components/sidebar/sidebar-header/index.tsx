@@ -4,16 +4,24 @@ import { SidebarHeader, useSidebar } from "#components/ui/sidebar";
 import { SidebarBrand } from "#components/sidebar/sidebar-header/brand";
 import { SearchForm } from "#components/sidebar/sidebar-header/search-form";
 import { Button } from "#components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "#components/ui/tooltip";
 
 export function AppSidebarHeader() {
   const { toggleSidebar } = useSidebar();
+
   return (
     <SidebarHeader>
       <div className="flex items-center justify-between">
         <SidebarBrand />
-        <Button variant="ghost" size="icon" onClick={toggleSidebar}>
-          <HugeiconsIcon icon={PanelLeftCloseIcon} />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button type="button" variant="ghost" size="icon" onClick={toggleSidebar}>
+              <HugeiconsIcon icon={PanelLeftCloseIcon} />
+              <span className="sr-only">收起侧边栏</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right">收起侧边栏</TooltipContent>
+        </Tooltip>
       </div>
       <SearchForm />
     </SidebarHeader>

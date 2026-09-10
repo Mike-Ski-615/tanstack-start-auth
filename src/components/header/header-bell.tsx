@@ -8,6 +8,7 @@ import {
   PopoverTrigger,
 } from "#components/ui/popover";
 import { Button } from "#components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "#components/ui/tooltip";
 const notifications = [
   {
     id: 1,
@@ -42,11 +43,19 @@ const notifications = [
 export function HeaderBell() {
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <HugeiconsIcon icon={Notification01Icon} />
-        </Button>
-      </PopoverTrigger>
+      {/* 铃铛是纯图标按钮，没有可见文字 —— 补 tooltip 与 sr-only 文案。
+          Popover 打开后有自己的标题，两者不冲突（已实测：hover 即出 tooltip）。 */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <HugeiconsIcon icon={Notification01Icon} />
+              <span className="sr-only">通知</span>
+            </Button>
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent>通知</TooltipContent>
+      </Tooltip>
 
       <PopoverContent className="w-80 p-0">
         <PopoverHeader className="border-b px-4 py-3">
