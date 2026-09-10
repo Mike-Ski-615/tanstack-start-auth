@@ -6,26 +6,25 @@
 
 - 🔐 **完整认证流程** —— 注册 / 登录 / 登出 / 邮箱验证 / 密码重置，单设备在线（新登录踢掉旧会话）
 - 🔑 **有状态会话** —— 会话令牌落库（Session 表只存 SHA-256 哈希，明文仅在 HTTP-only cookie），7 天过期。`sessionVersion` 递增即可全局失效，支持「撤销全部会话」
-- 🔄 **密码重置** —— 随机令牌 + 落库哈希 + 单条 SQL 原子消费（15 分钟有效）；请求入口防账号枚举（恒返回同一响应）；重置成功即自动登录。邮件当前输出到控制台（`src/lib/auth/mail.ts`）
+- 📧 **邮箱验证与密码重置用 6 位 OTP** —— 注册/忘记密码后邮件收到验证码，在页面上输入即可（15 分钟有效，错 5 次作废）。邮件当前输出到控制台（`src/lib/auth/mail.ts`）
 - 🛡️ **防枚举登录** —— 用户不存在时仍执行等价的 Argon2 校验，消除响应时间差异
-- ⚡ **实时在线状态** —— Nitro WebSocket（crossws）驱动 Presence；会话被替换/撤销时主动踢下线（关闭码 4001 / 4002）
+- ⏱️ **会话失效由轮询发现** —— 无 WebSocket；`useSessionGuard` 每 30 秒查一次 `getUserFn`（切回标签页立即查），失效即跳登录页
 - 🧱 **受保护路由** —— `authenticated` 无路径布局路由在 `beforeLoad` 用 `getUserFn` 拦截，未登录 `redirect` 到登录页
 - 🗄️ **Prisma 8（契约优先）** —— TypeScript 定义数据契约，PostgreSQL 存储
 - 🎨 **Tailwind CSS 4 + shadcn/ui** —— 现代化组件与主题（含暗色模式）
 
 ## 技术栈
 
-| 类别 | 技术 |
-| --- | --- |
-| 框架 | TanStack Start（React 19 + Vite 8） |
-| 运行时 / 包管理 | Bun |
+| 类别               | 技术                                                                        |
+| ------------------ | --------------------------------------------------------------------------- |
+| 框架               | TanStack Start（React 19 + Vite 8）                                         |
+| 运行时 / 包管理    | Bun                                                                         |
 | 路由 / 数据 / 表单 | TanStack Router、TanStack Query（SSR query streaming）、TanStack React Form |
-| 数据库 | PostgreSQL ≥ 15 + Prisma 8（`@prisma/orm-postgres`） |
-| 会话 / 令牌 | 落库会话（Session 表存 SHA-256 哈希）+ 随机重置令牌（`node:crypto`） |
-| 实时 | Nitro WebSocket（crossws）、原生 WebSocket 客户端 |
-| 密码 | Argon2id（`hash-wasm`） |
-| 校验 | zod |
-| 样式 | Tailwind CSS 4、shadcn/ui、sonner |
+| 数据库             | PostgreSQL ≥ 15 + Prisma 8（`@prisma/orm-postgres`）                        |
+| 会话 / OTP         | 落库会话（Session 表存 SHA-256 哈希）+ 6 位数字 OTP（`node:crypto`）        |
+| 密码               | Argon2id（`hash-wasm`）                                                     |
+| 校验               | zod                                                                         |
+| 样式               | Tailwind CSS 4、shadcn/ui、sonner                                           |
 
 ## 快速开始
 
@@ -56,12 +55,36 @@ bun run dev
 
 ## 可用脚本
 
-| 命令 | 说明 |
-| --- | --- |
-| `bun run dev` | 启动开发服务器（端口 3000） |
-| `bun run build` | 生产构建 |
-| `bun run start` | 预览生产构建 |
+| 命令                    | 说明                                                                              |
+| ----------------------- | --------------------------------------------------------------------------------- |
+| `bun run dev`           | 启动开发服务器（端口 3000）                                                       |
+| `bun run build`         | 生产构建                                                                          |
+| `bun run start`         | 预览生产构建                                                                      |
+| `bun run test`          | 跑全量测试（264 个用例，约 8 秒）                                                 |
+| `bun run test:watch`    | 测试监听模式                                                                      |
+| `bun run typecheck`     | 类型检查                                                                          |
 | `bun run contract:emit` | 修改 `src/prisma/contract.ts` 后重新生成契约（`contract.json` / `contract.d.ts`） |
+
+## 测试
+
+集成测试直连真实数据库，覆盖认证的完整路径（含错误分支、限速、并发）。
+
+**前置准备**：复制 `.env.test.example` 为 `.env.test`，指向一个**本机**测试库
+（默认 `tanstack_auth_test`），不是生产库：
+
+```bash
+psql -h 127.0.0.1 -U postgres -c "CREATE DATABASE tanstack_auth_test;"
+DATABASE_URL="postgresql://postgres:<pw>@127.0.0.1:5432/tanstack_auth_test" bun prisma db update
+```
+
+`src/test/setup.ts` 会硬性拒绝指向 Neon 或任何非本机地址的连接 —— 测试会真实
+建表、建用户、删数据，这个防护避免了误操作生产库。
+
+测试环境用 `ARGON2_TEST_WEAK=1` 把 Argon2 降到最低强度（单次哈希 130ms →
+3ms，全量测试 38s → 8s）。强度参数不参与任何逻辑分支，默认不降。
+
+**提交时自动跑**：`.husky/pre-commit` 依次跑 lint-staged、typecheck、全量测试。
+CI（GitHub Actions）在 push / PR 时用一次性 Postgres service container 跑同一套。
 
 ## 项目结构
 
@@ -84,19 +107,26 @@ src/
 │   ├── email-verification.functions.ts
 │   └── user.functions.ts       # getUserFn：当前用户唯一公开形态（查询源头投影）
 ├── lib/
-│   ├── auth/                   # 认证深模块（会话 / 令牌 / 限速 / 守卫 / WS 注册表）
-│   │   ├── session.ts          # 会话 cookie 读写
-│   │   ├── session-manager.ts  # Session 创建 / 失效 / 重置令牌
+│   ├── auth/                   # 认证深模块
+│   │   ├── session.ts          # cookie 读写（session-token / device_key）
+│   │   ├── session-manager.ts  # 会话生命周期：创建 / signIn / 校验 / 撤销 / 全局失效 / 清理
+│   │   ├── guard.ts            # getCurrentUser：请求守卫
+│   │   ├── device.ts           # 设备标识（单设备模型）
+│   │   ├── otp.ts               # OTP 生成 / 哈希 / 格式 / 错误次数上限
+│   │   ├── otp-store.ts        # OTP 消费规则（两条流程共用）
+│   │   ├── email-verification.ts  # 邮箱验证 OTP
+│   │   ├── reset-otp.ts        # 密码重置 OTP
 │   │   ├── token.ts            # 随机令牌生成与 SHA-256 哈希
 │   │   ├── password.ts         # Argon2id 哈希 / 校验
 │   │   ├── rate-limiter.ts     # 滑动窗口限速（DB 承载）
-│   │   └── ws-registry.ts      # WS 连接内存注册表（kick / presence）
+│   │   ├── mail.ts             # 邮件发送（当前输出到控制台）
+│   │   └── current-user.ts     # 公开字段白名单（PUBLIC_COLUMNS）
+│   ├── queries/                # TanStack Query 定义（current-user / auth-sync）
 │   ├── format.ts               # 通用格式化
 │   └── utils.ts                # cn() 等
 ├── schemas/
-│   └── auth.ts                 # zod 校验 schema（登录 / 注册 / 重置 / 邮箱验证）
-├── websocket/
-│   └── routes/ws.ts            # Nitro WebSocket 处理器（/ws）
+│   └── auth.ts                 # zod 校验 schema（登录 / 注册 / 重置 / OTP 验证）
+├── test/                       # 测试基建（请求上下文注入 / helpers / mock / setup）
 ├── prisma/                     # Prisma 契约与生成产物（contract.ts / contract.json / contract.d.ts / db.ts）
 ├── provider/
 │   └── theme-provider.tsx      # 主题（暗色模式）
@@ -131,8 +161,10 @@ http://localhost:3000/auth/verify-email ✅（需带 ?token=...）
 
 术语与设计决策集中在 [`CONTEXT.md`](CONTEXT.md) 和 [`docs/adr/`](docs/adr/)：
 
-- [`docs/adr/0001-reset-implies-verification.md`](docs/adr/0001-reset-implies-verification.md) —— 密码重置蕴含邮箱验证
-- [`docs/adr/0002-remove-email-verification.md`](docs/adr/0002-remove-email-verification.md) —— 移除邮箱验证，注册即登录（0001 随之失去意义）
+- [`0001-reset-implies-verification.md`](docs/adr/0001-reset-implies-verification.md) —— 密码重置蕴含邮箱验证（**已废弃**，当前行为是不碰；是否为未决问题）
+- [`0002-remove-email-verification.md`](docs/adr/0002-remove-email-verification.md) —— 移除邮箱验证，注册即登录（**已废弃**，邮箱验证已重新引入）
+- [`0003-native-uuid-ids-and-relations.md`](docs/adr/0003-native-uuid-ids-and-relations.md) —— 主键改用原生 uuid，并声明关系恢复外键完整性（已接受）
+- [`0004-atomic-counter-increments.md`](docs/adr/0004-atomic-counter-increments.md) —— 计数值改用原子 UPDATE/UPSERT（已接受，含一次真实事故的实测数据）
 
 ## Agent 配置
 
