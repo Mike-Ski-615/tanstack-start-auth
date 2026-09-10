@@ -1,6 +1,6 @@
 # 移除邮箱验证，注册即登录
 
-**Status**: 已接受（本项目为 demo，接受其安全代价）
+**Status**: 已废弃（被 `a070113`「完整认证系统重构」推翻）——邮箱验证已重新引入：注册会创建 `EmailVerificationToken` 并发验证邮件，`User.emailVerifiedAt` 记录账户级验证状态，注册后**不**立即签发 Session（需先点验证链接）。本决策的各项论断（无验证流程、注册即签发 Session、取消登录硬门槛）均与现状相反。当前行为以 CONTEXT.md「enroll」为准。
 
 移除 `User.verifiedAt` 字段与整套注册邮箱验证流程（验证邮件、验证页、重发入口、登录硬门槛），注册成功即签发 Session。密码重置保留。
 

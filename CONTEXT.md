@@ -32,8 +32,16 @@ User (1) ──→ (1) Device (1) ──→ (1) Session
 并发竞态由数据库唯一约束兜底。
 
 ### CurrentUser（当前用户）
-面向服务与客户端的用户唯一公开形态：{ id, email, name, image, bio, role, status, sessionVersion }。
-投影发生在查询源头（guard 的 select 分支），passwordHash 等存储层字段不进入查询结果。
+面向服务与客户端的用户唯一公开形态。字段清单**以 `src/lib/auth/current-user.ts` 的
+`PUBLIC_COLUMNS` 为准**（目前 10 个：id, email, name, image, bio, role, createdAt,
+status, sessionVersion, emailVerifiedAt）；passwordHash 等存储层字段不进入查询结果。
+
+`id` 是原生 uuid 列，读出来就是普通 `string`（无品牌类型），从 ORM 一路贯穿到客户端
+路由 context，无需转换 —— 见 ADR-0003。
+
+投影发生在 `validateSession`（`include("user", u => u.select(...PUBLIC_COLUMNS))`），
+guard 只做转发。理由：会话校验反正要读 User 比对 sessionVersion，顺带返回即可，
+避免同一请求重复查库。
 
 ### Reset Token（重置令牌）
 DB 承载：ResetToken 表存 SHA-256(随机串) + userId + expiresAt + usedAt。
@@ -136,20 +144,19 @@ User
 | Email Verification atomic consume | PASS | 单条 SQL + 同步 User.emailVerifiedAt |
 | WS presence race | PASS | Set<peerId> 幂等 open/close |
 | WS session kick | PASS | kickSession + kickAllSessionsForUser |
-| Device/Session 解耦 | PASS | ensureDevice 只管 Device |
+| Device/Session 解耦 | PASS | ensureDevice 只管 Device；Session.deviceId 故意无 FK（ADR-0003） |
 | Login timing attack | PASS | DUMMY_PASSWORD_HASH 恒定时间 |
 | Resend without session | PASS | email + IP 双维度限速 |
 | DB-side purge | PASS | deleteAndCount 替代 JS filter |
 | sessionVersion increment | TODO | read-modify-write，Prisma 8 支持 expression update 后改为原子 |
 | RateLimit increment | TODO | read-modify-write，Prisma 8 支持 expression update 后改为原子 |
-| UUID  foreign-key types | TODO | 消除 as unknown as 待 Prisma 8 contract API 确认 |
+| UUID  foreign-key types | PASS | 已消除全部 as unknown as（ADR-0003） |
 
 ### TODO
 
 **P2 — 工程性限制（非认证漏洞）：**
 1. `sessionVersion` → DB atomic increment（等待 Prisma 8 expression update API）
 2. `RateLimit` → atomic increment（等待 Redis INCR 或 Prisma 8 expression update）
-3. UUID foreign-key types → remove `as unknown as string` casts
 
 **Scale — 横向扩展约束：**
-4. WS in-memory peer registry → Redis / PubSub 当多实例部署
+3. WS in-memory peer registry → Redis / PubSub 当多实例部署
