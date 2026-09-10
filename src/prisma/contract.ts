@@ -4,7 +4,7 @@ import {
   member,
 } from "@prisma/orm-postgres/contract-builder";
 
-export const contract = defineContract({}, ({ field, model }) => {
+export const contract = defineContract({}, ({ field, model, rel }) => {
   // ============================================================
   // Enums
   // ============================================================
@@ -47,12 +47,12 @@ export const contract = defineContract({}, ({ field, model }) => {
 
   const User = model("User", {
     fields: {
-      id: field.id.uuidv7String(),
+      id: field.id.uuidv7Native(),
       email: field.text().unique(),
       name: field.text(),
       passwordHash: field.text(),
-      image: field.text().default("/default-user.webp").optional(),
-      bio: field.text().default("这个人很懒,什么也没有留下").optional(),
+      image: field.text(),
+      bio: field.text(),
       role: field.namedType(Role).default("student"),
       status: field.namedType(OnlineStatus).default("offline"),
       sessionVersion: field.int().default(0),
@@ -68,8 +68,8 @@ export const contract = defineContract({}, ({ field, model }) => {
 
   const Device = model("Device", {
     fields: {
-      id: field.id.uuidv7String(),
-      userId: field.text().unique(),
+      id: field.id.uuidv7Native(),
+      userId: field.uuidNative().unique(),
       deviceKey: field.text().unique(),
       platform: field.namedType(DevicePlatform),
       name: field.text().default("Unknown Device"),
@@ -79,6 +79,9 @@ export const contract = defineContract({}, ({ field, model }) => {
       createdAt: field.temporal.createdAtString(),
       updatedAt: field.temporal.updatedAtString(),
     },
+    relations: {
+      user: rel.belongsTo(User, { from: "userId", to: "id" }).sql({ fk: { onDelete: "cascade" } }),
+    },
   });
 
   // ============================================================
@@ -87,9 +90,9 @@ export const contract = defineContract({}, ({ field, model }) => {
 
   const Session = model("Session", {
     fields: {
-      id: field.id.uuidv7String(),
-      userId: field.text().unique(),
-      deviceId: field.text().unique(),
+      id: field.id.uuidv7Native(),
+      userId: field.uuidNative().unique(),
+      deviceId: field.uuidNative().unique(),
       tokenHash: field.text().unique(),
       sessionVersion: field.int(),
       userAgent: field.text().default(""),
@@ -99,6 +102,13 @@ export const contract = defineContract({}, ({ field, model }) => {
       expiresAt: field.temporal.timestamptzString(),
       revokedAt: field.temporal.timestamptzString().optional(),
     },
+    relations: {
+      // 注意：deviceId -> Device.id 故意不声明 FK。
+      // ensureDevice() 删旧 Device 时「不管 Session」是 CONTEXT.md 写明的设计，
+      // 加了 cascade 会连带删掉旧 Session（导致 WS 踢人失效），
+      // restrict 则会让 ensureDevice 的删除直接失败。
+      user: rel.belongsTo(User, { from: "userId", to: "id" }).sql({ fk: { onDelete: "cascade" } }),
+    },
   });
 
   // ============================================================
@@ -107,12 +117,15 @@ export const contract = defineContract({}, ({ field, model }) => {
 
   const ResetToken = model("ResetToken", {
     fields: {
-      id: field.id.uuidv7String(),
-      userId: field.text(),
+      id: field.id.uuidv7Native(),
+      userId: field.uuidNative(),
       tokenHash: field.text().unique(),
       expiresAt: field.temporal.timestamptzString(),
       usedAt: field.temporal.timestamptzString().optional(),
       createdAt: field.temporal.createdAtString(),
+    },
+    relations: {
+      user: rel.belongsTo(User, { from: "userId", to: "id" }).sql({ fk: { onDelete: "cascade" } }),
     },
   });
 
@@ -122,12 +135,15 @@ export const contract = defineContract({}, ({ field, model }) => {
 
   const EmailVerificationToken = model("EmailVerificationToken", {
     fields: {
-      id: field.id.uuidv7String(),
-      userId: field.text(),
+      id: field.id.uuidv7Native(),
+      userId: field.uuidNative(),
       tokenHash: field.text().unique(),
       expiresAt: field.temporal.timestamptzString(),
       verifiedAt: field.temporal.timestamptzString().optional(),
       createdAt: field.temporal.createdAtString(),
+    },
+    relations: {
+      user: rel.belongsTo(User, { from: "userId", to: "id" }).sql({ fk: { onDelete: "cascade" } }),
     },
   });
 
@@ -145,12 +161,23 @@ export const contract = defineContract({}, ({ field, model }) => {
   });
 
   // ============================================================
+  // User 的背向关系
+  // ============================================================
+
+  // 后置声明：User 的类型在上方已独立推断完，不必在前向引用 Device/Session
+  // （放进 model("User", {...}) 会造成类型互相引用 → TS7022）。
+  const User$ = User.relations({
+    device: rel.hasOne(Device, { by: "userId" }),
+    session: rel.hasOne(Session, { by: "userId" }),
+  });
+
+  // ============================================================
   // Return
   // ============================================================
 
   return {
     models: {
-      User,
+      User: User$,
       Device,
       Session,
       ResetToken,

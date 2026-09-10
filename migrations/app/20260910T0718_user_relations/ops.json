@@ -1,0 +1,248 @@
+[
+  {
+    "id": "index.EmailVerificationToken.EmailVerificationToken_userId_idx_a489d58a",
+    "label": "Create index \"EmailVerificationToken_userId_idx_a489d58a\" on \"EmailVerificationToken\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "EmailVerificationToken_userId_idx_a489d58a",
+        "table": "EmailVerificationToken"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"EmailVerificationToken_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EmailVerificationToken_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"EmailVerificationToken_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"EmailVerificationToken_userId_idx_a489d58a\" ON \"public\".\"EmailVerificationToken\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"EmailVerificationToken_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"EmailVerificationToken_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.ResetToken.ResetToken_userId_idx_a489d58a",
+    "label": "Create index \"ResetToken_userId_idx_a489d58a\" on \"ResetToken\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "ResetToken_userId_idx_a489d58a",
+        "table": "ResetToken"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"ResetToken_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ResetToken_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"ResetToken_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"ResetToken_userId_idx_a489d58a\" ON \"public\".\"ResetToken\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"ResetToken_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ResetToken_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.Device.Device_userId_fkey",
+    "label": "Add foreign key \"Device_userId_fkey\" on \"Device\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Device_userId_fkey",
+        "table": "Device"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"Device_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Device_userId_fkey",
+          "public",
+          "\"public\".\"Device\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"Device_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Device\"\nADD CONSTRAINT \"Device_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"User\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"Device_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Device_userId_fkey",
+          "public",
+          "\"public\".\"Device\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.EmailVerificationToken.EmailVerificationToken_userId_fkey",
+    "label": "Add foreign key \"EmailVerificationToken_userId_fkey\" on \"EmailVerificationToken\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "EmailVerificationToken_userId_fkey",
+        "table": "EmailVerificationToken"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"EmailVerificationToken_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "EmailVerificationToken_userId_fkey",
+          "public",
+          "\"public\".\"EmailVerificationToken\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"EmailVerificationToken_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"EmailVerificationToken\"\nADD CONSTRAINT \"EmailVerificationToken_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"User\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"EmailVerificationToken_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "EmailVerificationToken_userId_fkey",
+          "public",
+          "\"public\".\"EmailVerificationToken\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.ResetToken.ResetToken_userId_fkey",
+    "label": "Add foreign key \"ResetToken_userId_fkey\" on \"ResetToken\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "ResetToken_userId_fkey",
+        "table": "ResetToken"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"ResetToken_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ResetToken_userId_fkey",
+          "public",
+          "\"public\".\"ResetToken\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"ResetToken_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"ResetToken\"\nADD CONSTRAINT \"ResetToken_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"User\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"ResetToken_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ResetToken_userId_fkey",
+          "public",
+          "\"public\".\"ResetToken\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.Session.Session_userId_fkey",
+    "label": "Add foreign key \"Session_userId_fkey\" on \"Session\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Session_userId_fkey",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"Session_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Session_userId_fkey",
+          "public",
+          "\"public\".\"Session\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"Session_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Session\"\nADD CONSTRAINT \"Session_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"User\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"Session_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Session_userId_fkey",
+          "public",
+          "\"public\".\"Session\""
+        ]
+      }
+    ]
+  }
+]

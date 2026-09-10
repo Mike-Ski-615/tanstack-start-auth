@@ -67,7 +67,7 @@ export const login = createServerFn({
 
     // 踢掉旧 Session 的 WebSocket 连接（单设备登录）
     if (oldSessionId) {
-      kickSession(oldSessionId as unknown as string);
+      kickSession(oldSessionId);
     }
 
     return { success: true };

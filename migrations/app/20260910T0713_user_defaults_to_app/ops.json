@@ -1,0 +1,182 @@
+[
+  {
+    "id": "dropDefault.User.bio",
+    "label": "Drop default on \"User\".\"bio\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "bio",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"bio\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "bio"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop default on \"bio\"",
+        "sql": "ALTER TABLE \"public\".\"User\" ALTER COLUMN \"bio\" DROP DEFAULT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"bio\" has no default",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"column_default\" IS NULL)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "bio"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropDefault.User.image",
+    "label": "Drop default on \"User\".\"image\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "image",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"image\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "image"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop default on \"image\"",
+        "sql": "ALTER TABLE \"public\".\"User\" ALTER COLUMN \"image\" DROP DEFAULT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"image\" has no default",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"column_default\" IS NULL)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "image"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "alterNullability.setNotNull.User.bio",
+    "label": "Set NOT NULL on \"User\".\"bio\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "bio",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"bio\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "bio"
+        ]
+      },
+      {
+        "description": "ensure no NULL values in \"bio\"",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"public\".\"User\" WHERE \"bio\" IS NULL) AS \"result\"",
+        "params": []
+      }
+    ],
+    "execute": [
+      {
+        "description": "set NOT NULL on \"bio\"",
+        "sql": "ALTER TABLE \"public\".\"User\" ALTER COLUMN \"bio\" SET NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"bio\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "bio",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "alterNullability.setNotNull.User.image",
+    "label": "Set NOT NULL on \"User\".\"image\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "image",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"image\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "image"
+        ]
+      },
+      {
+        "description": "ensure no NULL values in \"image\"",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"public\".\"User\" WHERE \"image\" IS NULL) AS \"result\"",
+        "params": []
+      }
+    ],
+    "execute": [
+      {
+        "description": "set NOT NULL on \"image\"",
+        "sql": "ALTER TABLE \"public\".\"User\" ALTER COLUMN \"image\" SET NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"image\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "image",
+          "NO"
+        ]
+      }
+    ]
+  }
+]

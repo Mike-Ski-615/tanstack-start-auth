@@ -9,6 +9,10 @@ import { createVerificationToken } from "#lib/auth/email-verification";
 import { sendMail } from "../lib/auth/mail";
 import { rateLimit } from "#lib/auth/rate-limiter";
 
+/** 注册表单不含头像/简介，给新用户初始值。 */
+const DEFAULT_IMAGE = "/default-user.webp";
+const DEFAULT_BIO = "这个人很懒,什么也没有留下";
+
 /**
  * 注册开户用例：查重 → 建 User + EmailVerificationToken → 发验证邮件。
  *
@@ -48,6 +52,8 @@ export const register = createServerFn({
         email,
         name,
         passwordHash,
+        image: DEFAULT_IMAGE,
+        bio: DEFAULT_BIO,
       });
 
       // 创建邮箱验证令牌 + 发邮件（事务外）

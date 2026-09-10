@@ -1,42 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { setResponseHeader } from "@tanstack/react-start/server";
-import type { Char } from "@prisma/orm-postgres/target/codec-types";
 import { z } from "zod";
 import { db } from "#prisma/db";
 import { getCurrentUser } from "#lib/auth/guard";
+import { PUBLIC_COLUMNS, type User } from "#lib/auth/current-user";
 
-/**
- * 当前登录用户的唯一公开形态：投影发生在源头，passwordHash 不出本模块。
- *
- * id 声明为 Char<36>（品牌类型，运行时就是普通 string），
- * 从 ORM 查询一路贯穿到客户端路由 context，无需转换。
- */
-export type User = {
-  id: Char<36>;
-  email: string;
-  name: string;
-  image: string;
-  bio: string;
-  role: "teacher" | "student";
-  createdAt: string;
-  status: "online" | "offline";
-  sessionVersion: number;
-  emailVerifiedAt: string | null;
-};
-
-/** 公开字段列表，getUserById 用它来投影。 */
-const PUBLIC_COLUMNS = [
-  "id",
-  "email",
-  "name",
-  "image",
-  "bio",
-  "role",
-  "createdAt",
-  "status",
-  "sessionVersion",
-  "emailVerifiedAt",
-] as const;
+// 客户端组件继续从本模块 import User，不必知道它搬去了叶子模块。
+export type { User };
 
 /**
  * 当前登录用户（文档模式）：通过 guard 校验会话 → 返回公开形态。
@@ -71,16 +41,11 @@ export const getUserById = createServerFn({
     const currentUser = await getCurrentUser();
     if (!currentUser) return null;
 
-    const user = await db.orm.public.User.where({ id: data.userId as Char<36> })
+    const user = await db.orm.public.User.where({ id: data.userId })
       .select(...PUBLIC_COLUMNS)
       .first();
 
     if (!user) return null;
 
-    // 数据库有默认值，运行时不会是 null
-    return {
-      ...user,
-      image: user.image!,
-      bio: user.bio!,
-    };
+    return user;
   });

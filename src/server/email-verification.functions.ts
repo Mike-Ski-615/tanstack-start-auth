@@ -52,7 +52,7 @@ export const verifyEmailFn = createServerFn({
 
     // 踢掉旧 Session 的 WebSocket 连接
     if (oldSessionId) {
-      kickSession(oldSessionId as unknown as string);
+      kickSession(oldSessionId);
     }
 
     return { success: true };

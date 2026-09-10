@@ -101,11 +101,8 @@
               "id": {
                 "nullable": false,
                 "type": {
-                  "codecId": "sql/char@1",
-                  "kind": "scalar",
-                  "typeParams": {
-                    "length": 36
-                  }
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
                 }
               },
               "ip": {
@@ -159,12 +156,28 @@
               "userId": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/text@1",
+                  "codecId": "pg/uuid@1",
                   "kind": "scalar"
                 }
               }
             },
-            "relations": {},
+            "relations": {
+              "user": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "userId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
             "storage": {
               "fields": {
                 "createdAt": {
@@ -221,11 +234,8 @@
               "id": {
                 "nullable": false,
                 "type": {
-                  "codecId": "sql/char@1",
-                  "kind": "scalar",
-                  "typeParams": {
-                    "length": 36
-                  }
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
                 }
               },
               "tokenHash": {
@@ -238,7 +248,7 @@
               "userId": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/text@1",
+                  "codecId": "pg/uuid@1",
                   "kind": "scalar"
                 }
               },
@@ -250,7 +260,23 @@
                 }
               }
             },
-            "relations": {},
+            "relations": {
+              "user": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "userId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
             "storage": {
               "fields": {
                 "createdAt": {
@@ -346,11 +372,8 @@
               "id": {
                 "nullable": false,
                 "type": {
-                  "codecId": "sql/char@1",
-                  "kind": "scalar",
-                  "typeParams": {
-                    "length": 36
-                  }
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
                 }
               },
               "tokenHash": {
@@ -370,12 +393,28 @@
               "userId": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/text@1",
+                  "codecId": "pg/uuid@1",
                   "kind": "scalar"
                 }
               }
             },
-            "relations": {},
+            "relations": {
+              "user": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "userId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
             "storage": {
               "fields": {
                 "createdAt": {
@@ -413,7 +452,7 @@
               "deviceId": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/text@1",
+                  "codecId": "pg/uuid@1",
                   "kind": "scalar"
                 }
               },
@@ -427,11 +466,8 @@
               "id": {
                 "nullable": false,
                 "type": {
-                  "codecId": "sql/char@1",
-                  "kind": "scalar",
-                  "typeParams": {
-                    "length": 36
-                  }
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
                 }
               },
               "ip": {
@@ -479,12 +515,28 @@
               "userId": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/text@1",
+                  "codecId": "pg/uuid@1",
                   "kind": "scalar"
                 }
               }
             },
-            "relations": {},
+            "relations": {
+              "user": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "userId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
             "storage": {
               "fields": {
                 "createdAt": {
@@ -528,7 +580,7 @@
           "User": {
             "fields": {
               "bio": {
-                "nullable": true,
+                "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
@@ -558,15 +610,12 @@
               "id": {
                 "nullable": false,
                 "type": {
-                  "codecId": "sql/char@1",
-                  "kind": "scalar",
-                  "typeParams": {
-                    "length": 36
-                  }
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
                 }
               },
               "image": {
-                "nullable": true,
+                "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
@@ -627,7 +676,38 @@
                 }
               }
             },
-            "relations": {},
+            "relations": {
+              "device": {
+                "cardinality": "1:1",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "userId"
+                  ]
+                },
+                "to": {
+                  "model": "Device",
+                  "namespace": "public"
+                }
+              },
+              "session": {
+                "cardinality": "1:1",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "userId"
+                  ]
+                },
+                "to": {
+                  "model": "Session",
+                  "namespace": "public"
+                }
+              }
+            },
             "storage": {
               "fields": {
                 "bio": {
@@ -704,12 +784,9 @@
                   "nullable": false
                 },
                 "id": {
-                  "codecId": "sql/char@1",
-                  "nativeType": "character",
-                  "nullable": false,
-                  "typeParams": {
-                    "length": 36
-                  }
+                  "codecId": "pg/uuid@1",
+                  "nativeType": "uuid",
+                  "nullable": false
                 },
                 "ip": {
                   "codecId": "pg/text@1",
@@ -760,12 +837,30 @@
                   "nullable": false
                 },
                 "userId": {
-                  "codecId": "pg/text@1",
-                  "nativeType": "text",
+                  "codecId": "pg/uuid@1",
+                  "nativeType": "uuid",
                   "nullable": false
                 }
               },
-              "foreignKeys": [],
+              "foreignKeys": [
+                {
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Device"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "User"
+                  }
+                }
+              ],
               "indexes": [],
               "primaryKey": {
                 "columns": [
@@ -802,12 +897,9 @@
                   "nullable": false
                 },
                 "id": {
-                  "codecId": "sql/char@1",
-                  "nativeType": "character",
-                  "nullable": false,
-                  "typeParams": {
-                    "length": 36
-                  }
+                  "codecId": "pg/uuid@1",
+                  "nativeType": "uuid",
+                  "nullable": false
                 },
                 "tokenHash": {
                   "codecId": "pg/text@1",
@@ -815,8 +907,8 @@
                   "nullable": false
                 },
                 "userId": {
-                  "codecId": "pg/text@1",
-                  "nativeType": "text",
+                  "codecId": "pg/uuid@1",
+                  "nativeType": "uuid",
                   "nullable": false
                 },
                 "verifiedAt": {
@@ -825,8 +917,35 @@
                   "nullable": true
                 }
               },
-              "foreignKeys": [],
-              "indexes": [],
+              "foreignKeys": [
+                {
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "EmailVerificationToken"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "User"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "userId"
+                  ],
+                  "name": "EmailVerificationToken_userId_idx_a489d58a",
+                  "prefix": "EmailVerificationToken_userId_idx",
+                  "unique": false
+                }
+              ],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -890,12 +1009,9 @@
                   "nullable": false
                 },
                 "id": {
-                  "codecId": "sql/char@1",
-                  "nativeType": "character",
-                  "nullable": false,
-                  "typeParams": {
-                    "length": 36
-                  }
+                  "codecId": "pg/uuid@1",
+                  "nativeType": "uuid",
+                  "nullable": false
                 },
                 "tokenHash": {
                   "codecId": "pg/text@1",
@@ -908,13 +1024,40 @@
                   "nullable": true
                 },
                 "userId": {
-                  "codecId": "pg/text@1",
-                  "nativeType": "text",
+                  "codecId": "pg/uuid@1",
+                  "nativeType": "uuid",
                   "nullable": false
                 }
               },
-              "foreignKeys": [],
-              "indexes": [],
+              "foreignKeys": [
+                {
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "ResetToken"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "User"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "userId"
+                  ],
+                  "name": "ResetToken_userId_idx_a489d58a",
+                  "prefix": "ResetToken_userId_idx",
+                  "unique": false
+                }
+              ],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -940,8 +1083,8 @@
                   "nullable": false
                 },
                 "deviceId": {
-                  "codecId": "pg/text@1",
-                  "nativeType": "text",
+                  "codecId": "pg/uuid@1",
+                  "nativeType": "uuid",
                   "nullable": false
                 },
                 "expiresAt": {
@@ -950,12 +1093,9 @@
                   "nullable": false
                 },
                 "id": {
-                  "codecId": "sql/char@1",
-                  "nativeType": "character",
-                  "nullable": false,
-                  "typeParams": {
-                    "length": 36
-                  }
+                  "codecId": "pg/uuid@1",
+                  "nativeType": "uuid",
+                  "nullable": false
                 },
                 "ip": {
                   "codecId": "pg/text@1",
@@ -996,12 +1136,30 @@
                   "nullable": false
                 },
                 "userId": {
-                  "codecId": "pg/text@1",
-                  "nativeType": "text",
+                  "codecId": "pg/uuid@1",
+                  "nativeType": "uuid",
                   "nullable": false
                 }
               },
-              "foreignKeys": [],
+              "foreignKeys": [
+                {
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Session"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "User"
+                  }
+                }
+              ],
               "indexes": [],
               "primaryKey": {
                 "columns": [
@@ -1042,12 +1200,8 @@
               "columns": {
                 "bio": {
                   "codecId": "pg/text@1",
-                  "default": {
-                    "kind": "literal",
-                    "value": "这个人很懒,什么也没有留下"
-                  },
                   "nativeType": "text",
-                  "nullable": true
+                  "nullable": false
                 },
                 "createdAt": {
                   "codecId": "pg/timestamptz-string@1",
@@ -1069,21 +1223,14 @@
                   "nullable": true
                 },
                 "id": {
-                  "codecId": "sql/char@1",
-                  "nativeType": "character",
-                  "nullable": false,
-                  "typeParams": {
-                    "length": 36
-                  }
+                  "codecId": "pg/uuid@1",
+                  "nativeType": "uuid",
+                  "nullable": false
                 },
                 "image": {
                   "codecId": "pg/text@1",
-                  "default": {
-                    "kind": "literal",
-                    "value": "/default-user.webp"
-                  },
                   "nativeType": "text",
-                  "nullable": true
+                  "nullable": false
                 },
                 "name": {
                   "codecId": "pg/text@1",
@@ -1186,7 +1333,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "3be14ca5a3ec95f02add9150813dc729f38c8826731ea24d84b5d875bf2c4728"
+    "storageHash": "4bb068fc8b074a2d60509d8ed51f72caf9064a9ad1da177824625ebaed1ba020"
   },
   "execution": {
     "executionHash": "36f197e5006048d2e21aae611ce92a6878be7fe42d75df7b1254cc6a07965f81",

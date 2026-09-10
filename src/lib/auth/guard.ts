@@ -1,9 +1,7 @@
-import type { Char } from "@prisma/orm-postgres/target/codec-types";
-import type { User } from "#server/user.functions";
+import type { User } from "./current-user";
 import { getSessionToken, clearSessionCookie } from "./session";
 import { validateSession } from "./session-manager";
 import { touchLastSeen } from "./device";
-import { db } from "#prisma/db";
 
 /**
  * 请求守卫：校验会话 → 返回当前用户。
@@ -15,39 +13,15 @@ export async function getCurrentUser(): Promise<User | null> {
   const token = getSessionToken();
   if (!token) return null;
 
-  const session = await validateSession(token);
-  if (!session) {
-    clearSessionCookie();
-    return null;
-  }
-
-  const user = await db.orm.public.User.where({ id: session.userId as Char<36> })
-    .select(
-      "id",
-      "email",
-      "name",
-      "image",
-      "bio",
-      "role",
-      "createdAt",
-      "status",
-      "sessionVersion",
-      "emailVerifiedAt",
-    )
-    .first();
-
-  if (!user) {
+  // validateSession 用 Session.user 关系把 User 一起带回来了，这里不必再查一次
+  const result = await validateSession(token);
+  if (!result) {
     clearSessionCookie();
     return null;
   }
 
   // 节流更新 lastSeenAt（不阻塞请求）
-  void touchLastSeen(session.deviceId as Char<36>);
+  void touchLastSeen(result.session.deviceId);
 
-  // 数据库有默认值，运行时不会是 null
-  return {
-    ...user,
-    image: user.image!,
-    bio: user.bio!,
-  };
+  return result.user;
 }

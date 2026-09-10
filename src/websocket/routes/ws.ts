@@ -1,7 +1,6 @@
 import { defineWebSocketHandler } from "nitro";
 import { getUserIdFromRequest } from "#lib/auth/get-user-id-from-request";
 import { db } from "#prisma/db";
-import type { Char } from "@prisma/orm-postgres/target/codec-types";
 import {
   registerPeer,
   unregisterPeer,
@@ -28,8 +27,8 @@ export default defineWebSocketHandler({
 
     return {
       context: {
-        userId: auth.userId as unknown as string,
-        sessionId: auth.sessionId as unknown as string,
+        userId: auth.userId,
+        sessionId: auth.sessionId,
       },
     };
   },
@@ -45,7 +44,7 @@ export default defineWebSocketHandler({
 
     // 只有第一个连接才更新 status → 避免重复写入
     if (getUserConnectionCount(userId) === 1) {
-      await db.orm.public.User.where({ id: userId as Char<36> }).update({
+      await db.orm.public.User.where({ id: userId }).update({
         status: "online",
       });
     }
@@ -64,7 +63,7 @@ export default defineWebSocketHandler({
     // 只有最后一个连接关闭时才更新 status → offline
     const remaining = getUserConnectionCount(userId);
     if (remaining === 0) {
-      await db.orm.public.User.where({ id: userId as Char<36> }).update({
+      await db.orm.public.User.where({ id: userId }).update({
         status: "offline",
       });
     }

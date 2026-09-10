@@ -7,8 +7,8 @@
  * 所有认证操作（登录/注册/改密/重置）都基于这两个原语组合。
  */
 
-import type { Char } from "@prisma/orm-postgres/target/codec-types";
 import { db } from "#prisma/db";
+import { PUBLIC_COLUMNS, type User } from "./current-user";
 import { generateToken, hashToken } from "./token";
 import { ensureDevice } from "./device";
 
@@ -16,7 +16,7 @@ const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 天
 const RESET_TOKEN_TTL_MS = 15 * 60 * 1000; // 15 分钟
 
 export type Session = {
-  id: Char<36>;
+  id: string;
   userId: string;
   deviceId: string;
   tokenHash: string;
@@ -30,7 +30,7 @@ export type Session = {
 };
 
 export type ResetToken = {
-  id: Char<36>;
+  id: string;
   userId: string;
   tokenHash: string;
   expiresAt: string;
@@ -54,11 +54,11 @@ export type ResetToken = {
  * @returns { token, deviceKey, oldSessionId } 原始令牌 + deviceKey + 旧 sessionId（用于 kick WS）
  */
 export async function createAuthenticatedSession(params: {
-  userId: Char<36>;
+  userId: string;
   deviceKey?: string;
   userAgent?: string | null;
   ip?: string | null;
-}): Promise<{ token: string; deviceKey: string; oldSessionId: Char<36> | null }> {
+}): Promise<{ token: string; deviceKey: string; oldSessionId: string | null }> {
   const { userId, deviceKey, userAgent = null, ip = null } = params;
 
   // 1. 确保 Device（单设备冲突时自动替换，不管 Session）
@@ -70,11 +70,11 @@ export async function createAuthenticatedSession(params: {
   });
 
   // 2. 查找旧 Session（用于 kick WS）
-  const oldSession = await db.orm.public.Session.where({ userId: userId as unknown as string }).first();
-  const oldSessionId = oldSession?.id as Char<36> | null;
+  const oldSession = await db.orm.public.Session.where({ userId: userId }).first();
+  const oldSessionId = oldSession?.id ?? null;
 
   // 3. 删除旧 Session
-  await db.orm.public.Session.where({ userId: userId as unknown as string }).delete();
+  await db.orm.public.Session.where({ userId: userId }).delete();
 
   // 4. 读取当前 sessionVersion
   const user = await db.orm.public.User.where({ id: userId }).first();
@@ -86,8 +86,8 @@ export async function createAuthenticatedSession(params: {
   const expiresAt = new Date(Date.now() + SESSION_TTL_MS).toISOString();
 
   await db.orm.public.Session.create({
-    userId: userId as unknown as string,
-    deviceId: device.id as unknown as string,
+    userId,
+    deviceId: device.id,
     tokenHash,
     sessionVersion,
     userAgent: userAgent ?? "",
@@ -106,7 +106,7 @@ export async function createAuthenticatedSession(params: {
  * 递增 User.sessionVersion → 所有旧 Session 全局失效。
  * 用于改密、撤销全部会话。
  */
-export async function invalidateAllSessions(userId: Char<36>): Promise<void> {
+export async function invalidateAllSessions(userId: string): Promise<void> {
   // sessionVersion 递增 → 所有旧 Session 全局失效。
   //
   // 注意：Prisma 8 ORM 当前不暴露 expression-based update API，
@@ -128,24 +128,30 @@ export async function invalidateAllSessions(userId: Char<36>): Promise<void> {
 // ============================================================
 
 /**
- * 校验会话令牌：
+ * 校验会话令牌，并连带取回公开形态的 User：
  * 1. 查哈希 → 未过期 → 未撤销
  * 2. 检查 sessionVersion 是否匹配 User.sessionVersion
+ *
+ * User 通过 Session.user 关系在同一次查询里带出：为了比 sessionVersion 反正也得读它，
+ * 顺带返回，调用方（guard）不必再查一次。
  */
-export async function validateSession(rawToken: string): Promise<Session | null> {
+export async function validateSession(
+  rawToken: string,
+): Promise<{ session: Session; user: User } | null> {
   const tokenHash = hashToken(rawToken);
 
-  const session = await db.orm.public.Session.where({ tokenHash }).first();
+  const session = await db.orm.public.Session.where({ tokenHash })
+    .include("user", (u) => u.select(...PUBLIC_COLUMNS))
+    .first();
   if (!session) return null;
   if (session.revokedAt) return null;
   if (new Date(session.expiresAt).getTime() < Date.now()) return null;
 
   // sessionVersion 校验
-  const user = await db.orm.public.User.where({ id: session.userId as Char<36> }).first();
-  if (!user || user.sessionVersion !== session.sessionVersion) return null;
+  const { user } = session;
+  if (user.sessionVersion !== session.sessionVersion) return null;
 
-  // 数据库有默认值，运行时不会是 null
-  return session as unknown as Session;
+  return { session, user };
 }
 
 // ============================================================
@@ -179,13 +185,13 @@ export async function purgeExpiredSessions(): Promise<number> {
 // ============================================================
 
 /** 创建密码重置令牌。 */
-export async function createResetToken(userId: Char<36>): Promise<string> {
+export async function createResetToken(userId: string): Promise<string> {
   const rawToken = generateToken();
   const tokenHash = hashToken(rawToken);
   const expiresAt = new Date(Date.now() + RESET_TOKEN_TTL_MS).toISOString();
 
   await db.orm.public.ResetToken.create({
-    userId: userId as unknown as string,
+    userId,
     tokenHash,
     expiresAt,
   });
@@ -200,7 +206,7 @@ export async function createResetToken(userId: Char<36>): Promise<string> {
  * 单条 SQL 完成「检查 + 更新」，杜绝并发双消费。
  * 返回 null 表示令牌不存在 / 已使用 / 已过期。
  */
-export async function consumeResetToken(rawToken: string): Promise<Char<36> | null> {
+export async function consumeResetToken(rawToken: string): Promise<string | null> {
   const tokenHash = hashToken(rawToken);
   const now = new Date();
 
@@ -211,5 +217,5 @@ export async function consumeResetToken(rawToken: string): Promise<Char<36> | nu
       usedAt: now.toISOString(),
     });
 
-  return (token?.userId as Char<36>) ?? null;
+  return token?.userId ?? null;
 }

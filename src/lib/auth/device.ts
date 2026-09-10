@@ -8,7 +8,6 @@
  * Session 生命周期由 session-manager.ts 负责。
  */
 
-import type { Char } from "@prisma/orm-postgres/target/codec-types";
 import { db } from "#prisma/db";
 import { generateDeviceKey } from "./token";
 import { formatDeviceName, inferPlatform } from "./device-name";
@@ -17,7 +16,7 @@ import { formatDeviceName, inferPlatform } from "./device-name";
 const LAST_SEEN_THROTTLE_MS = 5 * 60 * 1000;
 
 export type Device = {
-  id: Char<36>;
+  id: string;
   userId: string;
   deviceKey: string;
   platform: "web" | "android" | "ios" | "desktop";
@@ -43,20 +42,20 @@ export type Device = {
  * @returns { device, deviceKey } deviceKey 始终返回（新生成或复用）
  */
 export async function ensureDevice(params: {
-  userId: Char<36>;
+  userId: string;
   existingDeviceKey?: string;
   userAgent?: string | null;
   ip?: string | null;
 }): Promise<{ device: Device; deviceKey: string }> {
   const { userId, existingDeviceKey, userAgent = null, ip = null } = params;
-  const userIdStr = userId as unknown as string;
+  const userIdStr = userId;
 
   // 1. 尝试按 deviceKey 查找（同设备复用）
   if (existingDeviceKey) {
     const existing = await db.orm.public.Device.where({ deviceKey: existingDeviceKey }).first();
     if (existing && existing.userId === userIdStr) {
       // 数据库有默认值，运行时不会是 null
-      return { device: existing as unknown as Device, deviceKey: existingDeviceKey };
+      return { device: existing, deviceKey: existingDeviceKey };
     }
     // deviceKey 存在但不属于该用户 → 继续走创建流程
   }
@@ -82,7 +81,7 @@ export async function ensureDevice(params: {
   });
 
   // 数据库有默认值，运行时不会是 null
-  return { device: device as unknown as Device, deviceKey };
+  return { device, deviceKey };
 }
 
 /**
@@ -91,7 +90,7 @@ export async function ensureDevice(params: {
  * 在会话校验时调用，避免每次请求都写 DB。
  * 内部自行读取当前 lastSeenAt，比较后决定是否更新。
  */
-export async function touchLastSeen(deviceId: Char<36>): Promise<void> {
+export async function touchLastSeen(deviceId: string): Promise<void> {
   try {
     const device = await db.orm.public.Device.where({ id: deviceId }).select("lastSeenAt").first();
     if (!device) return;
@@ -112,12 +111,10 @@ export async function touchLastSeen(deviceId: Char<36>): Promise<void> {
 
 /** 根据 deviceKey 查找 Device。 */
 export async function findDeviceByKey(deviceKey: string): Promise<Device | null> {
-  const row = await db.orm.public.Device.where({ deviceKey }).first();
-  return row ? (row as unknown as Device) : null;
+  return await db.orm.public.Device.where({ deviceKey }).first();
 }
 
 /** 根据 userId 查找 Device。 */
-export async function findDeviceByUserId(userId: Char<36>): Promise<Device | null> {
-  const row = await db.orm.public.Device.where({ userId: userId as unknown as string }).first();
-  return row ? (row as unknown as Device) : null;
+export async function findDeviceByUserId(userId: string): Promise<Device | null> {
+  return await db.orm.public.Device.where({ userId }).first();
 }

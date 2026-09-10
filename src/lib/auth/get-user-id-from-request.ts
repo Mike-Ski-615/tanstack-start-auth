@@ -1,4 +1,3 @@
-import type { Char } from "@prisma/orm-postgres/target/codec-types";
 import { db } from "#prisma/db";
 import { hashToken } from "./token";
 
@@ -12,7 +11,7 @@ import { hashToken } from "./token";
  */
 export async function getUserIdFromRequest(
   request: Request,
-): Promise<{ userId: Char<36>; sessionId: Char<36> } | null> {
+): Promise<{ userId: string; sessionId: string } | null> {
   const cookieHeader = request.headers.get("cookie");
   if (!cookieHeader) return null;
 
@@ -33,11 +32,11 @@ export async function getUserIdFromRequest(
   if (new Date(session.expiresAt).getTime() < Date.now()) return null;
 
   // sessionVersion 校验
-  const user = await db.orm.public.User.where({ id: session.userId as Char<36> }).first();
+  const user = await db.orm.public.User.where({ id: session.userId }).first();
   if (!user || user.sessionVersion !== session.sessionVersion) return null;
 
   return {
-    userId: session.userId as Char<36>,
-    sessionId: session.id as Char<36>,
+    userId: session.userId,
+    sessionId: session.id,
   };
 }

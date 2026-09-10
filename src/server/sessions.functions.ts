@@ -18,26 +18,34 @@ export const listSessionsFn = createServerFn({
   const user = await getCurrentUser();
   if (!user) return { device: null, session: null };
 
-  const device = await db.orm.public.Device.where({
-    userId: user.id as unknown as string,
-  }).first();
+  // 一次查询带出 Device + Session（契约声明的 1:1 关系），代替原来两次往返。
+  const row = await db.orm.public.User.where({ id: user.id })
+    .include("device", (d) =>
+      d.select("id", "name", "platform", "userAgent", "ip", "lastSeenAt", "createdAt"),
+    )
+    .include("session", (s) =>
+      s.select("id", "sessionVersion", "createdAt", "expiresAt"),
+    )
+    .first();
 
-  if (!device) return { device: null, session: null };
+  const device = row?.device;
+  const session = row?.session;
 
-  const session = await db.orm.public.Session.where({
-    userId: user.id as unknown as string,
-  }).first();
-
+  // 注意：必须手动投影成新对象字面量。`include()` 的结果类型带一个
+  // `{ [x: string]: unknown }` 索引签名（上游 IncludedRelationsForRow 未传 NsId），
+  // 直接把 row.device 交给 createServerFn 会被可序列化校验拒掉。
   return {
-    device: {
-      id: device.id,
-      name: device.name,
-      platform: device.platform,
-      userAgent: device.userAgent,
-      ip: device.ip,
-      lastSeenAt: device.lastSeenAt,
-      createdAt: device.createdAt,
-    },
+    device: device
+      ? {
+          id: device.id,
+          name: device.name,
+          platform: device.platform,
+          userAgent: device.userAgent,
+          ip: device.ip,
+          lastSeenAt: device.lastSeenAt,
+          createdAt: device.createdAt,
+        }
+      : null,
     session: session
       ? {
           id: session.id,
@@ -66,7 +74,7 @@ export const revokeAllSessionsFn = createServerFn({
   await invalidateAllSessions(user.id);
 
   // 踢掉该用户所有 WebSocket 连接
-  kickAllSessionsForUser(user.id as unknown as string);
+  kickAllSessionsForUser(user.id);
 
   return { success: true as const };
 });

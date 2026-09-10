@@ -1,0 +1,630 @@
+[
+  {
+    "id": "dropConstraint.Session.Session_deviceId_fkey",
+    "label": "Drop constraint \"Session_deviceId_fkey\" on \"Session\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Session_deviceId_fkey",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Session_deviceId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Session_deviceId_fkey",
+          "public",
+          "\"public\".\"Session\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop constraint \"Session_deviceId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Session\" DROP CONSTRAINT \"Session_deviceId_fkey\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"Session_deviceId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Session_deviceId_fkey",
+          "public",
+          "\"public\".\"Session\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropConstraint.Session.Session_userId_fkey",
+    "label": "Drop constraint \"Session_userId_fkey\" on \"Session\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Session_userId_fkey",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Session_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Session_userId_fkey",
+          "public",
+          "\"public\".\"Session\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop constraint \"Session_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Session\" DROP CONSTRAINT \"Session_userId_fkey\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"Session_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Session_userId_fkey",
+          "public",
+          "\"public\".\"Session\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropConstraint.Device.Device_userId_fkey",
+    "label": "Drop constraint \"Device_userId_fkey\" on \"Device\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Device_userId_fkey",
+        "table": "Device"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Device_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Device_userId_fkey",
+          "public",
+          "\"public\".\"Device\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop constraint \"Device_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Device\" DROP CONSTRAINT \"Device_userId_fkey\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"Device_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Device_userId_fkey",
+          "public",
+          "\"public\".\"Device\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropConstraint.EmailVerificationToken.EmailVerificationToken_userId_fkey",
+    "label": "Drop constraint \"EmailVerificationToken_userId_fkey\" on \"EmailVerificationToken\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "EmailVerificationToken_userId_fkey",
+        "table": "EmailVerificationToken"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"EmailVerificationToken_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "EmailVerificationToken_userId_fkey",
+          "public",
+          "\"public\".\"EmailVerificationToken\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop constraint \"EmailVerificationToken_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"EmailVerificationToken\" DROP CONSTRAINT \"EmailVerificationToken_userId_fkey\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"EmailVerificationToken_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "EmailVerificationToken_userId_fkey",
+          "public",
+          "\"public\".\"EmailVerificationToken\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "alterType.Device.id",
+    "label": "Alter type of \"Device\".\"id\" to uuid",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "id",
+        "table": "Device"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"id\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Device",
+          "id"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "alter type of \"id\"",
+        "sql": "ALTER TABLE \"public\".\"Device\" ALTER COLUMN \"id\" TYPE uuid USING \"id\"::uuid"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"id\" has type \"uuid\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "Device",
+          "id",
+          "uuid"
+        ]
+      }
+    ],
+    "meta": {
+      "warning": "TABLE_REWRITE"
+    }
+  },
+  {
+    "id": "alterType.Device.userId",
+    "label": "Alter type of \"Device\".\"userId\" to uuid",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "userId",
+        "table": "Device"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"userId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Device",
+          "userId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "alter type of \"userId\"",
+        "sql": "ALTER TABLE \"public\".\"Device\" ALTER COLUMN \"userId\" TYPE uuid USING \"userId\"::uuid"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"userId\" has type \"uuid\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "Device",
+          "userId",
+          "uuid"
+        ]
+      }
+    ],
+    "meta": {
+      "warning": "TABLE_REWRITE"
+    }
+  },
+  {
+    "id": "alterType.EmailVerificationToken.id",
+    "label": "Alter type of \"EmailVerificationToken\".\"id\" to uuid",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "id",
+        "table": "EmailVerificationToken"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"id\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "EmailVerificationToken",
+          "id"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "alter type of \"id\"",
+        "sql": "ALTER TABLE \"public\".\"EmailVerificationToken\" ALTER COLUMN \"id\" TYPE uuid USING \"id\"::uuid"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"id\" has type \"uuid\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "EmailVerificationToken",
+          "id",
+          "uuid"
+        ]
+      }
+    ],
+    "meta": {
+      "warning": "TABLE_REWRITE"
+    }
+  },
+  {
+    "id": "alterType.EmailVerificationToken.userId",
+    "label": "Alter type of \"EmailVerificationToken\".\"userId\" to uuid",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "userId",
+        "table": "EmailVerificationToken"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"userId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "EmailVerificationToken",
+          "userId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "alter type of \"userId\"",
+        "sql": "ALTER TABLE \"public\".\"EmailVerificationToken\" ALTER COLUMN \"userId\" TYPE uuid USING \"userId\"::uuid"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"userId\" has type \"uuid\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "EmailVerificationToken",
+          "userId",
+          "uuid"
+        ]
+      }
+    ],
+    "meta": {
+      "warning": "TABLE_REWRITE"
+    }
+  },
+  {
+    "id": "alterType.ResetToken.id",
+    "label": "Alter type of \"ResetToken\".\"id\" to uuid",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "id",
+        "table": "ResetToken"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"id\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ResetToken",
+          "id"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "alter type of \"id\"",
+        "sql": "ALTER TABLE \"public\".\"ResetToken\" ALTER COLUMN \"id\" TYPE uuid USING \"id\"::uuid"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"id\" has type \"uuid\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "ResetToken",
+          "id",
+          "uuid"
+        ]
+      }
+    ],
+    "meta": {
+      "warning": "TABLE_REWRITE"
+    }
+  },
+  {
+    "id": "alterType.ResetToken.userId",
+    "label": "Alter type of \"ResetToken\".\"userId\" to uuid",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "userId",
+        "table": "ResetToken"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"userId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ResetToken",
+          "userId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "alter type of \"userId\"",
+        "sql": "ALTER TABLE \"public\".\"ResetToken\" ALTER COLUMN \"userId\" TYPE uuid USING \"userId\"::uuid"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"userId\" has type \"uuid\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "ResetToken",
+          "userId",
+          "uuid"
+        ]
+      }
+    ],
+    "meta": {
+      "warning": "TABLE_REWRITE"
+    }
+  },
+  {
+    "id": "alterType.Session.deviceId",
+    "label": "Alter type of \"Session\".\"deviceId\" to uuid",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "deviceId",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"deviceId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "deviceId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "alter type of \"deviceId\"",
+        "sql": "ALTER TABLE \"public\".\"Session\" ALTER COLUMN \"deviceId\" TYPE uuid USING \"deviceId\"::uuid"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"deviceId\" has type \"uuid\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "deviceId",
+          "uuid"
+        ]
+      }
+    ],
+    "meta": {
+      "warning": "TABLE_REWRITE"
+    }
+  },
+  {
+    "id": "alterType.Session.id",
+    "label": "Alter type of \"Session\".\"id\" to uuid",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "id",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"id\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "id"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "alter type of \"id\"",
+        "sql": "ALTER TABLE \"public\".\"Session\" ALTER COLUMN \"id\" TYPE uuid USING \"id\"::uuid"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"id\" has type \"uuid\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "id",
+          "uuid"
+        ]
+      }
+    ],
+    "meta": {
+      "warning": "TABLE_REWRITE"
+    }
+  },
+  {
+    "id": "alterType.Session.userId",
+    "label": "Alter type of \"Session\".\"userId\" to uuid",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "userId",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"userId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "userId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "alter type of \"userId\"",
+        "sql": "ALTER TABLE \"public\".\"Session\" ALTER COLUMN \"userId\" TYPE uuid USING \"userId\"::uuid"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"userId\" has type \"uuid\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "userId",
+          "uuid"
+        ]
+      }
+    ],
+    "meta": {
+      "warning": "TABLE_REWRITE"
+    }
+  },
+  {
+    "id": "alterType.User.id",
+    "label": "Alter type of \"User\".\"id\" to uuid",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "id",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"id\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "id"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "alter type of \"id\"",
+        "sql": "ALTER TABLE \"public\".\"User\" ALTER COLUMN \"id\" TYPE uuid USING \"id\"::uuid"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"id\" has type \"uuid\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "User",
+          "id",
+          "uuid"
+        ]
+      }
+    ],
+    "meta": {
+      "warning": "TABLE_REWRITE"
+    }
+  }
+]
