@@ -4,18 +4,18 @@ import { ErrorPage } from "#components/status/authenticated/users/$userId/error"
 import { NotFoundPage } from "#components/status/authenticated/users/$userId/not-found";
 
 import { UserView } from "#components/user/user-view";
-import { getUserById } from "#server/user.functions";
+import { userByIdQueryOptions } from "#lib/queries/user-by-id";
 
 export const Route = createFileRoute("/authenticated/users/$userId")({
   pendingComponent: LoadingPage,
   errorComponent: ErrorPage,
   notFoundComponent: NotFoundPage,
-  loader: async ({ params }) => {
-    const user = await getUserById({
-      data: {
-        userId: params.userId,
-      },
-    });
+  loader: async ({ params, context }) => {
+    // 走 Query 缓存而非裸调 server fn：同一用户重复访问直接命中，
+    // 且加载态/错误态交给 Query 与 Router 统一的 pendingComponent。
+    const user = await context.queryClient.ensureQueryData(
+      userByIdQueryOptions(params.userId),
+    );
 
     if (!user) {
       throw notFound();

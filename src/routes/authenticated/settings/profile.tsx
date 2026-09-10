@@ -1,9 +1,10 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { UserIcon } from "@hugeicons/core-free-icons";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { queryKeys } from "#lib/query-keys";
 import { Button } from "#components/ui/button";
 import {
   Field,
@@ -29,13 +30,15 @@ export const Route = createFileRoute("/authenticated/settings/profile")({
 
 function SettingsProfilePage() {
   const { user } = Route.useRouteContext();
-  const router = useRouter();
+  const queryClient = useQueryClient();
 
   const infoMutation = useMutation({
     mutationFn: (v: UpdateProfileValues) => updateProfileFn({ data: v }),
     onSuccess: () => {
       toast.success("资料已保存");
-      router.invalidate();
+      // 只失效当前用户：改名前 router.invalidate() 会重跑整棵路由树
+      // （含 beforeLoad 里的 getUser 查询），为了刷新侧边栏用户名太重。
+      queryClient.invalidateQueries({ queryKey: queryKeys.currentUser });
     },
     onError: () => toast.error("保存失败，请重试"),
   });

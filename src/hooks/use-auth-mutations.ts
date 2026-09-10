@@ -1,6 +1,8 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { queryKeys } from "#lib/query-keys";
+import { currentUserQueryOptions } from "#lib/queries/current-user";
 import type {
   EmailOnlyValues,
   LoginValues,
@@ -17,9 +19,20 @@ import {
 
 export function useLoginMutation() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: LoginValues) => login({ data }),
-    onSuccess: () => {
+    onSuccess: async () => {
+      // 必须让 current-user 缓存立刻反映「已登录」：
+      //
+      // 1. 登录前 /auth 的 beforeLoad 已把 null 写进缓存，不清掉的话
+      //    /authenticated 的 beforeLoad 会命中这个 null 并弹回登录页。
+      // 2. invalidateQueries 默认只重查 active 的 query，而登录页上
+      //    current-user 无活跃订阅（守钲只在 /authenticated 挂载），
+      //    它只会被标记 stale、不会真的重查 —— 所以先 removeQueries 再
+      //    ensureQueryData 强制执行一次查询。
+      queryClient.removeQueries({ queryKey: queryKeys.currentUser });
+      await queryClient.ensureQueryData(currentUserQueryOptions);
       toast.success("登录成功，欢迎回来");
       navigate({ to: "/authenticated" });
     },
@@ -62,10 +75,14 @@ export function useRequestPasswordResetMutation() {
 
 export function useResetPasswordMutation(token: string) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (password: string) =>
       resetPasswordFn({ data: { token, password } }),
-    onSuccess: () => {
+    onSuccess: async () => {
+      // 重置后自动登录，同 login：先清缓存再强制重查
+      queryClient.removeQueries({ queryKey: queryKeys.currentUser });
+      await queryClient.ensureQueryData(currentUserQueryOptions);
       toast.success("密码重置成功，欢迎回来");
       navigate({ to: "/authenticated" });
     },
@@ -77,9 +94,12 @@ export function useResetPasswordMutation(token: string) {
 
 export function useLogoutMutation() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => logout(),
     onSuccess: () => {
+      // 清掉已登录的用户缓存，否则再进 /auth 时 beforeLoad 会命中旧值
+      queryClient.setQueryData(queryKeys.currentUser, null);
       toast.success("已退出登录");
       navigate({ to: "/" });
     },

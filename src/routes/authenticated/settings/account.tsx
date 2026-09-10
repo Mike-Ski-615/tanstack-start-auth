@@ -11,6 +11,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "#lib/query-keys";
 import { listSessionsFn } from "#server/sessions.functions";
 import { LoadingPage } from "#components/status/authenticated/settings/account/loading";
 import { ErrorPage } from "#components/status/authenticated/settings/account/error";
@@ -32,7 +33,7 @@ function SettingsAccountPage() {
   const { user } = Route.useRouteContext();
 
   const { data } = useQuery({
-    queryKey: ["security-info"],
+    queryKey: queryKeys.securityInfo,
     queryFn: () => listSessionsFn(),
   });
 

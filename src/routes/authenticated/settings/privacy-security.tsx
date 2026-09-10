@@ -11,6 +11,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "#lib/query-keys";
 import { toast } from "sonner";
 import { Button } from "#components/ui/button";
 import { listSessionsFn, revokeAllSessionsFn } from "#server/sessions.functions";
@@ -49,14 +50,14 @@ function SettingsPrivacySecurityPage() {
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["security-info"],
+    queryKey: queryKeys.securityInfo,
     queryFn: () => listSessionsFn(),
   });
 
   const revokeAllMutation = useMutation({
     mutationFn: () => revokeAllSessionsFn(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["security-info"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.securityInfo });
       // 撤销全部 → 当前会话也失效 → 跳转首页
       router.navigate({ to: "/" });
     },

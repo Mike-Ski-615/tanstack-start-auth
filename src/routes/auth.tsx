@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
-import { getUserFn } from "#server/user.functions";
+import { currentUserQueryOptions } from "#lib/queries/current-user";
 import { LoadingPage } from "#components/status/auth/loading";
 import { ErrorPage } from "#components/status/auth/error";
 import { NotFoundPage } from "#components/status/auth/not-found";
@@ -8,8 +8,10 @@ export const Route = createFileRoute("/auth")({
   pendingComponent: LoadingPage,
   errorComponent: ErrorPage,
   notFoundComponent: NotFoundPage,
-  beforeLoad: async () => {
-    const user = await getUserFn();
+  beforeLoad: async ({ context }) => {
+    const user = await context.queryClient.ensureQueryData(
+      currentUserQueryOptions,
+    );
 
     if (user) {
       throw redirect({ to: "/authenticated" });

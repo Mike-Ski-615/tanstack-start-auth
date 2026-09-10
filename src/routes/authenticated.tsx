@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
-import { getUserFn } from "#server/user.functions";
+import { currentUserQueryOptions } from "#lib/queries/current-user";
 import { useLogoutMutation } from "#hooks/use-auth-mutations";
 import { useSessionGuard } from "#hooks/use-session-guard";
 import { LoadingPage } from "#components/status/authenticated/loading";
@@ -15,8 +15,12 @@ export const Route = createFileRoute("/authenticated")({
   pendingComponent: LoadingPage,
   errorComponent: ErrorPage,
   notFoundComponent: NotFoundPage,
-  beforeLoad: async ({ location }) => {
-    const user = await getUserFn();
+  beforeLoad: async ({ location, context }) => {
+    // ensureQueryData 而非直调 getUserFn：与 useSessionGuard 同 key，
+    // SSR 预取的数据直接喂给客户端，进页后守钲的首次轮询命中缓存。
+    const user = await context.queryClient.ensureQueryData(
+      currentUserQueryOptions,
+    );
 
     if (!user) {
       throw redirect({ to: "/auth/login" });
