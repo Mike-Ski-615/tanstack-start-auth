@@ -7,16 +7,12 @@ const DUMMY_PASSWORD_HASH =
   "$argon2id$v=19$m=65536,t=3,p=1$0IJWluIg0PQoVokT8IL6Yw$I3uYiR6qTsLLo1pq0jfitvOfAOD/QRz+5EaZ1kiGzos";
 
 import { createServerFn } from "@tanstack/react-start";
-import {
-  getRequestIP,
-  setResponseStatus,
-  setResponseHeader,
-} from "@tanstack/react-start/server";
+import { getRequestIP, setResponseHeader } from "@tanstack/react-start/server";
 import { db } from "#prisma/db";
 import { loginSchema } from "#schemas/auth";
 import { verifyPassword } from "#lib/auth/password";
 import { signIn } from "#lib/auth/session-manager";
-import { rateLimit } from "#lib/auth/rate-limiter";
+import { enforceRateLimit } from "#lib/auth/rate-limiter";
 
 /**
  * 登录用例：校验凭据 → createAuthenticatedSession → 设 cookie。
@@ -33,15 +29,7 @@ export const login = createServerFn({
 
     // 速率限制：同一邮箱 + IP 组合 1 分钟最多 5 次
     const ip = getRequestIP();
-    const { allowed, resetAt } = await rateLimit("login", { email, ip });
-    if (!allowed) {
-      setResponseStatus(429);
-      setResponseHeader(
-        "Retry-After",
-        String(Math.ceil((resetAt - Date.now()) / 1000)),
-      );
-      throw new Error("Too many attempts, please try again later");
-    }
+    await enforceRateLimit("login", { email, ip });
 
     const user = await db.orm.public.User.where({ email }).first();
 

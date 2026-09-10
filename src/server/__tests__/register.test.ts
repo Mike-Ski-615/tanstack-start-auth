@@ -57,6 +57,10 @@ const regValidated = (
 
 beforeEach(async () => {
   clearMails();
+  // 清全部 register 计数。这意味着**其它测试文件不要再用 register 这个维度**
+  // 做限速断言 —— 两边交错执行会互相擦掉计数（表现为「第 4 次应该被拒却
+  // 通过了」的偶发失败，实际发生过一次）。需要测 register 的 429 响应时，
+  // 用未被他处使用的 IP 段，见 rate-limit-response.test.ts。
   await clearRateLimit("register");
 });
 

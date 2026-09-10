@@ -7,7 +7,7 @@ import { registerSchema } from "#schemas/auth";
 import { hashPassword } from "../lib/auth/password";
 import { createVerificationOtp } from "#lib/auth/email-verification";
 import { sendMail } from "../lib/auth/mail";
-import { rateLimit } from "#lib/auth/rate-limiter";
+import { enforceRateLimit } from "#lib/auth/rate-limiter";
 
 /** 注册表单不含头像/简介，给新用户初始值。 */
 const DEFAULT_IMAGE = "/default-user.webp";
@@ -32,14 +32,7 @@ export const register = createServerFn({
     try {
       // 速率限制：同一 IP 1 分钟最多 3 次注册
       const ip = getRequestIP();
-      const { allowed, resetAt } = await rateLimit("register", { ip });
-      if (!allowed) {
-        setResponseHeader(
-          "Retry-After",
-          String(Math.ceil((resetAt - Date.now()) / 1000)),
-        );
-        throw new Error("Too many requests, please try again later");
-      }
+      await enforceRateLimit("register", { ip });
 
       const existingUser = await db.orm.public.User.where({ email }).first();
       if (existingUser) {

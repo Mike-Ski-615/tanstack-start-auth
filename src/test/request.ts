@@ -74,6 +74,28 @@ export function currentRequestIP(): string | undefined {
 }
 
 /**
+ * 最近一次 withRequest 里设置的响应状态码。
+ *
+ * serverFn 通过 setResponseStatus 设的是 event 上的状态，测试拿不到
+ * event 本身，所以在这里记一份。仅用于断言「限速时确实返回 429」
+ * 这类响应层的行为。
+ */
+const LAST_STATUS_KEY = Symbol.for("test:last-response-status");
+
+function setLastStatus(code: number | undefined) {
+  (globalThis as unknown as Record<symbol, number | undefined>)[
+    LAST_STATUS_KEY
+  ] = code;
+}
+
+/** 读取最近一次 withRequest 结束时的响应状态码。 */
+export function lastResponseStatus(): number | undefined {
+  return (globalThis as unknown as Record<symbol, number | undefined>)[
+    LAST_STATUS_KEY
+  ];
+}
+
+/**
  * 在指定请求上下文里调 serverFn。
  *
  * 两个实测出来的限制（都已确认原因，不是猜的）：
@@ -176,6 +198,9 @@ export function withRequest<T>(
         try {
           return await fn();
         } finally {
+          // 记下本次请求的响应状态（供 429 断言使用）
+          const res = (event as unknown as { res?: { status?: number } }).res;
+          setLastStatus(res?.status);
           // 恢复外层上下文（嵌套调用时不能清成 undefined）
           setCurrentCtx(prev === undefined ? undefined : { ip: prev });
         }

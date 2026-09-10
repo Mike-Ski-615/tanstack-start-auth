@@ -1,16 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
-import {
-  getRequestIP,
-  setResponseStatus,
-  setResponseHeader,
-} from "@tanstack/react-start/server";
+import { getRequestIP, setResponseHeader } from "@tanstack/react-start/server";
 import { db } from "#prisma/db";
 import { emailOnlySchema, resetPasswordSchema } from "#schemas/auth";
 import { hashPassword } from "../lib/auth/password";
 import { sendMail } from "../lib/auth/mail";
 import { invalidateAllSessions, signIn } from "#lib/auth/session-manager";
 import { createResetOtp, verifyResetOtp } from "#lib/auth/reset-otp";
-import { rateLimit } from "#lib/auth/rate-limiter";
+import { enforceRateLimit } from "#lib/auth/rate-limiter";
 
 /**
  * 密码重置用例（DB 版）：重置令牌为一枚随机串 { userId, exp }，
@@ -30,15 +26,7 @@ export const requestPasswordResetFn = createServerFn({
 
     // 速率限制：同一 IP 1 分钟最多 3 次重置请求（防邮件轰炸）
     const ip = getRequestIP();
-    const { allowed, resetAt } = await rateLimit("reset", { ip });
-    if (!allowed) {
-      setResponseStatus(429);
-      setResponseHeader(
-        "Retry-After",
-        String(Math.ceil((resetAt - Date.now()) / 1000)),
-      );
-      throw new Error("Too many requests, please try again later");
-    }
+    await enforceRateLimit("reset", { ip });
 
     const user = await db.orm.public.User.where({ email }).first();
 
@@ -72,15 +60,7 @@ export const resetPasswordFn = createServerFn({
 
     // 限速：同一邮箱 + IP 组合 1 分钟最多 10 次
     const ip = getRequestIP();
-    const { allowed, resetAt } = await rateLimit("reset-verify", { email, ip });
-    if (!allowed) {
-      setResponseStatus(429);
-      setResponseHeader(
-        "Retry-After",
-        String(Math.ceil((resetAt - Date.now()) / 1000)),
-      );
-      throw new Error("too_many_requests");
-    }
+    await enforceRateLimit("reset-verify", { email, ip });
 
     // 防枚举：用户不存在也报同一个验证码错误
     const user = await db.orm.public.User.where({ email }).first();

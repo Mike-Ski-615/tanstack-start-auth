@@ -13,6 +13,10 @@
  */
 
 import { db } from "#prisma/db";
+import {
+  setResponseStatus,
+  setResponseHeader,
+} from "@tanstack/react-start/server";
 
 const WINDOW_MS = 60_000; // 1 分钟
 
@@ -108,6 +112,39 @@ export async function rateLimit(
     remaining: Math.max(0, max - count),
     resetAt: new Date(row?.windowStart ?? nowIso).getTime() + WINDOW_MS,
   };
+}
+
+/**
+ * 限速未通过时抛的错误。
+ *
+ * 用固定标识符而非英文句子：客户端目前的 onError 无法区分「凭据错误」
+ * 与「被限速」（全部显示笼统文案），所以这句 message 暂无消费者。
+ * 写成稳定的标识符，将来要做区分时可以直接匹配，比匹配英文句子可靠。
+ */
+export const RATE_LIMITED = "rate_limited";
+
+/**
+ * 限速检查：未通过时设 429 + Retry-After 并抛错，通过则静默返回。
+ *
+ * 抽它的原因：这个「检查 → 设响应头 → 抛错」的序列在七个调用点各写了一遍，
+ * 且已经不一致 —— register 漏了 setResponseStatus(429)（却设了 Retry-After，
+ * 而 Retry-After 只在 4xx/5xx 上有含义），另外错误文案有三种写法的变体。
+ *
+ * 调用方只需：await enforceRateLimit("login", { email, ip });
+ */
+export async function enforceRateLimit(
+  type: LimitKey,
+  subject: RateSubject,
+): Promise<void> {
+  const { allowed, resetAt } = await rateLimit(type, subject);
+  if (allowed) return;
+
+  setResponseStatus(429);
+  setResponseHeader(
+    "Retry-After",
+    String(Math.ceil((resetAt - Date.now()) / 1000)),
+  );
+  throw new Error(RATE_LIMITED);
 }
 
 /** 清理过期行（可定时调用或懒删除）。 */

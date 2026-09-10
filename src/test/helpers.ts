@@ -10,6 +10,7 @@ import {
   withRequest,
   callServerFn,
   callServerFnValidated,
+  lastResponseStatus,
   type CallContext,
 } from "./request";
 
@@ -94,4 +95,10 @@ export async function getDevices(userId: string) {
   return db.orm.public.Device.where((d) => d.userId.eq(userId)).all();
 }
 
-export { withRequest, callServerFn, callServerFnValidated, type CallContext };
+export {
+  withRequest,
+  callServerFn,
+  callServerFnValidated,
+  lastResponseStatus,
+  type CallContext,
+};

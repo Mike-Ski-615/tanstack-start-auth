@@ -1,9 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import {
-  getRequestIP,
-  setResponseStatus,
-  setResponseHeader,
-} from "@tanstack/react-start/server";
+import { getRequestIP, setResponseHeader } from "@tanstack/react-start/server";
 import { db } from "#prisma/db";
 import { emailOnlySchema, verifyEmailOtpSchema } from "#schemas/auth";
 
@@ -13,7 +9,7 @@ import {
   verifyEmailOtp,
 } from "#lib/auth/email-verification";
 import { sendMail } from "#lib/auth/mail";
-import { rateLimit } from "#lib/auth/rate-limiter";
+import { enforceRateLimit } from "#lib/auth/rate-limiter";
 
 /**
  * 验证邮箱 OTP：校验验证码 → 标记 verifiedAt → createAuthenticatedSession（自动登录）。
@@ -32,15 +28,7 @@ export const verifyEmailFn = createServerFn({
     // 限速：同一邮箱 + IP 组合 1 分钟最多 10 次验证尝试。
     // OTP 本身已有 5 次错误上限，这里防的是「不断换 OTP 重试」的轰炸。
     const ip = getRequestIP();
-    const { allowed, resetAt } = await rateLimit("verify-otp", { email, ip });
-    if (!allowed) {
-      setResponseStatus(429);
-      setResponseHeader(
-        "Retry-After",
-        String(Math.ceil((resetAt - Date.now()) / 1000)),
-      );
-      throw new Error("too_many_requests");
-    }
+    await enforceRateLimit("verify-otp", { email, ip });
 
     // 防枚举：用户不存在也返回统一的验证码错误
     const user = await db.orm.public.User.where({ email }).first();
@@ -71,29 +59,10 @@ export const resendVerificationEmailFn = createServerFn({
 
     // 限速：同一 IP 1 分钟最多 3 次
     const ip = getRequestIP();
-    const { allowed, resetAt } = await rateLimit("resend", { ip });
-    if (!allowed) {
-      setResponseStatus(429);
-      setResponseHeader(
-        "Retry-After",
-        String(Math.ceil((resetAt - Date.now()) / 1000)),
-      );
-      throw new Error("Too many requests, please try again later");
-    }
+    await enforceRateLimit("resend", { ip });
 
     // 限速：同一邮箱 3 次/分钟（上限取自 LIMITS.resend，与 IP 维度共用）
-    const { allowed: emailAllowed, resetAt: emailResetAt } = await rateLimit(
-      "resend",
-      { email },
-    );
-    if (!emailAllowed) {
-      setResponseStatus(429);
-      setResponseHeader(
-        "Retry-After",
-        String(Math.ceil((emailResetAt - Date.now()) / 1000)),
-      );
-      throw new Error("Too many requests, please try again later");
-    }
+    await enforceRateLimit("resend", { email });
 
     const user = await db.orm.public.User.where({ email }).first();
 
