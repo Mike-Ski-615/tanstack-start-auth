@@ -4,6 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import {
   WS_CLOSE_SESSION_REPLACED,
   WS_CLOSE_ALL_SESSIONS_REVOKED,
+  WS_CLOSE_NORMAL,
 } from "#lib/ws-close-codes";
 
 export { WS_CLOSE_SESSION_REPLACED, WS_CLOSE_ALL_SESSIONS_REVOKED };
@@ -56,6 +57,14 @@ export function useWs() {
             duration: 5000,
           });
           navigate({ to: "/auth/login" });
+          return;
+        }
+
+        // 主动登出（服务端正常关闭）：不提示、不重连、不跳转。
+        // 登出的 UI 反馈与跳转由 logout mutation 负责，这里重复处理会双重提示。
+        // 必须显式判断：unmountedRef 在此刻可能仍为 false（navigate 先于组件
+        // 卸载执行），光靠它拦不住重连。
+        if (event.code === WS_CLOSE_NORMAL) {
           return;
         }
 

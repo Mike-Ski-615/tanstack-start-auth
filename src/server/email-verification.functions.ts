@@ -82,7 +82,7 @@ export const resendVerificationEmailFn = createServerFn({
       throw new Error("Too many requests, please try again later");
     }
 
-    // 限速：同一邮箱 1 分钟最多 1 次
+    // 限速：同一邮箱 3 次/分钟（上限取自 LIMITS.resend，与 IP 维度共用）
     const { allowed: emailAllowed, resetAt: emailResetAt } = await rateLimit(
       "resend",
       `email:${email}`,

@@ -158,12 +158,19 @@ export async function validateSession(
 // 撤销
 // ============================================================
 
-/** 撤销指定令牌对应的会话。 */
-export async function revokeSession(rawToken: string): Promise<void> {
+/**
+ * 撤销指定令牌对应的会话，返回被撤销的 sessionId（无则 null）。
+ *
+ * 返回 id 供调用方反向索引 WS 连接：登出需主动踢掉该 Session 的
+ * WebSocket。否则客户端异常退出（关页签 / 崩溃）时收不到卸载回调，
+ * 服务端只能等 TCP 超时 —— 期间用户已登出，status 却仍是 online。
+ */
+export async function revokeSession(rawToken: string): Promise<string | null> {
   const tokenHash = hashToken(rawToken);
-  await db.orm.public.Session.where({ tokenHash }).update({
+  const revoked = await db.orm.public.Session.where({ tokenHash }).update({
     revokedAt: new Date().toISOString(),
   });
+  return revoked?.id ?? null;
 }
 
 // ============================================================

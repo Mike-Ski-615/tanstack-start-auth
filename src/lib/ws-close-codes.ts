@@ -9,3 +9,13 @@
  */
 export const WS_CLOSE_SESSION_REPLACED = 4001;
 export const WS_CLOSE_ALL_SESSIONS_REVOKED = 4002;
+
+/**
+ * 正常关闭（用户主动登出）。客户端不提示、不重连、不跳转 ——
+ * 登出的 UI 反馈由 logout mutation 自己负责。
+ *
+ * 用 1000 而非 4001：若复用 SESSION_REPLACED，用户自己点登出会收到
+ * 「账号在另一设备登录」的提示，且 use-ws 的 4001 分支会抢先跳到登录页，
+ * 与 logout 的 "跳首页" 冲突。
+ */
+export const WS_CLOSE_NORMAL = 1000;

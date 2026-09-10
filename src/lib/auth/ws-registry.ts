@@ -10,6 +10,7 @@
 import {
   WS_CLOSE_SESSION_REPLACED,
   WS_CLOSE_ALL_SESSIONS_REVOKED,
+  WS_CLOSE_NORMAL,
 } from "#lib/ws-close-codes";
 
 export {
@@ -62,8 +63,22 @@ export function unregisterPeer(peerId: string): void {
   }
 }
 
-/** 踢掉指定 Session 的所有 WebSocket 连接。 */
+/** 踢掉指定 Session 的所有 WebSocket 连接（会话被替换）。 */
 export function kickSession(sessionId: string): void {
+  kickSessionWith(sessionId, WS_CLOSE_SESSION_REPLACED, "session_replaced");
+}
+
+/**
+ * 登出：用正常关闭码断开该 Session 的连接，不触发客户端的「被踢」提示。
+ *
+ * 不更新 status —— 留给 close handler 处理（那里才能保证 peer 已从
+ * 注册表移除，避免重复写库）。
+ */
+export function closeSessionPeers(sessionId: string): void {
+  kickSessionWith(sessionId, WS_CLOSE_NORMAL, "logout");
+}
+
+function kickSessionWith(sessionId: string, code: number, reason: string): void {
   const peerIds = peersBySession.get(sessionId);
   if (!peerIds || peerIds.size === 0) return;
 
@@ -72,7 +87,7 @@ export function kickSession(sessionId: string): void {
     const ref = peerRefs.get(peerId);
     if (ref) {
       try {
-        ref.peer.close(WS_CLOSE_SESSION_REPLACED, "session_replaced");
+        ref.peer.close(code, reason);
       } catch {
         // peer 可能已关闭，忽略
       }
