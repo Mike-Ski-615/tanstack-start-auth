@@ -51,6 +51,23 @@ sessionVersion, emailVerifiedAt）；passwordHash 等存储层字段不进入查
 guard 只做转发。理由：会话校验反正要读 User 比对 sessionVersion，顺带返回即可，
 避免同一请求重复查库。
 
+### Role（角色）
+
+三个值：`student` / `teacher` / `admin`，默认 `student`。两处定义必须同步：
+`prisma/contract.ts` 的 Role enum（数据库 CHECK 约束）与
+`lib/auth/current-user.ts` 的 `ROLES`（应用层类型 + `ROLE_HOME` 路由表）。
+
+**用途只有路由重定向**：登录后按 `ROLE_HOME[user.role]` 落到对应工作台，
+每个工作台的 `beforeLoad` 再校验自己的角色，不符就跳回**他自己**那个
+（不是跳到对家 —— 否则新角色会造成乱跳）。
+
+**服务端没有任何基于 role 的校验**。这个结论很重要：它意味着目前
+「老师 / 管理员」的描述都是**业务分组，不是权限**，任何登录用户能调用的
+serverFn 都能被任何角色调用。要加真权限时，得先补服务端校验。
+
+`admin` 是预留值 —— 不比其他角色多任何权限，工作台页与其他两页等价。
+详见 TODO。
+
 ### ResetToken（重置 OTP）
 
 DB 承载：ResetToken 表存 SHA-256(6 位数字) + userId + attempts + expiresAt + usedAt。
@@ -189,7 +206,11 @@ User
 
 ### TODO
 
-1. **`User.role` 只有 teacher / student** —— 无管理员角色，管理后台类需求需要先决定。
+1. **`admin` 角色是预留的** —— 枚举里已有（student / teacher / admin），但 admin
+   目前不比其他角色多任何权限，登录后落在一个与其他两页等价的占位工作台。
+   接入真实管理功能时需要先定义「管理员能做什么」。注意：`role` 至今只用于
+   路由重定向，**服务端没有任何基于 role 的校验** —— 真要做权限控制，
+   第一件事是补上它。
 2. **`mail.ts` 目前只往控制台输出** —— 接真实 SMTP 时那段发送逻辑尚无测试覆盖
    （测试里被 mock 掉了）。
 3. **重置成功后未引导用户去验证邮箱** —— 当前重置完只改密码，设置页仍显示

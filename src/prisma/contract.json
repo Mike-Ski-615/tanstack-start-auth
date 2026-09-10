@@ -64,6 +64,10 @@
               {
                 "name": "student",
                 "value": "student"
+              },
+              {
+                "name": "admin",
+                "value": "admin"
               }
             ]
           }
@@ -1196,8 +1200,8 @@
             "User": {
               "checks": [
                 {
-                  "expression": "\"role\" IN ('teacher', 'student')",
-                  "name": "User_role_check_37b6aaf4",
+                  "expression": "\"role\" IN ('teacher', 'student', 'admin')",
+                  "name": "User_role_check_b2f7e6dc",
                   "prefix": "User_role_check"
                 }
               ],
@@ -1306,7 +1310,8 @@
               "kind": "valueSet",
               "values": [
                 "teacher",
-                "student"
+                "student",
+                "admin"
               ]
             }
           }
@@ -1315,7 +1320,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "a0620693c0a5448dfc1bfad9067a05df48042c12a981a31c3ee2d11b5e8b5c93"
+    "storageHash": "bbf23809b14e7debf6b39db700432f5038863e54cc333c241b9ab94c8882b401"
   },
   "execution": {
     "executionHash": "36f197e5006048d2e21aae611ce92a6878be7fe42d75df7b1254cc6a07965f81",

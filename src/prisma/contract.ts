@@ -1,8 +1,4 @@
-import {
-  defineContract,
-  enumType,
-  member,
-} from "@prisma/orm-postgres/contract-builder";
+import { defineContract, enumType, member } from "@prisma/orm-postgres/contract-builder";
 
 export const contract = defineContract({}, ({ field, model, rel }) => {
   // ============================================================
@@ -17,6 +13,7 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
     },
     member("teacher"),
     member("student"),
+    member("admin"),
   );
 
   const DevicePlatform = enumType(
@@ -69,9 +66,7 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
       updatedAt: field.temporal.updatedAtString(),
     },
     relations: {
-      user: rel
-        .belongsTo(User, { from: "userId", to: "id" })
-        .sql({ fk: { onDelete: "cascade" } }),
+      user: rel.belongsTo(User, { from: "userId", to: "id" }).sql({ fk: { onDelete: "cascade" } }),
     },
   });
 
@@ -98,9 +93,7 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
       // ensureDevice() 删旧 Device 时「不管 Session」是 CONTEXT.md 写明的设计，
       // 加了 cascade 会连带删掉旧 Session（导致 WS 踢人失效），
       // restrict 则会让 ensureDevice 的删除直接失败。
-      user: rel
-        .belongsTo(User, { from: "userId", to: "id" })
-        .sql({ fk: { onDelete: "cascade" } }),
+      user: rel.belongsTo(User, { from: "userId", to: "id" }).sql({ fk: { onDelete: "cascade" } }),
     },
   });
 
@@ -120,9 +113,7 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
       createdAt: field.temporal.createdAtString(),
     },
     relations: {
-      user: rel
-        .belongsTo(User, { from: "userId", to: "id" })
-        .sql({ fk: { onDelete: "cascade" } }),
+      user: rel.belongsTo(User, { from: "userId", to: "id" }).sql({ fk: { onDelete: "cascade" } }),
     },
   });
 
@@ -142,9 +133,7 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
       createdAt: field.temporal.createdAtString(),
     },
     relations: {
-      user: rel
-        .belongsTo(User, { from: "userId", to: "id" })
-        .sql({ fk: { onDelete: "cascade" } }),
+      user: rel.belongsTo(User, { from: "userId", to: "id" }).sql({ fk: { onDelete: "cascade" } }),
     },
   });
 

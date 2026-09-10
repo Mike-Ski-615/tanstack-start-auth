@@ -27,6 +27,7 @@ export const Route = createFileRoute("/authenticated/settings/account")({
 const ROLE_LABELS: Record<string, string> = {
   student: "学生",
   teacher: "教师",
+  admin: "管理员",
 };
 
 function SettingsAccountPage() {
@@ -44,24 +45,16 @@ function SettingsAccountPage() {
     <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col gap-6">
       <header>
         <div className="flex items-center gap-2">
-          <HugeiconsIcon
-            icon={UserIcon}
-            className="size-5 text-muted-foreground"
-          />
+          <HugeiconsIcon icon={UserIcon} className="size-5 text-muted-foreground" />
           <h1 className="text-xl font-semibold">账户</h1>
         </div>
-        <p className="mt-1 text-sm text-muted-foreground">
-          查看账户基本信息、验证状态和登录状态。
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">查看账户基本信息、验证状态和登录状态。</p>
       </header>
 
       {/* 基本信息 */}
       <section className="rounded-xl border bg-card">
         <div className="flex items-center gap-2 border-b p-4">
-          <HugeiconsIcon
-            icon={IdIcon}
-            className="size-5 text-muted-foreground"
-          />
+          <HugeiconsIcon icon={IdIcon} className="size-5 text-muted-foreground" />
           <h2 className="font-semibold">基本信息</h2>
         </div>
         <div className="divide-y">
@@ -71,31 +64,21 @@ function SettingsAccountPage() {
           </div>
           <div className="grid grid-cols-[100px_1fr] gap-1 p-4">
             <span className="text-xs text-muted-foreground">
-              <HugeiconsIcon
-                icon={Mail01Icon}
-                className="mr-1 inline size-3.5 align-[-2px]"
-              />
+              <HugeiconsIcon icon={Mail01Icon} className="mr-1 inline size-3.5 align-[-2px]" />
               邮箱
             </span>
             <span className="text-sm">{user.email}</span>
           </div>
           <div className="grid grid-cols-[100px_1fr] gap-1 p-4">
             <span className="text-xs text-muted-foreground">
-              <HugeiconsIcon
-                icon={Calendar01Icon}
-                className="mr-1 inline size-3.5 align-[-2px]"
-              />
+              <HugeiconsIcon icon={Calendar01Icon} className="mr-1 inline size-3.5 align-[-2px]" />
               注册时间
             </span>
-            <span className="text-sm">
-              {new Date(user.createdAt).toLocaleString("zh-CN")}
-            </span>
+            <span className="text-sm">{new Date(user.createdAt).toLocaleString("zh-CN")}</span>
           </div>
           <div className="grid grid-cols-[100px_1fr] gap-1 p-4">
             <span className="text-xs text-muted-foreground">角色</span>
-            <span className="text-sm">
-              {ROLE_LABELS[user.role] ?? user.role}
-            </span>
+            <span className="text-sm">{ROLE_LABELS[user.role] ?? user.role}</span>
           </div>
         </div>
       </section>
@@ -103,10 +86,7 @@ function SettingsAccountPage() {
       {/* 验证状态 */}
       <section className="rounded-xl border bg-card">
         <div className="flex items-center gap-2 border-b p-4">
-          <HugeiconsIcon
-            icon={CheckCircle}
-            className="size-5 text-muted-foreground"
-          />
+          <HugeiconsIcon icon={CheckCircle} className="size-5 text-muted-foreground" />
           <h2 className="font-semibold">验证状态</h2>
         </div>
         <div className="divide-y">
@@ -145,19 +125,13 @@ function SettingsAccountPage() {
       {/* 登录状态 */}
       <section className="rounded-xl border bg-card">
         <div className="flex items-center gap-2 border-b p-4">
-          <HugeiconsIcon
-            icon={DeviceAccessIcon}
-            className="size-5 text-muted-foreground"
-          />
+          <HugeiconsIcon icon={DeviceAccessIcon} className="size-5 text-muted-foreground" />
           <h2 className="font-semibold">登录状态</h2>
         </div>
         <div className="divide-y">
           <div className="p-4">
             <div className="flex items-center gap-3">
-              <HugeiconsIcon
-                icon={Shield01Icon}
-                className="size-5 shrink-0 text-blue-500"
-              />
+              <HugeiconsIcon icon={Shield01Icon} className="size-5 shrink-0 text-blue-500" />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">单设备登录</span>
@@ -173,9 +147,7 @@ function SettingsAccountPage() {
           </div>
           <div className="grid grid-cols-[100px_1fr] gap-1 p-4">
             <span className="text-xs text-muted-foreground">设备状态</span>
-            <span className="text-sm">
-              {hasDevice ? "已绑定设备" : "暂无设备"}
-            </span>
+            <span className="text-sm">{hasDevice ? "已绑定设备" : "暂无设备"}</span>
           </div>
           <div className="grid grid-cols-[100px_1fr] gap-1 p-4">
             <span className="text-xs text-muted-foreground">会话版本</span>

@@ -17,6 +17,7 @@ import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthResetRouteImport } from './routes/auth/reset'
 import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
+import { Route as AuthenticatedAdminRouteImport } from './routes/authenticated/admin'
 import { Route as AuthenticatedHelpRouteImport } from './routes/authenticated/help'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/authenticated/settings'
 import { Route as AuthenticatedStudentRouteImport } from './routes/authenticated/student'
@@ -68,6 +69,11 @@ const AuthVerifyEmailRoute = AuthVerifyEmailRouteImport.update({
   id: '/verify-email',
   path: '/verify-email',
   getParentRoute: () => AuthRoute,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedHelpRoute = AuthenticatedHelpRouteImport.update({
   id: '/help',
@@ -141,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset': typeof AuthResetRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/authenticated/admin': typeof AuthenticatedAdminRoute
   '/authenticated/help': typeof AuthenticatedHelpRoute
   '/authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/authenticated/student': typeof AuthenticatedStudentRoute
@@ -162,6 +169,7 @@ export interface FileRoutesByTo {
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset': typeof AuthResetRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/authenticated/admin': typeof AuthenticatedAdminRoute
   '/authenticated/help': typeof AuthenticatedHelpRoute
   '/authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/authenticated/student': typeof AuthenticatedStudentRoute
@@ -184,6 +192,7 @@ export interface FileRoutesById {
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset': typeof AuthResetRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/authenticated/admin': typeof AuthenticatedAdminRoute
   '/authenticated/help': typeof AuthenticatedHelpRoute
   '/authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/authenticated/student': typeof AuthenticatedStudentRoute
@@ -207,6 +216,7 @@ export interface FileRouteTypes {
     | '/auth/register'
     | '/auth/reset'
     | '/auth/verify-email'
+    | '/authenticated/admin'
     | '/authenticated/help'
     | '/authenticated/settings'
     | '/authenticated/student'
@@ -228,6 +238,7 @@ export interface FileRouteTypes {
     | '/auth/register'
     | '/auth/reset'
     | '/auth/verify-email'
+    | '/authenticated/admin'
     | '/authenticated/help'
     | '/authenticated/settings'
     | '/authenticated/student'
@@ -249,6 +260,7 @@ export interface FileRouteTypes {
     | '/auth/register'
     | '/auth/reset'
     | '/auth/verify-email'
+    | '/authenticated/admin'
     | '/authenticated/help'
     | '/authenticated/settings'
     | '/authenticated/student'
@@ -325,6 +337,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/verify-email'
       preLoaderRoute: typeof AuthVerifyEmailRouteImport
       parentRoute: typeof AuthRoute
+    }
+    '/authenticated/admin': {
+      id: '/authenticated/admin'
+      path: '/admin'
+      fullPath: '/authenticated/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/authenticated/help': {
       id: '/authenticated/help'
@@ -449,6 +468,7 @@ const AuthenticatedSettingsRouteWithChildren =
   )
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedHelpRoute: typeof AuthenticatedHelpRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
   AuthenticatedStudentRoute: typeof AuthenticatedStudentRoute
@@ -457,6 +477,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedHelpRoute: AuthenticatedHelpRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
   AuthenticatedStudentRoute: AuthenticatedStudentRoute,

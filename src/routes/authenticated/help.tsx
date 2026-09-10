@@ -55,9 +55,7 @@ function HelpPage() {
         label="目录"
         items={sectionLabels}
         value={active}
-        onChange={(i) =>
-          sectionRefs.current[i]?.scrollIntoView({ behavior: "smooth" })
-        }
+        onChange={(i) => sectionRefs.current[i]?.scrollIntoView({ behavior: "smooth" })}
         className="hidden w-fit justify-self-end self-start 2xl:flex mx-auto mt-20"
       />
 
@@ -89,18 +87,13 @@ function HelpPage() {
             <h2>快速开始</h2>
             <p>
               本平台是一套<b>协作学习空间</b>
-              ：学生与教师按角色进入各自的工作台，
-              在这里注册登录、管理账号、浏览资源与课堂入口。
+              ：学生与教师按角色进入各自的工作台， 在这里注册登录、管理账号、浏览资源与课堂入口。
             </p>
 
             <h3>三步上手</h3>
             <ol>
-              <li>
-                前往注册页或用社交账号创建一个账号（注册成功即直接登录）。
-              </li>
-              <li>
-                根据账号角色自动进入对应工作台：学生→「学生」，教师→「教师」。
-              </li>
+              <li>前往注册页或用社交账号创建一个账号（注册成功即直接登录）。</li>
+              <li>根据账号角色自动进入对应工作台：学生→「学生」，教师→「教师」。</li>
               <li>从左侧栏进入各功能入口；更多账号操作见左下角头像菜单。</li>
             </ol>
 
@@ -116,6 +109,10 @@ function HelpPage() {
               <li>
                 <strong>teacher</strong>（教师）：访问「教师」工作台 （
                 <code>/authenticated/teacher</code>）。
+              </li>
+              <li>
+                <strong>admin</strong>（管理员）：访问「管理员」工作台 （
+                <code>/authenticated/admin</code>）。目前与其他角色权限相同。
               </li>
             </ul>
             <p>
@@ -170,8 +167,7 @@ function HelpPage() {
               <p>
                 <b>隐私提示</b>
                 ：无论该邮箱是否已注册，系统都会返回同样的成功提示，
-                防止他人探测你的账号是否存在。若迟迟收不到邮件，请检查垃圾箱，
-                或联系管理员。
+                防止他人探测你的账号是否存在。若迟迟收不到邮件，请检查垃圾箱， 或联系管理员。
               </p>
             </blockquote>
           </section>
@@ -185,8 +181,7 @@ function HelpPage() {
           >
             <h2>工作台与导航</h2>
             <p>
-              登录后进入的仪表盘会根据当前账号自动区分面向对象。
-              多数页面的可用入口与你的身份相关。
+              登录后进入的仪表盘会根据当前账号自动区分面向对象。 多数页面的可用入口与你的身份相关。
             </p>
 
             <h3>主要区域</h3>
@@ -195,8 +190,7 @@ function HelpPage() {
                 <b>工作台</b>：登录后落地页面，按角色展示欢迎信息与身份。
               </li>
               <li>
-                <b>学习资源 / 课堂活动</b>：侧边栏分组，含资源、课例、
-                小组合作、展评、拓展等入口。
+                <b>学习资源 / 课堂活动</b>：侧边栏分组，含资源、课例、 小组合作、展评、拓展等入口。
               </li>
               <li>
                 <b>头像菜单</b>：位于左下角，集中了个人中心、通知、主题与登出。
@@ -228,6 +222,13 @@ function HelpPage() {
                     </td>
                     <td>面向授课者，管理内容与协作。</td>
                   </tr>
+                  <tr>
+                    <td>管理员</td>
+                    <td>
+                      <code>admin</code>
+                    </td>
+                    <td>预留角色。目前不比其他角色多任何权限，等待接入管理功能。</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -241,8 +242,7 @@ function HelpPage() {
             </dl>
             <h5>暂无独立页面时</h5>
             <p>
-              若点击某入口后主区域仍显示占位文案，说明该模块尚未开放，
-              但导航本身仍可用于占位演示。
+              若点击某入口后主区域仍显示占位文案，说明该模块尚未开放， 但导航本身仍可用于占位演示。
             </p>
           </section>
 
@@ -258,8 +258,8 @@ function HelpPage() {
             <h3>键盘快捷键</h3>
             <p>
               以下快捷键在桌面端的已登录工作区全局生效，可将鼠标拖拽、层层点击
-              缩成几下按键。本文统一以 Windows 的<kbd>Ctrl</kbd> 写法示意（macOS
-              上通常对应 <kbd>⌘</kbd> / <kbd>⌃</kbd>）。
+              缩成几下按键。本文统一以 Windows 的<kbd>Ctrl</kbd> 写法示意（macOS 上通常对应{" "}
+              <kbd>⌘</kbd> / <kbd>⌃</kbd>）。
             </p>
             <div className="typeset-scroll">
               <table>
@@ -327,16 +327,14 @@ function HelpPage() {
             <p>
               顶栏的<b>搜索框</b>本身就是命令面板入口：点击它或在任意处按
               <kbd>Ctrl</kbd> + <kbd>K</kbd>
-              ，即可输入关键词检索文档主题或浏览导航项。
-              命令面板也支持仅用键盘上下选择、回车执行。
+              ，即可输入关键词检索文档主题或浏览导航项。 命令面板也支持仅用键盘上下选择、回车执行。
             </p>
             <h4>上手建议</h4>
             <blockquote>
               <p>
                 先用 <kbd>Ctrl</kbd> + <kbd>K</kbd> 打开命令面板探索——
-                它能以最小试错成本带你熟悉全部可导航区域与内置快捷键的入口；
-                记住 <kbd>Ctrl</kbd> + <kbd>B</kbd>（侧栏）与 <kbd>Ctrl</kbd> +
-                <kbd>J</kbd>
+                它能以最小试错成本带你熟悉全部可导航区域与内置快捷键的入口； 记住 <kbd>Ctrl</kbd> +{" "}
+                <kbd>B</kbd>（侧栏）与 <kbd>Ctrl</kbd> +<kbd>J</kbd>
                 （换肤）这两个高频动作能最快提升日常效率。
               </p>
             </blockquote>
@@ -349,8 +347,8 @@ function HelpPage() {
               <li>在弹出菜单中选择「登出」。</li>
             </ol>
             <p>
-              快捷方式：任意处按 <kbd>Ctrl</kbd> + <kbd>Shift</kbd> +
-              <kbd>L</kbd>。登出会清除本机会话；公共或共享电脑离开前请务必登出。
+              快捷方式：任意处按 <kbd>Ctrl</kbd> + <kbd>Shift</kbd> +<kbd>L</kbd>
+              。登出会清除本机会话；公共或共享电脑离开前请务必登出。
             </p>
 
             <h3>切换配色主题</h3>
@@ -374,9 +372,7 @@ function HelpPage() {
               <li>个人中心：头像菜单 →「个人中心」。</li>
               <li>通知：头像菜单 →「通知」。</li>
             </ul>
-            <p>
-              这些页面展示当前登录账号的相关信息；若尚未实装文案，会显示占位内容。
-            </p>
+            <p>这些页面展示当前登录账号的相关信息；若尚未实装文案，会显示占位内容。</p>
           </section>
 
           <section
@@ -410,16 +406,16 @@ function HelpPage() {
               <summary>进入的工作台与身份不符</summary>
               <p>
                 工作台由账号角色决定且按角色跳转。若身份显示错误，
-                请确认注册的角色，或联系管理员核对账号的角色设置 （
-                <code>teacher</code> / <code>student</code>）。
+                请确认注册的角色，或联系管理员核对账号的角色设置 （<code>student</code> /{" "}
+                <code>teacher</code> / <code>admin</code>）。
               </p>
             </details>
 
             <details>
               <summary>页面是否一定要 HTTPS？</summary>
               <p>
-                生产环境会强制安全请求（<code>SameSite</code> 与仅 HTTPS
-                Cookie）；本地开发运行在 <code>localhost</code> 时不受影响。
+                生产环境会强制安全请求（<code>SameSite</code> 与仅 HTTPS Cookie）；本地开发运行在{" "}
+                <code>localhost</code> 时不受影响。
               </p>
             </details>
 
@@ -431,9 +427,7 @@ function HelpPage() {
                 ，脚本无法读取，但仍请保管好账号。
               </li>
               <li>重置令牌 15 分钟有效，逾期请重新申请；收到后请及时处理。</li>
-              <li>
-                若怀疑账号被盗，请立即在可信设备上重置密码，并联系管理员。
-              </li>
+              <li>若怀疑账号被盗，请立即在可信设备上重置密码，并联系管理员。</li>
             </ul>
             <h3>其他问题</h3>
             <p>
@@ -468,8 +462,7 @@ function HelpPage() {
                 左侧带线条，适合作提示、隐私声明。
               </li>
               <li>
-                <strong>折叠</strong>：<code>details</code> +
-                <code>summary</code>
+                <strong>折叠</strong>：<code>details</code> +<code>summary</code>
                 适合收纳"常见问题"长条目；<code>mark</code> 可高亮重点。
               </li>
               <li>

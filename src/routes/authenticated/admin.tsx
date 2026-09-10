@@ -4,27 +4,35 @@ import { LoadingPage } from "#components/status/authenticated/teacher/loading";
 import { ErrorPage } from "#components/status/authenticated/teacher/error";
 import { NotFoundPage } from "#components/status/authenticated/teacher/not-found";
 
-export const Route = createFileRoute("/authenticated/teacher")({
+/**
+ * 管理员工作台。
+ *
+ * 目前是占位页 —— `admin` 角色不比其他角色多任何权限，加它只是为了将来
+ * 接入管理功能时有个落点。在这之前，它与 teacher / student 页功能等价
+ * （都只是显示当前用户）。
+ *
+ * 复用 teacher 那套 status 组件是因为它们是通用文案（无角色字样），
+ * 复制一份只是多三份要同步维护的文件。
+ */
+export const Route = createFileRoute("/authenticated/admin")({
   pendingComponent: LoadingPage,
   errorComponent: ErrorPage,
   notFoundComponent: NotFoundPage,
-  component: TeacherPage,
+  component: AdminPage,
   beforeLoad: ({ context }) => {
-    // 不是本工作台的角色时，跳回**他自己**的默认工作台（而非对家）。
-    // 用 ROLE_HOME 而非写死目标：新增角色时这里不用改，
-    // 也不会出现「admin 访问 teacher 页 → 跳到 student」这种乱跳。
-    if (context.user.role !== "teacher") {
+    // 与 teacher / student 页同一套规则：不是本角色的工作台就跳回自己的。
+    if (context.user.role !== "admin") {
       throw redirect({ to: ROLE_HOME[context.user.role] });
     }
   },
 });
 
-function TeacherPage() {
+function AdminPage() {
   const { user } = Route.useRouteContext();
 
   return (
     <section className="p-4">
-      <h1 className="text-2xl font-bold">教师</h1>
+      <h1 className="text-2xl font-bold">管理员</h1>
       <p className="mt-2">欢迎，{user.name}</p>
       <p className="text-sm text-muted-foreground">{user.email}</p>
     </section>
