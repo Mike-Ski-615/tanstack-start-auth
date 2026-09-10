@@ -1,6 +1,7 @@
 import Heatmap from "./heatmap";
 import ThisWeek from "./week";
 import { Separator } from "#components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "#components/ui/avatar";
 import type { UserProfile } from "#server/user.functions";
 import { daysSince } from "#lib/format";
 
@@ -10,11 +11,15 @@ export function UserView({ user, calendar, stats }: UserProfile) {
       <div className=" mx-auto flex w-full max-w-7xl min-w-0 flex-col gap-4 p-4 sm:gap-5 sm:p-6 lg:gap-6 lg:p-8">
         <header className=" flex min-w-0 items-center gap-4 rounded-2xl bg-card p-5 lg:flex-col lg:gap-3 lg:bg-transparent lg:py-4">
           <div className="relative shrink-0">
-            <img
-              src={user.image}
-              alt={`${user.name} 的头像`}
-              className=" size-16 rounded-full object-cover lg:size-24"
-            />
+            {/*
+             * 用 Avatar 而非裸 <img>：用户没设头像时 image 是空串，
+             * 裸 img 会把 alt 文字（「XX 的头像」）当正文显示出来。
+             * AvatarFallback 在这种情况下显示姓名首字，与侧边栏一致。
+             */}
+            <Avatar className="size-16 lg:size-24">
+              <AvatarImage src={user.image} alt={user.name} />
+              <AvatarFallback className="text-xl lg:text-2xl">{user.name.charAt(0)}</AvatarFallback>
+            </Avatar>
           </div>
 
           <div className=" min-w-0 lg:flex lg:flex-col lg:items-center">
