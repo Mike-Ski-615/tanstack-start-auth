@@ -32,5 +32,11 @@ export const Route = createFileRoute("/authenticated/admin")({
 });
 
 function AdminLayout() {
-  return <Outlet />;
+  // 主内容区（authenticated.tsx）不提供 padding —— 由各页面/布局自己给。
+  // 放在父布局上，将来加子页不用每个都记得写。
+  return (
+    <div className="p-4 sm:p-5">
+      <Outlet />
+    </div>
+  );
 }

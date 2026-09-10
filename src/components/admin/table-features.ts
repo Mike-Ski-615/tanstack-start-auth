@@ -4,6 +4,7 @@ import {
   rowPaginationFeature,
   globalFilteringFeature,
   columnFilteringFeature,
+  columnSizingFeature,
   createSortedRowModel,
   createFilteredRowModel,
   createPaginatedRowModel,
@@ -26,6 +27,9 @@ export const adminTableFeatures = tableFeatures({
   rowPaginationFeature,
   columnFilteringFeature,
   globalFilteringFeature,
+  // 列宽（列定义里的 size）由这个 feature 提供 —— 不注册的话 size 是死数据，
+  // 表格仍然按内容自适应。
+  columnSizingFeature,
   sortedRowModel: createSortedRowModel(),
   filteredRowModel: createFilteredRowModel(),
   paginatedRowModel: createPaginatedRowModel(),

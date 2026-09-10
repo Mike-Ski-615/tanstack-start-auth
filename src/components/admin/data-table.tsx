@@ -88,7 +88,18 @@ export function DataTable({
       </div>
 
       <div className="rounded-xl border bg-card">
-        <Table>
+        <Table style={{ tableLayout: "fixed" }}>
+          {/*
+           * react-table 是 headless 的：它只算列宽，不生成 DOM。要让列定义里
+           * 的 size 生效，得自己把它接到 <colgroup>，并配上 table-layout: fixed
+           * （否则浏览器仍按内容分配宽度，colgroup 只当成建议）。
+           */}
+          <colgroup>
+            {table.getAllLeafColumns().map((col) => (
+              <col key={col.id} style={{ width: `${col.getSize()}px` }} />
+            ))}
+          </colgroup>
+
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (
               <TableRow key={hg.id}>
