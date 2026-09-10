@@ -1,13 +1,8 @@
-import { useState, useMemo } from "react";
-import { useTable, type SortingState, type ColumnDef } from "@tanstack/react-table";
-import { adminTableFeatures } from "./table-features";
+import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ArrowDown01Icon,
-  ArrowUp01Icon,
-  ArrowUpDownIcon,
-  Search01Icon,
-} from "@hugeicons/core-free-icons";
+import { Search01Icon } from "@hugeicons/core-free-icons";
+
+import { Input } from "#components/ui/input";
 import {
   Table,
   TableBody,
@@ -16,178 +11,130 @@ import {
   TableHeader,
   TableRow,
 } from "#components/ui/table";
-import { Input } from "#components/ui/input";
-import { Button } from "#components/ui/button";
-import { cn } from "#lib/utils";
-import type { User } from "#lib/auth/current-user";
+import {
+  useTable,
+  type ColumnDef,
+  type ColumnFiltersState,
+  type ColumnVisibilityState,
+  type RowData,
+  type SortingState,
+} from "@tanstack/react-table";
+
+import { features, type DataTableFeatures } from "./data-table-features";
+import { DataTablePagination } from "./data-table-pagination";
+import { DataTableViewOptions } from "./data-table-view-options";
 
 /**
- * 管理员用户表格：搜索 + 排序 + 分页。
+ * 管理员用户表格。
  *
- * 用 @tanstack/react-table **v9** 的插件式 API —— 与网上大多数 v8 教程
- * 不兼容。v9 的三条铁律（见库自带的 skills/getting-started）：
+ * 严格照 shadcn 的 Data Table 指南（TanStack Table v9）实现，不额外定制：
+ * - 排序 / 列级筛选 / 分页 / 列显隐 四块状态都由外部 state 驱动
+ * - 渲染用 v9 的 <table.FlexRender />
+ * - 分页与列开关抽成官方同名组件
  *
- *   1. `useTable({ features, data, columns })`，不是 v8 的 `useReactTable`
- *   2. 可选能力（排序/分页/筛选）必须**显式注册**在 `tableFeatures({...})`
- *      里，且 row model 槽位也放进去 —— 没注册的话方法和状态根本不存在
- *   3. 渲染用 `table.FlexRender`，不是顶层导入的 `FlexRender`
- *
- * `features` 与 `columnHelper` 定义在模块作用域：每次渲染重建会让表格
- * 状态失忆（库的文档把这条列为 MEDIUM 常见错误）。
+ * 刻意没做的（官方示例也没做）：列宽、行选择（管理员表格不做批量操作）。
  */
-
-type Props = {
-  data: User[];
-  // 列定义必须与 adminTableFeatures 配套（见 table-features.ts）
-  columns: ColumnDef<typeof adminTableFeatures, User, unknown>[];
-  searchPlaceholder?: string;
+interface DataTableProps<TData extends RowData> {
+  columns: ColumnDef<DataTableFeatures, TData>[];
+  data: TData[];
+  /** 做列级筛选的列 id。默认按邮箱过滤。 */
+  filterColumn?: string;
+  filterPlaceholder?: string;
   emptyText?: string;
-  noMatchText?: string;
-};
+  /** 列 id → 中文显示名（列开关用）。 */
+  columnTitles?: Record<string, string>;
+}
 
-export function DataTable({
-  data,
+export function DataTable<TData extends RowData>({
   columns,
-  searchPlaceholder = "搜索姓名或邮箱…",
+  data,
+  filterColumn = "email",
+  filterPlaceholder = "筛选邮箱…",
   emptyText = "暂无数据",
-  noMatchText = "没有匹配的记录",
-}: Props) {
+  columnTitles,
+}: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [globalFilter, setGlobalFilter] = useState("");
-
-  // columns 每渲染重建会让表格重新计算，交给 useMemo
-  const cols = useMemo(() => columns, [columns]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>({});
 
   const table = useTable({
-    features: adminTableFeatures,
-    columns: cols,
+    features,
     data,
-    state: { sorting, globalFilter },
+    columns,
     onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
-    initialState: { pagination: { pageSize: 10, pageIndex: 0 } },
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+    },
   });
 
-  const rows = table.getRowModel().rows;
-  const pageCount = table.getPageCount();
+  const titleOf = columnTitles ? (id: string) => columnTitles[id] ?? id : undefined;
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="relative max-w-xs">
-        <HugeiconsIcon
-          icon={Search01Icon}
-          className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
-        />
-        <Input
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-          placeholder={searchPlaceholder}
-          className="pl-8"
-          aria-label="搜索用户"
-        />
+    <div className="w-full">
+      <div className="flex items-center gap-2 py-4">
+        <div className="relative max-w-sm flex-1">
+          <HugeiconsIcon
+            icon={Search01Icon}
+            className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
+          />
+          <Input
+            placeholder={filterPlaceholder}
+            value={(table.getColumn(filterColumn)?.getFilterValue() as string) ?? ""}
+            onChange={(event) => table.getColumn(filterColumn)?.setFilterValue(event.target.value)}
+            className="pl-8"
+            aria-label="筛选用户"
+          />
+        </div>
+
+        <DataTableViewOptions table={table} titleOf={titleOf} />
       </div>
 
-      <div className="rounded-xl border bg-card">
-        <Table style={{ tableLayout: "fixed" }}>
-          {/*
-           * react-table 是 headless 的：它只算列宽，不生成 DOM。要让列定义里
-           * 的 size 生效，得自己把它接到 <colgroup>，并配上 table-layout: fixed
-           * （否则浏览器仍按内容分配宽度，colgroup 只当成建议）。
-           */}
-          <colgroup>
-            {table.getAllLeafColumns().map((col) => (
-              <col key={col.id} style={{ width: `${col.getSize()}px` }} />
-            ))}
-          </colgroup>
-
+      <div className="overflow-hidden rounded-xl border bg-card">
+        <Table>
           <TableHeader>
-            {table.getHeaderGroups().map((hg) => (
-              <TableRow key={hg.id}>
-                {hg.headers.map((header) => {
-                  const canSort = header.column.getCanSort();
-                  const sorted = header.column.getIsSorted();
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder ? null : canSort ? (
-                        <button
-                          type="button"
-                          onClick={header.column.getToggleSortingHandler()}
-                          className="flex items-center gap-1 hover:text-foreground"
-                        >
-                          <table.FlexRender header={header} />
-                          <HugeiconsIcon
-                            icon={
-                              sorted === "asc"
-                                ? ArrowUp01Icon
-                                : sorted === "desc"
-                                  ? ArrowDown01Icon
-                                  : ArrowUpDownIcon
-                            }
-                            className={cn(
-                              "size-3.5",
-                              sorted ? "text-foreground" : "text-muted-foreground",
-                            )}
-                          />
-                        </button>
-                      ) : (
-                        <table.FlexRender header={header} />
-                      )}
-                    </TableHead>
-                  );
-                })}
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder ? null : <table.FlexRender header={header} />}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
 
           <TableBody>
-            {rows.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={cols.length} className="h-24 text-center text-muted-foreground">
-                  {data.length === 0 ? emptyText : noMatchText}
-                </TableCell>
-              </TableRow>
-            ) : (
-              rows.map((row) => (
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
-                  {row.getAllCells().map((cell) => (
+                  {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       <table.FlexRender cell={cell} />
                     </TableCell>
                   ))}
                 </TableRow>
               ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center text-muted-foreground"
+                >
+                  {emptyText}
+                </TableCell>
+              </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
 
-      {pageCount > 1 && (
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">
-            第 {table.state.pagination.pageIndex + 1} / {pageCount} 页
-          </span>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              上一页
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              下一页
-            </Button>
-          </div>
-        </div>
-      )}
+      <div className="py-4">
+        <DataTablePagination table={table} />
+      </div>
     </div>
   );
 }

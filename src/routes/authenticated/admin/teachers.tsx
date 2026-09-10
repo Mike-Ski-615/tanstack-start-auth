@@ -5,7 +5,7 @@ import { UserGroupIcon } from "@hugeicons/core-free-icons";
 import { listUsersByRoleFn } from "#server/admin.functions";
 import { queryKeys } from "#lib/query-keys";
 import { DataTable } from "#components/admin/data-table";
-import { userColumns } from "#components/admin/user-columns";
+import { userColumns } from "#components/admin/columns";
 import { LoadingPage } from "#components/status/authenticated/loading";
 import { ErrorPage } from "#components/status/authenticated/error";
 import { NotFoundPage } from "#components/status/authenticated/not-found";
@@ -46,8 +46,15 @@ function AdminTeachersPage() {
       <DataTable
         data={teachers}
         columns={userColumns}
-        searchPlaceholder="搜索教师姓名或邮箱…"
+        filterPlaceholder="筛选教师邮箱…"
         emptyText="还没有教师账号"
+        columnTitles={{
+          name: "姓名",
+          email: "邮箱",
+          emailVerifiedAt: "验证状态",
+          createdAt: "注册时间",
+          actions: "操作",
+        }}
       />
     </div>
   );
