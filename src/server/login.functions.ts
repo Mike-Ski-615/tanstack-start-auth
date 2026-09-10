@@ -1,5 +1,10 @@
-// Dummy Argon2 hash 用于用户不存在时的恒定时间校验，防止 timing attack 枚举邮箱
-const DUMMY_PASSWORD_HASH = "$argon2id$v=19$m=65536,t=3,p=4$dummy$dummy";
+// Dummy Argon2 hash 用于用户不存在时的恒定时间校验，防止 timing attack 枚举邮箱。
+//
+// 必须是 argon2id 真实产出的哈希（参数与 lib/auth/password.ts 一致）。手写伪哈希
+// 会让 argon2Verify 直接抛异常而不执行任何计算，用户不存在时从“~220ms + 密码错”
+// 变成“0ms + 500”，反而给攻击者一个更清晰的信号。密码不可知，产物无法用于登录。
+const DUMMY_PASSWORD_HASH =
+  "$argon2id$v=19$m=65536,t=3,p=1$0IJWluIg0PQoVokT8IL6Yw$I3uYiR6qTsLLo1pq0jfitvOfAOD/QRz+5EaZ1kiGzos";
 
 import { createServerFn } from "@tanstack/react-start";
 import {
