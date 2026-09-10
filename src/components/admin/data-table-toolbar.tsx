@@ -36,7 +36,7 @@ export function DataTableToolbar<TData extends RowData>({
           placeholder={searchPlaceholder}
           value={(table.getColumn(searchColumn)?.getFilterValue() as string) ?? ""}
           onChange={(event) => table.getColumn(searchColumn)?.setFilterValue(event.target.value)}
-          className="h-8 w-[150px] lg:w-[250px]"
+          className="h-8 w-37.5 lg:w-62.5"
         />
 
         {roleOptions && table.getColumn("role") && (

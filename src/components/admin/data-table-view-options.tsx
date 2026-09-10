@@ -27,7 +27,7 @@ export function DataTableViewOptions<TData extends RowData>({
           视图
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[150px]">
+      <DropdownMenuContent align="end" className="w-37.5">
         <DropdownMenuLabel>切换列</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {table

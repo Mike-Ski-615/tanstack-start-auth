@@ -1,10 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { ScriptOnce } from "@tanstack/react-router";
 import { useHotkeys } from "react-hotkeys-hook";
 
@@ -50,9 +44,7 @@ export function ThemeProvider({
 
   useEffect(() => {
     const stored = localStorage.getItem(storageKey);
-    setThemeState(
-      stored === "light" || stored === "dark" ? stored : defaultTheme,
-    );
+    setThemeState(stored === "light" || stored === "dark" ? stored : defaultTheme);
     setMounted(true);
   }, [defaultTheme, storageKey]);
 
@@ -88,7 +80,6 @@ export function ThemeProvider({
 
 export function useTheme() {
   const context = useContext(ThemeProviderContext);
-  if (context === undefined)
-    throw new Error("useTheme must be used within a ThemeProvider");
+  if (context === undefined) throw new Error("useTheme must be used within a ThemeProvider");
   return context;
 }

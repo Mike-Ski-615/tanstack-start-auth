@@ -61,20 +61,14 @@ export function HeaderBell() {
             >
               <div className="flex-1 space-y-1">
                 <div className="flex items-center gap-2">
-                  {notification.unread && (
-                    <span className="size-2 rounded-full bg-primary" />
-                  )}
+                  {notification.unread && <span className="size-2 rounded-full bg-primary" />}
 
                   <p className="text-sm font-medium">{notification.title}</p>
                 </div>
 
-                <p className="text-xs text-muted-foreground">
-                  {notification.description}
-                </p>
+                <p className="text-xs text-muted-foreground">{notification.description}</p>
 
-                <p className="text-xs text-muted-foreground">
-                  {notification.time}
-                </p>
+                <p className="text-xs text-muted-foreground">{notification.time}</p>
               </div>
             </div>
           ))}

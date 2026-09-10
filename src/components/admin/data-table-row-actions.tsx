@@ -98,7 +98,7 @@ export function DataTableRowActions<TData extends RowData>({
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="end" className="w-[160px]">
+        <DropdownMenuContent align="end" className="w-40">
           <DropdownMenuItem onSelect={() => setEditOpen(true)}>
             <HugeiconsIcon icon={UserEdit01Icon} />
             编辑资料

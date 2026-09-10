@@ -1,6 +1,7 @@
 import { CommandPalette } from "#components/header/command-palette";
 import { HeaderBreadcrumb } from "#components/header/header-breadcrumb";
 import { ModeToggle } from "#components/header/mode-toggle";
+import { ContentWidthToggle } from "#components/header/content-width-toggle";
 import { PanelLeftOpen } from "#components/header/panel-left-open";
 import { Separator } from "#components/ui/separator";
 import { useSidebar } from "#components/ui/sidebar";
@@ -23,6 +24,7 @@ export function Header({ role }: { role: Role }) {
       <Separator className="my-auto data-[orientation=vertical]:h-4" orientation="vertical" />
       <HeaderBell />
       <Separator className="my-auto data-[orientation=vertical]:h-4" orientation="vertical" />
+      <ContentWidthToggle />
       <ModeToggle />
     </header>
   );

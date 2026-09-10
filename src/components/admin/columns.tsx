@@ -23,7 +23,7 @@ export const columns = columnHelper.columns([
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="全选"
-        className="translate-y-[2px]"
+        className="translate-y-0.5"
       />
     ),
     cell: ({ row }) => (
@@ -31,7 +31,7 @@ export const columns = columnHelper.columns([
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
         aria-label="选择此行"
-        className="translate-y-[2px]"
+        className="translate-y-0.5"
       />
     ),
     enableSorting: false,
@@ -46,7 +46,7 @@ export const columns = columnHelper.columns([
       return (
         <div className="flex gap-2">
           {role && <Badge variant="outline">{role.label}</Badge>}
-          <span className="max-w-[500px] truncate font-medium">{row.getValue("name")}</span>
+          <span className="max-w-125 truncate font-medium">{row.getValue("name")}</span>
         </div>
       );
     },
@@ -65,7 +65,7 @@ export const columns = columnHelper.columns([
       if (!role) return null;
 
       return (
-        <div className="flex w-[100px] items-center gap-2">
+        <div className="flex w-25 items-center gap-2">
           {role.icon && <HugeiconsIcon icon={role.icon} className="size-4 text-muted-foreground" />}
           <span>{role.label}</span>
         </div>
@@ -86,7 +86,7 @@ export const columns = columnHelper.columns([
       if (!state) return null;
 
       return (
-        <div className="flex w-[100px] items-center gap-2">
+        <div className="flex w-25 items-center gap-2">
           {state.icon && (
             <HugeiconsIcon icon={state.icon} className="size-4 text-muted-foreground" />
           )}

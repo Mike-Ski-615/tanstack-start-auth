@@ -6,13 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { queryKeys } from "#lib/query-keys";
 import { Button } from "#components/ui/button";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "#components/ui/field";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "#components/ui/field";
 import { Input } from "#components/ui/input";
 import { Textarea } from "#components/ui/textarea";
 import { updateProfileSchema, type UpdateProfileValues } from "#schemas/auth";
@@ -59,15 +53,10 @@ function SettingsProfilePage() {
     >
       <header>
         <div className="flex items-center gap-2">
-          <HugeiconsIcon
-            icon={UserIcon}
-            className="size-5 text-muted-foreground"
-          />
+          <HugeiconsIcon icon={UserIcon} className="size-5 text-muted-foreground" />
           <h1 className="text-xl font-semibold">个人信息</h1>
         </div>
-        <p className="mt-1 text-sm text-muted-foreground">
-          编辑头像、用户名与个人介绍。
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">编辑头像、用户名与个人介绍。</p>
       </header>
 
       <FieldGroup>

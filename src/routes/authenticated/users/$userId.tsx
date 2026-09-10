@@ -13,9 +13,7 @@ export const Route = createFileRoute("/authenticated/users/$userId")({
   loader: async ({ params, context }) => {
     // 走 Query 缓存而非裸调 server fn：同一用户重复访问直接命中，
     // 且加载态/错误态交给 Query 与 Router 统一的 pendingComponent。
-    const user = await context.queryClient.ensureQueryData(
-      userByIdQueryOptions(params.userId),
-    );
+    const user = await context.queryClient.ensureQueryData(userByIdQueryOptions(params.userId));
 
     if (!user) {
       throw notFound();

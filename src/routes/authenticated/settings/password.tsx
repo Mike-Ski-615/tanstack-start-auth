@@ -6,13 +6,7 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ShieldCheckIcon } from "@hugeicons/core-free-icons";
 import { Button } from "#components/ui/button";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "#components/ui/field";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "#components/ui/field";
 import { Input } from "#components/ui/input";
 import { changePasswordSchema, type ChangePasswordValues } from "#schemas/auth";
 import { changePasswordFn } from "#server/profile.functions";
@@ -64,15 +58,10 @@ function SettingsPasswordPage() {
       />
       <header>
         <div className="flex items-center gap-2">
-          <HugeiconsIcon
-            icon={Key02Icon}
-            className="size-5 text-muted-foreground"
-          />
+          <HugeiconsIcon icon={Key02Icon} className="size-5 text-muted-foreground" />
           <h1 className="text-xl font-semibold">修改密码</h1>
         </div>
-        <p className="mt-1 text-sm text-muted-foreground">
-          更新登录密码，需验证当前密码。
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">更新登录密码，需验证当前密码。</p>
       </header>
 
       <FieldGroup>

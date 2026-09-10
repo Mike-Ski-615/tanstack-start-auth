@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { ROLE_HOME } from "#lib/auth/current-user";
+import { useContentWidth, CONTENT_WIDTH_CLASS } from "#provider/content-width-provider";
 import { LoadingPage } from "#components/status/authenticated/loading";
 import { ErrorPage } from "#components/status/authenticated/error";
 import { NotFoundPage } from "#components/status/authenticated/not-found";
@@ -34,8 +35,12 @@ export const Route = createFileRoute("/authenticated/admin")({
 function AdminLayout() {
   // 主内容区（authenticated.tsx）不提供 padding —— 由各页面/布局自己给。
   // 放在父布局上，将来加子页不用每个都记得写。
+  //
+  // 宽度由 header 上的切换按钮控制。管理表格是宽内容，默认通栏最合适。
+  const { width } = useContentWidth();
+
   return (
-    <div className="p-4 sm:p-5">
+    <div className={`p-4 sm:p-5 ${CONTENT_WIDTH_CLASS[width]}`}>
       <Outlet />
     </div>
   );

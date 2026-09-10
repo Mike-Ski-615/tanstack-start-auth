@@ -13,6 +13,7 @@ import { LoadingPage } from "#components/status/__root/loading";
 import { ErrorPage } from "#components/status/__root/error";
 import { NotFoundPage } from "#components/status/__root/not-found";
 import { ThemeProvider } from "#provider/theme-provider";
+import { ContentWidthProvider } from "#provider/content-width-provider";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools";
@@ -63,10 +64,13 @@ function RootComponent() {
       </head>
       <body>
         <ThemeProvider defaultTheme="light" storageKey="theme">
-          <Toaster richColors position="top-center" />
-          <TooltipProvider>
-            <Outlet />
-          </TooltipProvider>
+          {/* 内容区宽度偏好：三个工作台布局读它，切换按钮在 header 上 */}
+          <ContentWidthProvider>
+            <Toaster richColors position="top-center" />
+            <TooltipProvider>
+              <Outlet />
+            </TooltipProvider>
+          </ContentWidthProvider>
           <Scripts />
           <TanStackDevtools
             plugins={[
