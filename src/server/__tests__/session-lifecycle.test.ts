@@ -13,6 +13,7 @@ import {
   withRequest,
   callServerFnValidated,
   getSessions,
+  getDevices,
 } from "#test/helpers";
 
 /**
@@ -35,17 +36,24 @@ async function cleanup() {
 afterEach(cleanup);
 
 /** 建用户并建立会话，返回原始 token。 */
+/**
+ * 建用户并建立会话，返回原始 token + deviceKey。
+ *
+ * 两个 cookie 都要返回：真实浏览器登录后 session-token 与 device_key 都在，
+ * 而 deviceKey 是「设备身份」，后续建立会话的路径（改密等）靠它复用同一台
+ * 设备。只给 session-token 会漏掉这个前提，测不出 Device 复用相关的行为。
+ */
 async function sessionFor(verified = true) {
   const { user, email } = await createUser({ verified });
   created.push(user.id);
   const { createAuthenticatedSession } =
     await import("#lib/auth/session-manager");
-  const { token } = await createAuthenticatedSession({
+  const { token, deviceKey } = await createAuthenticatedSession({
     userId: user.id,
     userAgent: "vitest",
     ip: "192.0.2.10",
   });
-  return { user, email, token };
+  return { user, email, token, deviceKey };
 }
 
 const withToken = <T>(token: string, fn: () => Promise<T>) =>
@@ -391,5 +399,100 @@ describe("修改密码", () => {
         { cookies: { "session-token": token } },
       ),
     ).rejects.toThrow();
+  });
+});
+
+// ============================================================
+// Device 复用（signIn 统一读 device_key cookie 后的行为）
+// ============================================================
+
+describe("Device 身份在登录态切换时保持一致", () => {
+  /**
+   * 背景：deviceKey 是「设备身份标识」，生命周期长于 Session
+   * （见 CONTEXT.md）。因此凡是建立会话的路径 —— 登录、邮箱验证、
+   * 改密、重置密码 —— 都应复用当前浏览器已有的 Device，
+   * 而不是新建一个。
+   *
+   * 改动前只有 login 会读 device_key cookie，另外三条路径每次都新建
+   * Device，同一台浏览器因此在改密/验证后「换了设备」。
+   */
+
+  it("改密后 Device 不变（复用同一台设备）", async () => {
+    const { user, token, deviceKey } = await sessionFor();
+    const [before] = await getDevices(user.id);
+    expect(before).toBeTruthy();
+
+    // 真实浏览器两个 cookie 都在
+    await withRequest(
+      {
+        cookies: { "session-token": token, device_key: deviceKey },
+      },
+      () =>
+        changePasswordFn({
+          data: { currentPassword: TEST_PASSWORD, newPassword: "brandnew123" },
+        }),
+    );
+
+    const devices = await getDevices(user.id);
+    expect(devices).toHaveLength(1);
+    // 仍只有一条 Device（单设备模型），且 deviceKey 未变
+    expect(devices[0].deviceKey).toBe(before.deviceKey);
+  });
+
+  it("改密后 Device 的 id 也未变（不是删旧建新）", async () => {
+    const { user, token, deviceKey } = await sessionFor();
+    const [before] = await getDevices(user.id);
+
+    await withRequest(
+      {
+        cookies: { "session-token": token, device_key: deviceKey },
+      },
+      () =>
+        changePasswordFn({
+          data: { currentPassword: TEST_PASSWORD, newPassword: "brandnew123" },
+        }),
+    );
+
+    const [after] = await getDevices(user.id);
+    expect(after.id).toBe(before.id);
+  });
+
+  it("登录时同样复用已有 Device（原有行为，防回归）", async () => {
+    const { user, email, token } = await sessionFor();
+    const [before] = await getDevices(user.id);
+    expect(before).toBeTruthy();
+
+    // 带上 device_key cookie 再登录一次
+    await withRequest(
+      {
+        ip: "192.0.2.30",
+        cookies: {
+          "session-token": token,
+          device_key: before.deviceKey,
+        },
+      },
+      () =>
+        import("#server/login.functions").then(({ login }) =>
+          login({ data: { email, password: TEST_PASSWORD } }),
+        ),
+    );
+
+    const devices = await getDevices(user.id);
+    expect(devices).toHaveLength(1);
+    expect(devices[0].deviceKey).toBe(before.deviceKey);
+  });
+
+  it("没有 device_key cookie 时新建 Device（首次访问）", async () => {
+    const { user } = await createUser({ verified: true });
+
+    // 不带任何 cookie 建会话
+    const { createAuthenticatedSession } =
+      await import("#lib/auth/session-manager");
+    await withRequest({ ip: "192.0.2.30" }, () =>
+      createAuthenticatedSession({ userId: user.id, ip: "192.0.2.30" }),
+    );
+
+    const devices = await getDevices(user.id);
+    expect(devices).toHaveLength(1);
   });
 });

@@ -16,7 +16,6 @@ import { db } from "#prisma/db";
 import { loginSchema } from "#schemas/auth";
 import { verifyPassword } from "#lib/auth/password";
 import { signIn } from "#lib/auth/session-manager";
-import { getDeviceKey } from "#lib/auth/session";
 import { rateLimit } from "#lib/auth/rate-limiter";
 
 /**
@@ -54,10 +53,7 @@ export const login = createServerFn({
       throw new Error("Invalid email or password");
     }
 
-    // 读取 cookie 中的 deviceKey（同设备复用）
-    const existingDeviceKey = getDeviceKey();
-
-    await signIn(user.id, existingDeviceKey);
+    await signIn(user.id);
 
     return { success: true };
   });

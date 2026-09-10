@@ -16,7 +16,7 @@ import { PUBLIC_COLUMNS, type User } from "./current-user";
 import { generateToken, hashToken } from "./token";
 import { generateOtp, hashOtp, MAX_OTP_ATTEMPTS } from "./otp";
 import { ensureDevice } from "./device";
-import { setSessionCookie, setDeviceCookie } from "./session";
+import { setSessionCookie, setDeviceCookie, getDeviceKey } from "./session";
 
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 天
 const RESET_TOKEN_TTL_MS = 15 * 60 * 1000; // 15 分钟
@@ -115,25 +115,21 @@ export async function createAuthenticatedSession(params: {
  * - 「两块 cookie 必须同时设」这个约束由本函数强制，不再靠人记住
  * - 忘设 device cookie 会让每次登录都换新 Device（静默降级），已不可能
  *
- * deviceKey 暂为可选参数：本轮只做纯重构，保持各调用点原有行为
- * （原先只有 login 传它，其余三处不传）。下一轮会去掉该参数，
- * 让四条路径统一从 cookie 读。
+ * deviceKey 统一从 cookie 读（不再由调用方传入）：deviceKey 是「设备身份
+ * 标识」，生命周期长于 Session（见 CONTEXT.md）。因此凡建立会话的路径都应
+ * 复用当前浏览器已有的 Device。曾只有 login 读了 cookie，另三条每次都新建
+ * Device —— 同一浏览器改个密码就"换了设备"，与上述定义相矛盾。
  */
-export async function signIn(
-  userId: string,
-  deviceKey?: string,
-): Promise<void> {
-  const { token, deviceKey: finalDeviceKey } = await createAuthenticatedSession(
-    {
-      userId,
-      deviceKey,
-      userAgent: getRequestHeader("user-agent"),
-      ip: getRequestIP(),
-    },
-  );
+export async function signIn(userId: string): Promise<void> {
+  const { token, deviceKey } = await createAuthenticatedSession({
+    userId,
+    deviceKey: getDeviceKey(),
+    userAgent: getRequestHeader("user-agent"),
+    ip: getRequestIP(),
+  });
 
   setSessionCookie(token);
-  setDeviceCookie(finalDeviceKey);
+  setDeviceCookie(deviceKey);
 }
 
 // ============================================================
