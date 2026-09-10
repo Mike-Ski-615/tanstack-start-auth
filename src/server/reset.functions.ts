@@ -11,8 +11,8 @@ import { hashPassword } from "../lib/auth/password";
 import { sendMail } from "../lib/auth/mail";
 import {
   createAuthenticatedSession,
-  createResetToken,
-  consumeResetToken,
+  createResetOtp,
+  verifyResetOtp,
   invalidateAllSessions,
 } from "#lib/auth/session-manager";
 import { setSessionCookie, setDeviceCookie } from "#lib/auth/session";
@@ -49,16 +49,16 @@ export const requestPasswordResetFn = createServerFn({
     const user = await db.orm.public.User.where({ email }).first();
 
     if (user) {
-      const token = await createResetToken(user.id);
+      const otp = await createResetOtp(user.id);
       await sendMail(
         email,
         "重置你的密码",
         [
-          "点击下面的链接重置你的密码（15 分钟内有效）：",
+          "你的密码重置验证码是：",
           "",
-          `${process.env.APP_URL}/auth/reset?token=${token}`,
+          `    ${otp}`,
           "",
-          "如果你没有发起此请求，可以安全地忽略这封邮件。",
+          "15 分钟内有效。如果你没有发起此请求，可以安全地忽略这封邮件。",
         ].join("\n"),
       );
     }
@@ -67,17 +67,38 @@ export const requestPasswordResetFn = createServerFn({
   });
 
 /**
- * 重置密码：验签令牌 → 改密 → 全局失效旧 Session → createAuthenticatedSession。
+ * 重置密码：校验验证码 → 改密 → 全局失效旧 Session → createAuthenticatedSession。
  */
 export const resetPasswordFn = createServerFn({
   method: "POST",
 })
   .validator(resetPasswordSchema)
-  .handler(async ({ data: { token, password } }) => {
+  .handler(async ({ data: { email, otp, password } }) => {
     setResponseHeader("Cache-Control", "no-store");
 
-    const userId = await consumeResetToken(token);
-    if (!userId) throw new Error("invalid_token");
+    // 限速：同一邮箱 + IP 组合 1 分钟最多 10 次
+    const ip = getRequestIP();
+    const { allowed, resetAt } = await rateLimit(
+      "reset-verify",
+      `${email}:${ip}`,
+    );
+    if (!allowed) {
+      setResponseStatus(429);
+      setResponseHeader(
+        "Retry-After",
+        String(Math.ceil((resetAt - Date.now()) / 1000)),
+      );
+      throw new Error("too_many_requests");
+    }
+
+    // 防枚举：用户不存在也报同一个验证码错误
+    const user = await db.orm.public.User.where({ email }).first();
+    if (!user) throw new Error("invalid_otp");
+
+    const result = await verifyResetOtp(user.id, otp);
+    if (!result.ok) throw new Error(result.reason);
+
+    const userId = result.userId;
 
     // fail-closed：先失效所有旧 Session，再改密码
     await invalidateAllSessions(userId);

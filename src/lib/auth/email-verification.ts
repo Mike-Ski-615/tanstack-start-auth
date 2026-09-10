@@ -1,29 +1,29 @@
 /**
- * 邮箱验证令牌管理。
+ * 邮箱验证 OTP 管理。
  *
- * 验证状态存于 User.emailVerifiedAt（账户状态），令牌只负责验证操作。
- * 24 小时有效，一次性（原子消费）。
+ * 验证状态存于 User.emailVerifiedAt（账户状态），OTP 只负责验证操作。
+ * 15 分钟有效，一次性（原子消费），错误次数超限即作废。
  */
 
 import { db } from "#prisma/db";
-import { generateToken, hashToken } from "./token";
+import { generateOtp, hashOtp, MAX_OTP_ATTEMPTS } from "./otp";
 
-const VERIFICATION_TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24 小时
+/** OTP 有效期：6 位数字空间有限，不宜长时间暴露。 */
+const VERIFICATION_OTP_TTL_MS = 15 * 60 * 1000; // 15 分钟
 
 /**
- * 创建邮箱验证令牌。
- * 创建新令牌前，先令该用户所有未验证的旧令牌失效（verifiedAt 设为当前时间），
- * 保证一个用户只有一个当前有效的验证令牌。
+ * 创建邮箱验证 OTP：先作废该用户所有未验证的旧 OTP，再生成一个新的。
+ * 保证一个用户同一时刻只有一个可用 OTP。
  *
- * @returns 原始令牌（应通过邮件发送给用户）
+ * @returns 6 位数字 OTP（应通过邮件发送给用户）
  */
-export async function createVerificationToken(userId: string): Promise<string> {
-  const rawToken = generateToken();
-  const tokenHash = hashToken(rawToken);
-  const expiresAt = new Date(Date.now() + VERIFICATION_TOKEN_TTL_MS).toISOString();
+export async function createVerificationOtp(userId: string): Promise<string> {
+  const otp = generateOtp();
+  const tokenHash = hashOtp(otp);
+  const expiresAt = new Date(Date.now() + VERIFICATION_OTP_TTL_MS).toISOString();
   const now = new Date().toISOString();
 
-  // 令该用户所有未验证的旧令牌失效
+  // 令该用户所有未验证的旧 OTP 失效
   const unverified = await db.orm.public.EmailVerificationToken.where(
     (t) => t.userId.eq(userId),
   )
@@ -36,43 +36,77 @@ export async function createVerificationToken(userId: string): Promise<string> {
     });
   }
 
-  // 创建新令牌
+  // 创建新 OTP
   await db.orm.public.EmailVerificationToken.create({
     userId,
     tokenHash,
     expiresAt,
   });
 
-  return rawToken;
+  return otp;
 }
 
+/** 邮箱验证 OTP 的校验结果。 */
+export type VerifyOtpResult =
+  | { ok: true; userId: string }
+  | { ok: false; reason: "invalid" | "expired" | "too_many_attempts" };
+
 /**
- * 原子消费邮箱验证令牌：存在 → 未过期 → 未验证 → 标记 verifiedAt + 设 User.emailVerifiedAt。
+ * 校验邮箱验证 OTP。
  *
- * 单条 SQL 完成「检查 + 更新」，杜绝并发双消费。
- * 返回 null 表示令牌不存在 / 已验证 / 已过期。
+ * 流程：按 userId 取当前未消费的 OTP → 检查过期 / 错误次数 → 比对哈希。
+ * 比对失败时 attempts + 1；达到上限则该 OTP 直接作废。
+ *
+ * 注意必须按 userId 查而非按 otp 查：OTP 空间只有 100 万，不同用户可能
+ * 撞到同一个值，按 otp 查会命中别人的记录。
  */
-export async function consumeVerificationToken(
-  rawToken: string,
-): Promise<string | null> {
-  const tokenHash = hashToken(rawToken);
+export async function verifyEmailOtp(
+  userId: string,
+  otp: string,
+): Promise<VerifyOtpResult> {
   const now = new Date();
 
-  const token = await db.orm.public.EmailVerificationToken.where({ tokenHash })
+  const record = await db.orm.public.EmailVerificationToken.where(
+    (t) => t.userId.eq(userId),
+  )
     .where((t) => t.verifiedAt.isNull())
-    .where((t) => t.expiresAt.gt(now.toISOString()))
-    .update({
+    .first();
+
+  if (!record) return { ok: false, reason: "invalid" };
+  if (new Date(record.expiresAt).getTime() < now.getTime()) {
+    return { ok: false, reason: "expired" };
+  }
+
+  if (record.attempts >= MAX_OTP_ATTEMPTS) {
+    // 超限：直接作废，用户需重新发起
+    await db.orm.public.EmailVerificationToken.where({ id: record.id }).update({
       verifiedAt: now.toISOString(),
     });
+    return { ok: false, reason: "too_many_attempts" };
+  }
 
-  if (!token) return null;
+  if (record.tokenHash !== hashOtp(otp)) {
+    const next = record.attempts + 1;
+    await db.orm.public.EmailVerificationToken.where({ id: record.id }).update({
+      attempts: next,
+      // 最后一次也判错时顺手作废，避免留下一个已耗尽的 OTP 记录
+      ...(next >= MAX_OTP_ATTEMPTS ? { verifiedAt: now.toISOString() } : {}),
+    });
+    return {
+      ok: false,
+      reason: next >= MAX_OTP_ATTEMPTS ? "too_many_attempts" : "invalid",
+    };
+  }
 
-  // 同步更新 User.emailVerifiedAt（账户级验证状态）
-  await db.orm.public.User.where({ id: token.userId }).update({
+  // 命中：标记消费 + 同步账户级验证状态
+  await db.orm.public.EmailVerificationToken.where({ id: record.id }).update({
+    verifiedAt: now.toISOString(),
+  });
+  await db.orm.public.User.where({ id: userId }).update({
     emailVerifiedAt: now.toISOString(),
   });
 
-  return token.userId;
+  return { ok: true, userId };
 }
 
 /**

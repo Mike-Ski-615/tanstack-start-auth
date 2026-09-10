@@ -109,6 +109,8 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
       id: field.id.uuidv7Native(),
       userId: field.uuidNative(),
       tokenHash: field.text().unique(),
+      // OTP 只有 6 位数字（100 万种），必须计数错误尝试，否则可被暴力撞开
+      attempts: field.int().default(0),
       expiresAt: field.temporal.timestamptzString(),
       usedAt: field.temporal.timestamptzString().optional(),
       createdAt: field.temporal.createdAtString(),
@@ -127,6 +129,8 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
       id: field.id.uuidv7Native(),
       userId: field.uuidNative(),
       tokenHash: field.text().unique(),
+      // 同 ResetToken：6 位 OTP 需计错误尝试
+      attempts: field.int().default(0),
       expiresAt: field.temporal.timestamptzString(),
       verifiedAt: field.temporal.timestamptzString().optional(),
       createdAt: field.temporal.createdAtString(),

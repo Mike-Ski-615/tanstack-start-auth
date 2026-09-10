@@ -2,14 +2,15 @@
  * 会话管理：两个核心原语。
  *
  * - createAuthenticatedSession(): 创建认证会话（Device + Session）
- * - invalidateAllSessions(): 全局失效所有会话（递增 sessionVersion）
+ * - createResetOtp() / verifyResetOtp(): 密码重置验证码
  *
- * 所有认证操作（登录/注册/改密/重置）都基于这两个原语组合。
+ * 所有认证操作（登录/注册/改密/重置）都基于这些原语组合。
  */
 
 import { db } from "#prisma/db";
 import { PUBLIC_COLUMNS, type User } from "./current-user";
 import { generateToken, hashToken } from "./token";
+import { generateOtp, hashOtp, MAX_OTP_ATTEMPTS } from "./otp";
 import { ensureDevice } from "./device";
 
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 天
@@ -183,14 +184,24 @@ export async function purgeExpiredSessions(): Promise<number> {
 }
 
 // ============================================================
-// 重置令牌
+// 密码重置 OTP
 // ============================================================
 
-/** 创建密码重置令牌。 */
-export async function createResetToken(userId: string): Promise<string> {
-  const rawToken = generateToken();
-  const tokenHash = hashToken(rawToken);
+/** 创建密码重置 OTP：先作废该用户旧的重置 OTP，再生成一个新的。 */
+export async function createResetOtp(userId: string): Promise<string> {
+  const otp = generateOtp();
+  const tokenHash = hashOtp(otp);
   const expiresAt = new Date(Date.now() + RESET_TOKEN_TTL_MS).toISOString();
+  const now = new Date().toISOString();
+
+  // 旧 OTP 一律作废，保证一个用户同一时刻只有一个可用重置 OTP
+  const unused = await db.orm.public.ResetToken.where((t) => t.userId.eq(userId))
+    .where((t) => t.usedAt.isNull())
+    .all();
+
+  for (const t of unused) {
+    await db.orm.public.ResetToken.where({ id: t.id }).update({ usedAt: now });
+  }
 
   await db.orm.public.ResetToken.create({
     userId,
@@ -198,26 +209,60 @@ export async function createResetToken(userId: string): Promise<string> {
     expiresAt,
   });
 
-  return rawToken;
+  return otp;
 }
 
+/** 密码重置 OTP 的校验结果。 */
+export type VerifyResetOtpResult =
+  | { ok: true; userId: string }
+  | { ok: false; reason: "invalid" | "expired" | "too_many_attempts" };
+
 /**
- * 校验并使用重置令牌：存在 → 未过期 → 未使用 → 标记已使用 → 返回 userId。
+ * 校验密码重置 OTP。
  *
- * 原子消费：WHERE 条件包含 tokenHash + usedAt IS NULL + expiresAt > now，
- * 单条 SQL 完成「检查 + 更新」，杜绝并发双消费。
- * 返回 null 表示令牌不存在 / 已使用 / 已过期。
+ * 与邮箱验证同一套逻辑：6 位数字必须计错误次数（见 MAX_OTP_ATTEMPTS），
+ * 否则限速之外的暴力枚举仍能撞开。必须先按 userId 取记录再比对，
+ * 不能按 otp 查 —— 百万级空间下不同用户可能撞到同一个值。
  */
-export async function consumeResetToken(rawToken: string): Promise<string | null> {
-  const tokenHash = hashToken(rawToken);
+export async function verifyResetOtp(
+  userId: string,
+  otp: string,
+): Promise<VerifyResetOtpResult> {
   const now = new Date();
 
-  const token = await db.orm.public.ResetToken.where({ tokenHash })
+  const record = await db.orm.public.ResetToken.where(
+    (t) => t.userId.eq(userId),
+  )
     .where((t) => t.usedAt.isNull())
-    .where((t) => t.expiresAt.gt(now.toISOString()))
-    .update({
+    .first();
+
+  if (!record) return { ok: false, reason: "invalid" };
+  if (new Date(record.expiresAt).getTime() < now.getTime()) {
+    return { ok: false, reason: "expired" };
+  }
+
+  if (record.attempts >= MAX_OTP_ATTEMPTS) {
+    await db.orm.public.ResetToken.where({ id: record.id }).update({
       usedAt: now.toISOString(),
     });
+    return { ok: false, reason: "too_many_attempts" };
+  }
 
-  return token?.userId ?? null;
+  if (record.tokenHash !== hashOtp(otp)) {
+    const next = record.attempts + 1;
+    await db.orm.public.ResetToken.where({ id: record.id }).update({
+      attempts: next,
+      ...(next >= MAX_OTP_ATTEMPTS ? { usedAt: now.toISOString() } : {}),
+    });
+    return {
+      ok: false,
+      reason: next >= MAX_OTP_ATTEMPTS ? "too_many_attempts" : "invalid",
+    };
+  }
+
+  await db.orm.public.ResetToken.where({ id: record.id }).update({
+    usedAt: now.toISOString(),
+  });
+
+  return { ok: true, userId };
 }

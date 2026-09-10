@@ -9,8 +9,10 @@ const passwordField = z
   .min(6, "密码至少 6 位")
   .max(32, "密码最多 32 位");
 
-/** 邮件链接里携带的令牌（重置 / 验证邮箱共用同一形状）。 */
-const tokenField = z.string().min(1);
+/** 6 位数字验证码。 */
+const otpField = z
+  .string()
+  .regex(/^\d{6}$/, "验证码为 6 位数字");
 
 export const loginSchema = z.object({
   email: emailField,
@@ -42,12 +44,14 @@ export const changePasswordSchema = z.object({
 });
 
 export const resetPasswordSchema = z.object({
-  token: tokenField,
+  email: emailField,
+  otp: otpField,
   password: passwordField,
 });
 
-export const verifyEmailSchema = z.object({
-  token: tokenField,
+export const verifyEmailOtpSchema = z.object({
+  email: emailField,
+  otp: otpField,
 });
 
 /** 按 id 取任意用户的公开形态。 */
@@ -65,5 +69,5 @@ export {
   type ChangePasswordValues,
 };
 export type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
-export type VerifyEmailValues = z.infer<typeof verifyEmailSchema>;
+export type VerifyEmailOtpValues = z.infer<typeof verifyEmailOtpSchema>;
 export type UserIdValues = z.infer<typeof userIdSchema>;

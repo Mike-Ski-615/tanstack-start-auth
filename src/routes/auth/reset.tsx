@@ -12,14 +12,20 @@ import {
   FieldLabel,
 } from "#components/ui/field";
 import { Input } from "#components/ui/input";
+import { useState } from "react";
 import { resetPasswordSchema } from "#schemas/auth";
 import { useResetPasswordMutation } from "#hooks/use-auth-mutations";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "#components/ui/input-otp";
 import { LoadingPage } from "#components/status/auth/reset/loading";
 import { ErrorPage } from "#components/status/auth/reset/error";
 import { NotFoundPage } from "#components/status/auth/reset/not-found";
 
 const resetSearchSchema = z.object({
-  token: z.string().catch(""),
+  email: z.string().catch(""),
 });
 
 export const Route = createFileRoute("/auth/reset")({
@@ -31,8 +37,9 @@ export const Route = createFileRoute("/auth/reset")({
 });
 
 function ResetPage() {
-  const { token } = Route.useSearch();
-  const resetMutation = useResetPasswordMutation(token);
+  const { email } = Route.useSearch();
+  const [otp, setOtp] = useState("");
+  const resetMutation = useResetPasswordMutation(email, otp);
 
   const form = useForm({
     defaultValues: {
@@ -46,10 +53,11 @@ function ResetPage() {
     },
   });
 
-  if (!token) {
+  // 缺 email 无从校验验证码（本页由忘记密码→邮件跳转而来）
+  if (!email) {
     return (
       <div className="flex flex-col items-center gap-2 text-center">
-        <h1 className="text-xl font-bold">重置链接无效</h1>
+        <h1 className="text-xl font-bold">缺少邮箱信息</h1>
         <FieldDescription>
           请重新发起
           <Link to="/auth/forgot-password" className="underline">
@@ -77,8 +85,26 @@ function ResetPage() {
             <span className="sr-only">Demo</span>
           </Link>
           <h1 className="text-xl font-bold">设置新密码</h1>
-          <FieldDescription>重置成功后即可直接登录。</FieldDescription>
+          <FieldDescription>
+            验证码已发送至 {email}，15 分钟内有效。
+          </FieldDescription>
         </div>
+
+        <Field>
+          <FieldLabel htmlFor="otp">邮箱验证码</FieldLabel>
+          <InputOTP
+            maxLength={6}
+            value={otp}
+            onChange={setOtp}
+            disabled={resetMutation.isPending}
+          >
+            <InputOTPGroup>
+              {Array.from({ length: 6 }, (_, i) => (
+                <InputOTPSlot key={i} index={i} />
+              ))}
+            </InputOTPGroup>
+          </InputOTP>
+        </Field>
 
         <form.Field name="password">
           {(passwordField) => {
@@ -111,9 +137,19 @@ function ResetPage() {
         </form.Field>
 
         <Field>
-          <Button type="submit" disabled={resetMutation.isPending}>
+          <Button
+            type="submit"
+            disabled={
+              otp.length !== 6 || resetMutation.isPending
+            }
+          >
             {resetMutation.isPending ? "重置中..." : "重置密码"}
           </Button>
+          {resetMutation.isError && (
+            <p className="text-sm text-destructive">
+              验证码不正确或已过期，请重试
+            </p>
+          )}
         </Field>
       </FieldGroup>
     </form>

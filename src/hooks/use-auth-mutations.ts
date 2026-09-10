@@ -38,9 +38,12 @@ export function useRegisterMutation() {
   return useMutation({
     mutationFn: (data: RegisterValues) => register({ data }),
     onSuccess: (data) => {
-      // 注册 ≠ 登录：提示用户查收邮件
-      toast.success("注册成功，请查收验证邮件");
-      navigate({ to: "/auth/check-email", search: { email: data.user.email } });
+      // 注册 ≠ 登录：跳转到验证码输入页（验证成功后自动登录）
+      toast.success("注册成功，验证码已发送至邮箱");
+      navigate({
+        to: "/auth/verify-email",
+        search: { email: data.user.email },
+      });
     },
     onError: () => {
       toast.error("注册失败，请检查信息后重试");
@@ -51,11 +54,15 @@ export function useRegisterMutation() {
 
 
 export function useRequestPasswordResetMutation() {
+  const navigate = useNavigate();
   return useMutation({
     mutationFn: (data: EmailOnlyValues) => requestPasswordResetFn({ data }),
     // 防枚举：无论邮箱是否存在，服务端恒返回 ok，客户端恒显示同一提示
-    onSuccess: () => {
-      toast.info("若该邮箱已注册，重置邮件已发送，请查收");
+    onSuccess: (_data, variables) => {
+      toast.info("若该邮箱已注册，重置验证码已发送，请查收");
+      // 无论邮箱是否存在都跳转（否则会暴露邮箱是否注册）。
+      // 不存在的邮箱在验证阶段会得到统一的「验证码不正确」。
+      navigate({ to: "/auth/reset", search: { email: variables.email } });
     },
     onError: () => {
       toast.error("请求失败，请稍后重试");
@@ -63,12 +70,12 @@ export function useRequestPasswordResetMutation() {
   });
 }
 
-export function useResetPasswordMutation(token: string) {
+export function useResetPasswordMutation(email: string, otp: string) {
   const navigate = useNavigate();
   const authSync = useAuthCacheSync();
   return useMutation({
     mutationFn: (password: string) =>
-      resetPasswordFn({ data: { token, password } }),
+      resetPasswordFn({ data: { email, otp, password } }),
     onSuccess: async () => {
       await authSync.onSignedIn();
       toast.success("密码重置成功，欢迎回来");

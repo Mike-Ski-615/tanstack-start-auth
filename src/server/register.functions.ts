@@ -5,7 +5,7 @@ import { db } from "#prisma/db";
 import { registerSchema } from "#schemas/auth";
 
 import { hashPassword } from "../lib/auth/password";
-import { createVerificationToken } from "#lib/auth/email-verification";
+import { createVerificationOtp } from "#lib/auth/email-verification";
 import { sendMail } from "../lib/auth/mail";
 import { rateLimit } from "#lib/auth/rate-limiter";
 
@@ -56,17 +56,17 @@ export const register = createServerFn({
         bio: DEFAULT_BIO,
       });
 
-      // 创建邮箱验证令牌 + 发邮件（事务外）
-      const verificationToken = await createVerificationToken(user.id);
+      // 创建邮箱验证 OTP + 发邮件（事务外）
+      const otp = await createVerificationOtp(user.id);
       await sendMail(
         email,
         "验证你的邮箱",
         [
-          "请点击下面的链接验证你的邮箱（24 小时内有效）：",
+          "你的邮箱验证码是：",
           "",
-          `${process.env.APP_URL}/auth/verify-email?token=${verificationToken}`,
+          `    ${otp}`,
           "",
-          "如果你没有注册账号，可以安全地忽略这封邮件。",
+          "15 分钟内有效。如果你没有注册账号，可以安全地忽略这封邮件。",
         ].join("\n"),
       );
 

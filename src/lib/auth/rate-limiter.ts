@@ -21,6 +21,10 @@ const LIMITS = {
   register: 3,
   reset: 3,
   resend: 3,
+  // OTP 验证：同一邮箱+IP 1 分钟 10 次。单枚 OTP 另有 5 次错误上限
+  // （MAX_OTP_ATTEMPTS），这里防的是「不断重发新 OTP 再撞」。
+  "verify-otp": 10,
+  "reset-verify": 10,
 } as const;
 
 type LimitKey = keyof typeof LIMITS;
