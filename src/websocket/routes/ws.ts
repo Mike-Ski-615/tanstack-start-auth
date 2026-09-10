@@ -1,11 +1,13 @@
 import { defineWebSocketHandler } from "nitro";
 import { getUserIdFromRequest } from "#lib/auth/get-user-id-from-request";
-import { db } from "#prisma/db";
 import {
   registerPeer,
   unregisterPeer,
   getUserConnectionCount,
+  broadcastPresence,
+  getOnlineUserIds,
 } from "#lib/auth/ws-registry";
+import type { ClientMessage } from "#lib/ws-protocol";
 
 /**
  * WS peer 上下文：由 upgrade 写入，open/close 读出。
@@ -33,6 +35,13 @@ function getPeerContext(peer: { context: Record<string, unknown> }): WsPeerConte
   return { userId, sessionId };
 }
 
+/**
+ * WebSocket 处理器 — 在线状态 + 被踢通知。
+ *
+ * 在线状态以本模块的注册表为唯一真源，不写 DB：
+ * 进程重启后全员离线（单实例下这是正确语义），也不会像 User.status 那样
+ * 留下永久错误的 online。
+ */
 export default defineWebSocketHandler({
   async upgrade(request) {
     const auth = await getUserIdFromRequest(request);
@@ -53,37 +62,50 @@ export default defineWebSocketHandler({
 
   async open(peer) {
     const { userId, sessionId } = getPeerContext(peer);
-    const peerId = peer.id;
 
-    // 注册到共享注册表
-    registerPeer(peerId, userId, sessionId, peer);
+    registerPeer(peer.id, userId, sessionId, peer);
 
-    // 只有第一个连接才更新 status → 避免重复写入
-    if (getUserConnectionCount(userId) === 1) {
-      await db.orm.public.User.where({ id: userId }).update({
-        status: "online",
-      });
-    }
+    // 新连接先拿一份快照，否则要等到下一次有人上下线才显示状态
+    peer.send(
+      JSON.stringify({ type: "presence", userIds: getOnlineUserIds() }),
+    );
 
-    console.log(`[WS] ${userId} 上线了 (session: ${sessionId}, peers: ${getUserConnectionCount(userId)})`);
+    // 通知所有人：此人上线了
+    broadcastPresence();
+
+    console.log(
+      `[WS] ${userId} 上线了 (session: ${sessionId}, peers: ${getUserConnectionCount(userId)})`,
+    );
   },
 
-  async close(peer, details) {
-    const { userId } = getPeerContext(peer);
-    const peerId = peer.id;
-
-    // 从共享注册表注销
-    unregisterPeer(peerId);
-
-    // 只有最后一个连接关闭时才更新 status → offline
-    const remaining = getUserConnectionCount(userId);
-    if (remaining === 0) {
-      await db.orm.public.User.where({ id: userId }).update({
-        status: "offline",
-      });
+  /**
+   * 心跳应答。客户端定时发 { type: "ping" }，服务端回 pong ——
+   * 客户端据此判断连接是否真的活着（半开连接下 onclose 可能长时间不触发）。
+   */
+  message(peer, message) {
+    let parsed: ClientMessage;
+    try {
+      parsed = JSON.parse(message.text()) as ClientMessage;
+    } catch {
+      return; // 非法 JSON 直接忽略，不当作致命错误断开
     }
 
-    console.log(`[WS] ${userId} 下线了 (${details.code}, peers: ${remaining})`);
+    if (parsed?.type === "ping") {
+      peer.send(JSON.stringify({ type: "pong" }));
+    }
+  },
+
+  async close(peer) {
+    const { userId } = getPeerContext(peer);
+
+    unregisterPeer(peer.id);
+
+    // 只有该用户最后一个连接关闭才算离线（多标签页场景）
+    if (getUserConnectionCount(userId) === 0) {
+      broadcastPresence();
+    }
+
+    console.log(`[WS] ${userId} 下线了 (peers: ${getUserConnectionCount(userId)})`);
   },
 
   error(peer, error) {

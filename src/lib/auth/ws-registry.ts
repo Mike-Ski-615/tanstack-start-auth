@@ -1,6 +1,9 @@
 /**
  * WebSocket 连接追踪 — 内存注册表。
  *
+ * 在线状态的唯一真源（User.status 字段已废除 —— 它是第二真源，
+ * 注册表丢失时会永久留下错误的 online，见 CONTEXT.md）。
+ *
  * 供 server functions 调用 kickSession / kickAllSessionsForUser。
  * WS handler (ws.ts) 在连接建立/关闭时更新此注册表。
  *
@@ -12,6 +15,7 @@ import {
   WS_CLOSE_ALL_SESSIONS_REVOKED,
   WS_CLOSE_NORMAL,
 } from "#lib/ws-close-codes";
+import type { ServerMessage } from "#lib/ws-protocol";
 
 export {
   WS_CLOSE_SESSION_REPLACED,
@@ -121,4 +125,36 @@ export function getUserConnectionCount(userId: string): number {
 /** 获取 Session 的连接数。 */
 export function getSessionConnectionCount(sessionId: string): number {
   return peersBySession.get(sessionId)?.size ?? 0;
+}
+
+/**
+ * 当前在线用户 id 快照。
+ *
+ * 返回数组而非 Set：结果要经 JSON 广播，Set 序列化为 {} 会静默丢数据。
+ * 排序保证同一状态下输出稳定，便于客户端比对与测试。
+ */
+export function getOnlineUserIds(): string[] {
+  return [...peersByUser.keys()].sort();
+}
+
+/**
+ * 向所有在线 peer 广播在线状态快照。
+ *
+ * 单实例下直接遍历内存注册表，不经过 pub/sub —— 同进程内
+ * publish 与 send 等价，多一层间接没有收益。等真要多实例时
+ * 再换成 Redis pub/sub。
+ *
+ * 发送失败逐个吞掉：某个 peer 已死不应影响其余 peer 收到广播。
+ */
+export function broadcastPresence(): void {
+  const message: ServerMessage = { type: "presence", userIds: getOnlineUserIds() };
+  const data = JSON.stringify(message);
+
+  for (const ref of peerRefs.values()) {
+    try {
+      ref.peer.send(data);
+    } catch {
+      // peer 可能已关闭，忽略
+    }
+  }
 }
