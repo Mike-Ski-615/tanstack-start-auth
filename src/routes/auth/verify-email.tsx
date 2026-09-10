@@ -1,10 +1,13 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Mail01Icon, CheckCircle } from "@hugeicons/core-free-icons";
 import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { useEffect, useState } from "react";
 import { Button } from "#components/ui/button";
 import { verifyEmailFn } from "#server/email-verification.functions";
+import { queryKeys } from "#lib/query-keys";
+import { currentUserQueryOptions } from "#lib/queries/current-user";
 
 const verifyEmailSearchSchema = z.object({
   token: z.string().catch(""),
@@ -20,6 +23,7 @@ type Status = "loading" | "success" | "error";
 function VerifyEmailPage() {
   const { token } = Route.useSearch();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [status, setStatus] = useState<Status>("loading");
 
   useEffect(() => {
@@ -29,7 +33,15 @@ function VerifyEmailPage() {
     }
 
     verifyEmailFn({ data: { token } })
-      .then(() => {
+      .then(async () => {
+        // 验证成功会建立会话（自动登录）。
+        //
+        // 必须先清 current-user 再重查，两个都不能少：未登录时 /auth 的
+        // beforeLoad 已缓存了 null，不清就会在进 /authenticated 时被命中并
+        // 弹回登录页；而只清不重查的话，接下来的 beforeLoad 会在清空后
+        // 重新发请求，白白多一次往返。
+        queryClient.removeQueries({ queryKey: queryKeys.currentUser });
+        await queryClient.ensureQueryData(currentUserQueryOptions);
         setStatus("success");
         // 2 秒后跳转到认证页面
         setTimeout(() => {
@@ -39,7 +51,7 @@ function VerifyEmailPage() {
       .catch(() => {
         setStatus("error");
       });
-  }, [token, router]);
+  }, [token, router, queryClient]);
 
   if (!token) {
     return (
