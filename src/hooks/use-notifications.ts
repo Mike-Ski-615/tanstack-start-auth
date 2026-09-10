@@ -17,24 +17,19 @@ import type { SendNotificationValues } from "#schemas/auth";
 /**
  * 通知的 query / mutation。
  *
- * 轮询节奏与 useSessionGuard 完全一致（同一个常量思路、同样的注释口径），
- * 理由也一样：通知的变化是低频事件，为它上长连接不值得。
+ * 不做轮询：通知与阅读统计的变化频率低，不值得为它持续发请求。
+ * 需要最新数据时刷新页面，或由本客户端的操作触发失效（见
+ * useInvalidateNotifications）。
  *
- * ponytail: 30s 轮询，需要更快感知就调小 NOTIFICATION_POLL_INTERVAL_MS
- * （代价是请求量）。
+ * 已知代价：**跨客户端不会自动同步** —— 学生在自己电脑上标已读，
+ * 管理员的阅读统计要刷新页面才更新。
  */
 
-/** 轮询间隔（毫秒）。与 SESSION_POLL_INTERVAL_MS 取同一值。 */
-const NOTIFICATION_POLL_INTERVAL_MS = 30_000;
-
-/** 未读数。轮询 + 窗口聚焦时立即刷新。 */
+/** 未读数（铃铛徽章）。 */
 export function useUnreadCount() {
   return useQuery({
     queryKey: queryKeys.notificationsUnread,
     queryFn: () => unreadCountFn(),
-    refetchInterval: NOTIFICATION_POLL_INTERVAL_MS,
-    // 切回标签页时立刻查一次，避免「切回来还要等一个轮询周期」
-    refetchOnWindowFocus: true,
     // 未读数是轻查询，没必要每次失败就重试三次
     retry: 1,
   });
@@ -50,22 +45,13 @@ export function useNotifications(enabled: boolean) {
   });
 }
 
-/**
- * 让通知相关的所有缓存失效。
- *
- * 包含 sentNotifications（管理员的已发列表）—— 它在**同一个浏览器里**
- * 切换账号时会派上用场：管理员看完学生视角再切回来，阅读统计要是新的。
- *
- * 但注意这解决不了跨客户端的问题：学生在自己电脑上标已读，管理员的
- * 浏览器不会收到任何通知，只能靠 sentNotifications 的轮询。两者都要有。
- */
+/** 让列表与未读数一起失效（任一操作后都要）。 */
 function useInvalidateNotifications() {
   const qc = useQueryClient();
   return () =>
     Promise.all([
       qc.invalidateQueries({ queryKey: queryKeys.notificationsList }),
       qc.invalidateQueries({ queryKey: queryKeys.notificationsUnread }),
-      qc.invalidateQueries({ queryKey: queryKeys.sentNotifications }),
     ]);
 }
 
@@ -104,20 +90,12 @@ export function useDeleteNotificationMutation() {
 // 管理侧
 // ============================================================
 
-/**
- * 已发出的通知（含收件数 / 已读数）。
- *
- * 带轮询：阅读情况是**别人**（收件人）产生的数据，本客户端无从得知何时变化。
- * 与未读数同节奏（30s），保持一致的感知延迟。
- */
+/** 已发出的通知（含收件数 / 已读数）。 */
 export function useSentNotifications() {
   return useQuery({
     queryKey: queryKeys.sentNotifications,
     queryFn: () => listSentNotificationsFn(),
     staleTime: 10_000,
-    refetchInterval: NOTIFICATION_POLL_INTERVAL_MS,
-    // 切回标签页时立刻查一次
-    refetchOnWindowFocus: true,
   });
 }
 
@@ -127,8 +105,6 @@ export function useSelectableUsers() {
     queryKey: queryKeys.selectableUsers,
     queryFn: () => listSelectableUsersFn(),
     staleTime: 60_000,
-    // 新增/删除用户后名单会变；管理页轮询间隔内切回本页时刷新一次
-    refetchOnWindowFocus: true,
   });
 }
 
