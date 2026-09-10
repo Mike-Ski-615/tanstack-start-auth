@@ -185,7 +185,7 @@ User
 | sessionVersion increment | PASS     | 单条原子 UPDATE（ADR-0004）                                                                                                     |
 | RateLimit increment      | PASS     | 单条原子 UPSERT（ADR-0004）                                                                                                     |
 | UUID foreign-key types   | PASS     | 已消除全部 as unknown as（ADR-0003）                                                                                            |
-| 回归网                   | 264 用例 | vitest，pre-commit 与 CI 都跑                                                                                                   |
+| 回归网                   | 355 用例 | vitest；cookie 层、guard、device（含 lastSeen 节流）均有直接用例；pre-commit 与 CI 都跑                                         |
 
 ### TODO
 
@@ -193,5 +193,3 @@ User
 2. **`User.role` 只有 teacher / student** —— 无管理员角色，管理后台类需求需要先决定。
 3. **`mail.ts` 目前只往控制台输出** —— 接真实 SMTP 时那段发送逻辑尚无测试覆盖
    （测试里被 mock 掉了）。
-4. **`guard` / `session` / `device` 只被间接覆盖** —— 所有 serverFn 测试都经过它们，
-   但没有针对这几个模块的直接用例；`touchLastSeen` 的 5 分钟节流也未单独验证。
