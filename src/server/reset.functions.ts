@@ -8,12 +8,8 @@ import { db } from "#prisma/db";
 import { emailOnlySchema, resetPasswordSchema } from "#schemas/auth";
 import { hashPassword } from "../lib/auth/password";
 import { sendMail } from "../lib/auth/mail";
-import {
-  createResetOtp,
-  verifyResetOtp,
-  invalidateAllSessions,
-  signIn,
-} from "#lib/auth/session-manager";
+import { invalidateAllSessions, signIn } from "#lib/auth/session-manager";
+import { createResetOtp, verifyResetOtp } from "#lib/auth/reset-otp";
 import { rateLimit } from "#lib/auth/rate-limiter";
 
 /**

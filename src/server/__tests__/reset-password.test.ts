@@ -37,7 +37,7 @@ async function cleanup() {
 async function userWithResetOtp() {
   const { user, email } = await createUser({ verified: true });
   created.push(user.id);
-  const { createResetOtp } = await import("#lib/auth/session-manager");
+  const { createResetOtp } = await import("#lib/auth/reset-otp");
   const otp = await createResetOtp(user.id);
   return { user, email, otp };
 }

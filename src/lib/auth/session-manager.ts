@@ -1,27 +1,27 @@
 /**
- * 会话管理：核心原语与登录动作。
+ * 会话管理：会话生命周期与登录动作。
  *
- * 原语：
+ * 本模块只关心 Session：创建、校验、撤销、全局失效、清理。
+ * 重置 OTP 在 reset-otp.ts，邮箱验证 OTP 在 email-verification.ts ——
+ * 两者都与会话无关（它们发生在建立会话之前）。
+ *
  * - createAuthenticatedSession(): 创建认证会话（Device + Session）
- * - invalidateAllSessions(): 全局失效
- * - createResetOtp() / verifyResetOtp(): 密码重置验证码
- *
- * 登录动作：
  * - signIn(): 建会话 + 写两块 cookie（所有「登录成功」路径的统一入口）
+ * - invalidateAllSessions(): 递增 sessionVersion，全局失效
+ * - validateSession() / revokeSession() / purgeExpiredSessions()
  */
 
 import { db } from "#prisma/db";
 import { getRequestHeader, getRequestIP } from "@tanstack/react-start/server";
 import { PUBLIC_COLUMNS, type User } from "./current-user";
 import { generateToken, hashToken } from "./token";
-import { generateOtp, hashOtp, MAX_OTP_ATTEMPTS } from "./otp";
 import { ensureDevice } from "./device";
 import { setSessionCookie, setDeviceCookie, getDeviceKey } from "./session";
 
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 天
-const RESET_TOKEN_TTL_MS = 15 * 60 * 1000; // 15 分钟
 
-export type Session = {
+/** 会话行的形状（仅本模块内部使用）。 */
+type Session = {
   id: string;
   userId: string;
   deviceId: string;
@@ -33,15 +33,6 @@ export type Session = {
   updatedAt: string;
   expiresAt: string;
   revokedAt: string | null;
-};
-
-export type ResetToken = {
-  id: string;
-  userId: string;
-  tokenHash: string;
-  expiresAt: string;
-  usedAt: string | null;
-  createdAt: string;
 };
 
 // ============================================================
@@ -215,90 +206,4 @@ export async function purgeExpiredSessions(): Promise<number> {
     s.expiresAt.lt(now),
   ).deleteAndCount();
   return deleted;
-}
-
-// ============================================================
-// 密码重置 OTP
-// ============================================================
-
-/** 创建密码重置 OTP：先作废该用户旧的重置 OTP，再生成一个新的。 */
-export async function createResetOtp(userId: string): Promise<string> {
-  const otp = generateOtp();
-  const tokenHash = hashOtp(otp);
-  const expiresAt = new Date(Date.now() + RESET_TOKEN_TTL_MS).toISOString();
-  const now = new Date().toISOString();
-
-  // 旧 OTP 一律作废，保证一个用户同一时刻只有一个可用重置 OTP
-  const unused = await db.orm.public.ResetToken.where((t) =>
-    t.userId.eq(userId),
-  )
-    .where((t) => t.usedAt.isNull())
-    .all();
-
-  for (const t of unused) {
-    await db.orm.public.ResetToken.where({ id: t.id }).update({ usedAt: now });
-  }
-
-  await db.orm.public.ResetToken.create({
-    userId,
-    tokenHash,
-    expiresAt,
-  });
-
-  return otp;
-}
-
-/** 密码重置 OTP 的校验结果。 */
-export type VerifyResetOtpResult =
-  | { ok: true; userId: string }
-  | { ok: false; reason: "invalid" | "expired" | "too_many_attempts" };
-
-/**
- * 校验密码重置 OTP。
- *
- * 与邮箱验证同一套逻辑：6 位数字必须计错误次数（见 MAX_OTP_ATTEMPTS），
- * 否则限速之外的暴力枚举仍能撞开。必须先按 userId 取记录再比对，
- * 不能按 otp 查 —— 百万级空间下不同用户可能撞到同一个值。
- */
-export async function verifyResetOtp(
-  userId: string,
-  otp: string,
-): Promise<VerifyResetOtpResult> {
-  const now = new Date();
-
-  const record = await db.orm.public.ResetToken.where((t) =>
-    t.userId.eq(userId),
-  )
-    .where((t) => t.usedAt.isNull())
-    .first();
-
-  if (!record) return { ok: false, reason: "invalid" };
-  if (new Date(record.expiresAt).getTime() < now.getTime()) {
-    return { ok: false, reason: "expired" };
-  }
-
-  if (record.attempts >= MAX_OTP_ATTEMPTS) {
-    await db.orm.public.ResetToken.where({ id: record.id }).update({
-      usedAt: now.toISOString(),
-    });
-    return { ok: false, reason: "too_many_attempts" };
-  }
-
-  if (record.tokenHash !== hashOtp(otp)) {
-    const next = record.attempts + 1;
-    await db.orm.public.ResetToken.where({ id: record.id }).update({
-      attempts: next,
-      ...(next >= MAX_OTP_ATTEMPTS ? { usedAt: now.toISOString() } : {}),
-    });
-    return {
-      ok: false,
-      reason: next >= MAX_OTP_ATTEMPTS ? "too_many_attempts" : "invalid",
-    };
-  }
-
-  await db.orm.public.ResetToken.where({ id: record.id }).update({
-    usedAt: now.toISOString(),
-  });
-
-  return { ok: true, userId };
 }
