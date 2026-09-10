@@ -7,7 +7,13 @@
  * 供 server functions 调用 kickSession / kickAllSessionsForUser。
  * WS handler (ws.ts) 在连接建立/关闭时更新此注册表。
  *
- * 多实例部署时需替换为 Redis。
+ * 状态存在 globalThis 而非模块级变量：dev 模式下 Nitro 会把 WS handler
+ * （serverDir）与 server functions 放在**不同的模块图**里，同一模块会
+ * 被实例化两次，各自持有独立的 Map。后果是 kickSession 在 server function
+ * 那份空 Map 上操作，永远踢不到真实连接（已实测：两个实例的 moduleId 不同、
+ * 注册表 size 分别为 0 和 1）。挂到 globalThis 后两边共享同一份状态。
+ *
+ * 多实例部署（多进程）时需替换为 Redis。
  */
 
 import {
@@ -22,9 +28,31 @@ export {
   WS_CLOSE_ALL_SESSIONS_REVOKED,
 };
 
-const peersBySession = new Map<string, Set<string>>();
-const peersByUser = new Map<string, Set<string>>();
-const peerRefs = new Map<string, { peer: any; userId: string; sessionId: string }>();
+/** 跨模块实例共享的注册表容器。 */
+interface WsRegistryStore {
+  peersBySession: Map<string, Set<string>>;
+  peersByUser: Map<string, Set<string>>;
+  peerRefs: Map<string, { peer: any; userId: string; sessionId: string }>;
+}
+
+const STORE_KEY = "__ws_registry_store__";
+
+function getStore(): WsRegistryStore {
+  const g = globalThis as unknown as Record<string, WsRegistryStore | undefined>;
+  if (!g[STORE_KEY]) {
+    g[STORE_KEY] = {
+      peersBySession: new Map(),
+      peersByUser: new Map(),
+      peerRefs: new Map(),
+    };
+  }
+  return g[STORE_KEY]!;
+}
+
+const store = getStore();
+const peersBySession = store.peersBySession;
+const peersByUser = store.peersByUser;
+const peerRefs = store.peerRefs;
 
 /** 注册新 WS 连接。由 ws.ts open handler 调用。 */
 export function registerPeer(peerId: string, userId: string, sessionId: string, peer: any): void {
