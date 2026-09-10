@@ -122,11 +122,23 @@ DB 承载：RateLimit 表存 key（类型:标识符）+ count + windowStart + ex
 
 ### Fail-Closed 顺序
 
-无多语句 transaction 前提下，安全敏感操作采用 fail-closed 顺序：
+无多语句 transaction 前提下，安全敏感操作采用 fail-closed 顺序，**已由
+`lib/auth/password-rotation.ts` 的 `rotatePassword()` 强制**：
 
-- 改密：invalidateAllSessions → update passwordHash → signIn
-- 重置：verify OTP → invalidateAllSessions → update passwordHash → signIn
-  若 invalidate 失败，密码不被修改（用户被登出但密码安全）。
+```
+1. invalidateAllSessions(userId)   ← 失败则中止，密码不动
+2. update passwordHash
+3. signIn(userId)                  ← 用递增后的 sessionVersion 建新会话
+```
+
+改密（已登录，验当前密码）与重置（未登录，验 OTP）两条路径的前置校验
+完全不同，但尾部这三步相同 —— 各自只做前置部分，尾部都调 `rotatePassword`。
+
+若 invalidate 失败，密码不被修改（用户被登出但密码安全）。反过来（先改密码
+再失效）会出现「密码已换、旧会话仍有效」的窗口，攻击者持有的旧 token 还能用。
+
+> 这个约束以前只写在本文件里、两个调用点各自照做；现在代码是单一来源，
+> 本节只作索引。
 
 ### 会话失效检测（客户端）
 

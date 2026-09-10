@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { db } from "#prisma/db";
-import { hashPassword, verifyPassword } from "#lib/auth/password";
+import { verifyPassword } from "#lib/auth/password";
+import { rotatePassword } from "#lib/auth/password-rotation";
 import { changePasswordSchema, updateProfileSchema } from "#schemas/auth";
 import { getCurrentUser } from "#lib/auth/guard";
-import { invalidateAllSessions, signIn } from "#lib/auth/session-manager";
 
 /**
  * 更新当前登录用户的可编辑资料（name / bio）。
@@ -46,16 +46,7 @@ export const changePasswordFn = createServerFn({
 
     if (!ok) throw new Error("当前密码不正确");
 
-    // fail-closed：先失效所有旧 Session，再改密码
-    // 如果 invalidate 失败，密码不会被修改（用户被登出但密码安全）
-    await invalidateAllSessions(user.id);
-
-    await db.orm.public.User.where({ id: user.id }).update({
-      passwordHash: await hashPassword(newPassword),
-    });
-
-    // 自动登录（新 Device + Session）
-    await signIn(user.id);
+    await rotatePassword(user.id, newPassword);
 
     return { success: true as const };
   });

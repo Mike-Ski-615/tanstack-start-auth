@@ -2,10 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequestIP, setResponseHeader } from "@tanstack/react-start/server";
 import { db } from "#prisma/db";
 import { emailOnlySchema, resetPasswordSchema } from "#schemas/auth";
-import { hashPassword } from "../lib/auth/password";
 import { sendMail } from "../lib/auth/mail";
-import { invalidateAllSessions, signIn } from "#lib/auth/session-manager";
 import { createResetOtp, verifyResetOtp } from "#lib/auth/reset-otp";
+import { rotatePassword } from "#lib/auth/password-rotation";
 import { enforceRateLimit } from "#lib/auth/rate-limiter";
 
 /**
@@ -71,15 +70,7 @@ export const resetPasswordFn = createServerFn({
 
     const userId = result.userId;
 
-    // fail-closed：先失效所有旧 Session，再改密码
-    await invalidateAllSessions(userId);
-
-    await db.orm.public.User.where({ id: userId }).update({
-      passwordHash: await hashPassword(password),
-    });
-
-    // 自动登录（新 Device + Session）
-    await signIn(userId);
+    await rotatePassword(userId, password);
 
     return { success: true };
   });
