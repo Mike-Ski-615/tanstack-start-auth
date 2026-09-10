@@ -17,12 +17,21 @@ import {
 
 import type { IconSvgElement } from "@hugeicons/react";
 
+import type { Role } from "#lib/auth/current-user";
+
 export type NavItem = {
   id: string;
   title: string;
   desc: string;
   icon: IconSvgElement;
   to?: string;
+};
+
+/** 侧边栏的一组菜单（带分组标题）。 */
+export type NavGroup = {
+  id: string;
+  label: string;
+  items: NavItem[];
 };
 
 type Intro = {
@@ -77,43 +86,122 @@ export const SETTINGS_NAV: NavItem[] = [
   },
 ];
 
-export const NAV_ITEMS: NavItem[] = [
-  {
-    id: "resources",
-    title: "资源",
-    desc: "",
-    icon: LibraryIcon,
-    to: "/authenticated",
-  },
-  {
-    id: "lessons",
-    title: "课例",
-    desc: "",
-    icon: BookBookmark01Icon,
-    to: "/authenticated",
-  },
-  {
-    id: "collaboration",
-    title: "小组合作",
-    desc: "",
-    icon: UserGroupIcon,
-    to: "/authenticated",
-  },
-  {
-    id: "exhibition",
-    title: "展评",
-    desc: "",
-    icon: Award01Icon,
-    to: "/authenticated",
-  },
-  {
-    id: "extension",
-    title: "拓展",
-    desc: "",
-    icon: CompassIcon,
-    to: "/authenticated",
-  },
-];
+/**
+ * 按角色分的导航菜单。
+ *
+ * 规则：
+ * - student：只有「资源」「课例」
+ * - teacher：学生那两项 + 「小组合作」「展评」「拓展」（即全部五项）
+ * - admin：完全独立 —— 「教师管理」「学生管理」，不与师生共享任何项
+ *
+ * 用 Record<Role, ...> 而非「基础菜单 + 追加」：将来加角色时漏写
+ * 会直接编译报错，而不是默默显示一个空侧边栏。
+ *
+ * 菜单项目前都指向 /authenticated（占位），点进去会被路由重定向到
+ * 各自的默认工作台。真实页面待实现 —— 见 CONTENT.md 的 TODO。
+ */
+export const NAV_BY_ROLE: Record<Role, NavGroup[]> = {
+  student: [
+    {
+      id: "learning",
+      label: "学习资源",
+      items: [
+        {
+          id: "resources",
+          title: "资源",
+          desc: "",
+          icon: LibraryIcon,
+          to: "/authenticated",
+        },
+        {
+          id: "lessons",
+          title: "课例",
+          desc: "",
+          icon: BookBookmark01Icon,
+          to: "/authenticated",
+        },
+      ],
+    },
+  ],
+
+  teacher: [
+    {
+      id: "learning",
+      label: "教学资源",
+      items: [
+        {
+          id: "resources",
+          title: "资源",
+          desc: "",
+          icon: LibraryIcon,
+          to: "/authenticated",
+        },
+        {
+          id: "lessons",
+          title: "课例",
+          desc: "",
+          icon: BookBookmark01Icon,
+          to: "/authenticated",
+        },
+      ],
+    },
+    {
+      id: "classroom",
+      label: "课堂活动",
+      items: [
+        {
+          id: "collaboration",
+          title: "小组合作",
+          desc: "",
+          icon: UserGroupIcon,
+          to: "/authenticated",
+        },
+        {
+          id: "exhibition",
+          title: "展评",
+          desc: "",
+          icon: Award01Icon,
+          to: "/authenticated",
+        },
+        {
+          id: "extension",
+          title: "拓展",
+          desc: "",
+          icon: CompassIcon,
+          to: "/authenticated",
+        },
+      ],
+    },
+  ],
+
+  admin: [
+    {
+      id: "management",
+      label: "管理",
+      items: [
+        {
+          id: "manage-teachers",
+          title: "教师管理",
+          desc: "",
+          icon: UserGroupIcon,
+          to: "/authenticated",
+        },
+        {
+          id: "manage-students",
+          title: "学生管理",
+          desc: "",
+          icon: UserIcon,
+          to: "/authenticated",
+        },
+      ],
+    },
+  ],
+};
+
+/** 把某角色的所有菜单项拍平（命令面板等平铺场景用）。 */
+export function navItemsFor(role: Role): NavItem[] {
+  return NAV_BY_ROLE[role].flatMap((g) => g.items);
+}
 
 export const HELP_SECTIONS: NavItem[] = [
   {

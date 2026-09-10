@@ -9,7 +9,7 @@ export function AppSidebar({ user }: { user: User }) {
     <Sidebar>
       <AppSidebarHeader />
 
-      <AppSidebarContent />
+      <AppSidebarContent role={user.role} />
 
       <AppSidebarFooter user={user} />
     </Sidebar>

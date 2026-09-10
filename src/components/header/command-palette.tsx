@@ -15,11 +15,13 @@ import {
 import { cn } from "#lib/utils";
 import { Kbd, KbdGroup } from "#components/ui/kbd";
 import { useHotkeys } from "react-hotkeys-hook";
-import { HELP_SECTIONS, NAV_ITEMS, SETTINGS_NAV } from "#data/nav";
+import { HELP_SECTIONS, navItemsFor, SETTINGS_NAV } from "#data/nav";
+import type { Role } from "#lib/auth/current-user";
 
-export function CommandPalette({ className }: { className?: string }) {
+export function CommandPalette({ className, role }: { className?: string; role: Role }) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const navItems = navItemsFor(role);
 
   useHotkeys("ctrl+k", () => setOpen((open) => !open), {
     enableOnFormTags: true,
@@ -63,7 +65,7 @@ export function CommandPalette({ className }: { className?: string }) {
               ))}
             </CommandGroup>
             <CommandGroup heading="导航">
-              {NAV_ITEMS.map((item) => (
+              {navItems.map((item) => (
                 <CommandItem key={item.id}>
                   <HugeiconsIcon icon={item.icon} />
                   <span>{item.title}</span>
