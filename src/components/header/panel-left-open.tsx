@@ -9,6 +9,7 @@ export function PanelLeftOpen() {
 
   return (
     <Button
+      type="button"
       variant="ghost"
       size="icon"
       className={cn(open && "md:hidden")}

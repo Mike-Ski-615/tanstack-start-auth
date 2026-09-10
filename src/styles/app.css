@@ -28,6 +28,7 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -69,6 +70,9 @@
   --accent: oklch(0.926 0 0);
   --accent-foreground: oklch(0.205 0.006 60);
   --destructive: oklch(0.577 0.245 27.325);
+  /* 成功态（如「已验证」）。色相 162 沿用 --chart-2 的绿，
+     两个主题各降一档明度以保证在各自背景上对比度足够。 */
+  --success: oklch(0.58 0.15 162);
   --border: oklch(0.923 0.003 48);
   --input: oklch(0.923 0.003 48);
   --ring: oklch(0.646 0.2 43);
@@ -104,6 +108,7 @@
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  --success: oklch(0.75 0.17 162);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.709 0.18 49.4);

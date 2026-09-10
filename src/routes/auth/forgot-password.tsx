@@ -3,13 +3,7 @@ import { UserIcon } from "@hugeicons/core-free-icons";
 import { useForm } from "@tanstack/react-form";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { Button } from "#components/ui/button";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "#components/ui/field";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "#components/ui/field";
 import { Input } from "#components/ui/input";
 import { emailOnlySchema } from "#schemas/auth";
 import { useRequestPasswordResetMutation } from "#hooks/use-auth-mutations";
@@ -56,7 +50,7 @@ function ForgotPasswordPage() {
           </Link>
           <h1 className="text-xl font-bold">忘记密码</h1>
           <FieldDescription>
-            输入注册邮箱，我们将发送重置链接。
+            输入注册邮箱，我们将发送 6 位验证码。
             <br />
             想起来了？ <Link to="/auth/login">返回登录</Link>
           </FieldDescription>
@@ -64,8 +58,7 @@ function ForgotPasswordPage() {
 
         <form.Field name="email">
           {(emailField) => {
-            const invalid =
-              emailField.state.meta.isTouched && !emailField.state.meta.isValid;
+            const invalid = emailField.state.meta.isTouched && !emailField.state.meta.isValid;
             return (
               <Field data-invalid={invalid}>
                 <FieldLabel htmlFor={emailField.name}>邮箱</FieldLabel>
@@ -75,17 +68,13 @@ function ForgotPasswordPage() {
                   type="email"
                   value={emailField.state.value}
                   onBlur={emailField.handleBlur}
-                  onChange={(event) =>
-                    emailField.handleChange(event.target.value)
-                  }
+                  onChange={(event) => emailField.handleChange(event.target.value)}
                   aria-invalid={invalid}
                   placeholder="name@example.com"
                   autoComplete="email"
                   required
                 />
-                {invalid && (
-                  <FieldError errors={emailField.state.meta.errors} />
-                )}
+                {invalid && <FieldError errors={emailField.state.meta.errors} />}
               </Field>
             );
           }}

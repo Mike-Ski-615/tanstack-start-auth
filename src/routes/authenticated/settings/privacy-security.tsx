@@ -14,17 +14,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "#lib/query-keys";
 import { toast } from "sonner";
 import { Button } from "#components/ui/button";
-import {
-  listSessionsFn,
-  revokeAllSessionsFn,
-} from "#server/sessions.functions";
+import { listSessionsFn, revokeAllSessionsFn } from "#server/sessions.functions";
 import { LoadingPage } from "#components/status/authenticated/settings/privacy-security/loading";
 import { ErrorPage } from "#components/status/authenticated/settings/privacy-security/error";
 import { NotFoundPage } from "#components/status/authenticated/settings/privacy-security/not-found";
 
-export const Route = createFileRoute(
-  "/authenticated/settings/privacy-security",
-)({
+export const Route = createFileRoute("/authenticated/settings/privacy-security")({
   pendingComponent: LoadingPage,
   errorComponent: ErrorPage,
   notFoundComponent: NotFoundPage,
@@ -75,10 +70,7 @@ function SettingsPrivacySecurityPage() {
     <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col gap-6">
       <header>
         <div className="flex items-center gap-2">
-          <HugeiconsIcon
-            icon={Shield01Icon}
-            className="size-5 text-muted-foreground"
-          />
+          <HugeiconsIcon icon={Shield01Icon} className="size-5 text-muted-foreground" />
           <h1 className="text-xl font-semibold">隐私与安全</h1>
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -89,10 +81,7 @@ function SettingsPrivacySecurityPage() {
       {/* 邮箱验证状态 */}
       <section className="rounded-xl border bg-card">
         <div className="flex items-center gap-2 border-b p-4">
-          <HugeiconsIcon
-            icon={CheckCircle}
-            className="size-5 text-muted-foreground"
-          />
+          <HugeiconsIcon icon={CheckCircle} className="size-5 text-muted-foreground" />
           <h2 className="font-semibold">邮箱验证</h2>
         </div>
         <div className="p-4">
@@ -103,9 +92,7 @@ function SettingsPrivacySecurityPage() {
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">
-                  {emailVerifiedAt ? "已验证" : "未验证"}
-                </span>
+                <span className="text-sm font-medium">{emailVerifiedAt ? "已验证" : "未验证"}</span>
                 {emailVerifiedAt && (
                   <span className="shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
                     安全
@@ -130,10 +117,7 @@ function SettingsPrivacySecurityPage() {
       {/* 当前设备 */}
       <section className="rounded-xl border bg-card">
         <div className="flex items-center gap-2 border-b p-4">
-          <HugeiconsIcon
-            icon={DeviceAccessIcon}
-            className="size-5 text-muted-foreground"
-          />
+          <HugeiconsIcon icon={DeviceAccessIcon} className="size-5 text-muted-foreground" />
           <h2 className="font-semibold">当前设备</h2>
         </div>
 
@@ -148,9 +132,7 @@ function SettingsPrivacySecurityPage() {
             <div className="flex items-center gap-3">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="truncate text-sm font-medium">
-                    {device.name}
-                  </span>
+                  <span className="truncate text-sm font-medium">{device.name}</span>
                   <span className="shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
                     当前
                   </span>
@@ -159,11 +141,7 @@ function SettingsPrivacySecurityPage() {
                   {device.platform} · {device.ip} · 登录于{" "}
                   {new Date(device.createdAt).toLocaleString("zh-CN")}
                   {device.lastSeenAt && (
-                    <>
-                      {" "}
-                      · 最后活动{" "}
-                      {new Date(device.lastSeenAt).toLocaleString("zh-CN")}
-                    </>
+                    <> · 最后活动 {new Date(device.lastSeenAt).toLocaleString("zh-CN")}</>
                   )}
                 </p>
               </div>
@@ -175,10 +153,7 @@ function SettingsPrivacySecurityPage() {
       {/* 当前会话 */}
       <section className="rounded-xl border bg-card">
         <div className="flex items-center gap-2 border-b p-4">
-          <HugeiconsIcon
-            icon={Key01Icon}
-            className="size-5 text-muted-foreground"
-          />
+          <HugeiconsIcon icon={Key01Icon} className="size-5 text-muted-foreground" />
           <h2 className="font-semibold">当前会话</h2>
         </div>
 
@@ -211,21 +186,14 @@ function SettingsPrivacySecurityPage() {
                 />
                 创建时间
               </span>
-              <span className="text-sm">
-                {new Date(session.createdAt).toLocaleString("zh-CN")}
-              </span>
+              <span className="text-sm">{new Date(session.createdAt).toLocaleString("zh-CN")}</span>
             </div>
             <div className="grid grid-cols-[100px_1fr] gap-1 p-4">
               <span className="text-xs text-muted-foreground">
-                <HugeiconsIcon
-                  icon={Time01Icon}
-                  className="mr-1 inline size-3.5 align-[-2px]"
-                />
+                <HugeiconsIcon icon={Time01Icon} className="mr-1 inline size-3.5 align-[-2px]" />
                 过期时间
               </span>
-              <span className="text-sm">
-                {new Date(session.expiresAt).toLocaleString("zh-CN")}
-              </span>
+              <span className="text-sm">{new Date(session.expiresAt).toLocaleString("zh-CN")}</span>
             </div>
           </div>
         )}
@@ -234,10 +202,7 @@ function SettingsPrivacySecurityPage() {
       {/* 撤销全部会话 */}
       <section className="rounded-xl border bg-card">
         <div className="flex items-center gap-2 border-b p-4">
-          <HugeiconsIcon
-            icon={Logout01Icon}
-            className="size-5 text-muted-foreground"
-          />
+          <HugeiconsIcon icon={Logout01Icon} className="size-5 text-muted-foreground" />
           <h2 className="font-semibold">撤销全部会话</h2>
         </div>
         <div className="p-4">
@@ -245,6 +210,7 @@ function SettingsPrivacySecurityPage() {
             撤销后所有设备都将需要重新登录。此操作会递增会话版本号，使所有旧会话立即失效。
           </p>
           <Button
+            type="button"
             variant="destructive"
             disabled={revokeAllMutation.isPending}
             onClick={() => revokeAllMutation.mutate()}

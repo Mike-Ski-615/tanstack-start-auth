@@ -29,6 +29,7 @@ export function CommandPalette({ className }: { className?: string }) {
   return (
     <>
       <Button
+        type="button"
         variant="secondary"
         className={cn(`justify-start sm:w-40 lg:w-56 xl:w-72 w-32`, className)}
         onClick={() => setOpen(true)}

@@ -1,20 +1,9 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
-import {
-  Link,
-  Outlet,
-  useNavigate,
-  createFileRoute,
-  useRouter,
-} from "@tanstack/react-router";
+import { Link, Outlet, useNavigate, createFileRoute, useRouter } from "@tanstack/react-router";
 import { SETTINGS_NAV } from "#data/nav";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "#components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "#components/ui/dialog";
 import {
   Sidebar,
   SidebarContent,
@@ -57,16 +46,11 @@ function SettingsLayout() {
       <DialogContent className="h-[min(80vh,500px)] max-h-[calc(100vh-2rem)] overflow-hidden p-0 sm:max-w-175 lg:max-w-200">
         <DialogTitle className="sr-only">Settings</DialogTitle>
 
-        <DialogDescription className="sr-only">
-          Customize your settings here.
-        </DialogDescription>
+        <DialogDescription className="sr-only">Customize your settings here.</DialogDescription>
 
         <SidebarProvider className="h-full min-h-0 items-stretch">
           {/* Sidebar */}
-          <Sidebar
-            collapsible="none"
-            className="hidden h-full border-r md:flex"
-          >
+          <Sidebar collapsible="none" className="hidden h-full border-r md:flex">
             <SidebarContent>
               <SidebarGroup className="p-2">
                 <SidebarGroupContent>
@@ -78,9 +62,7 @@ function SettingsLayout() {
                           {/* Avatar */}
                           <Avatar>
                             <AvatarImage src={user.image} alt={user.name} />
-                            <AvatarFallback>
-                              {user.name.charAt(0)}
-                            </AvatarFallback>
+                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                           </Avatar>
 
                           {/* User info */}
@@ -128,6 +110,7 @@ function SettingsLayout() {
             <header className="flex h-12 shrink-0 items-center border-b">
               <div className="flex items-center gap-1 px-2">
                 <Button
+                  type="button"
                   variant="ghost"
                   size="icon"
                   onClick={() => router.history.back()}
@@ -136,6 +119,7 @@ function SettingsLayout() {
                 </Button>
 
                 <Button
+                  type="button"
                   variant="ghost"
                   size="icon"
                   onClick={() => router.history.forward()}

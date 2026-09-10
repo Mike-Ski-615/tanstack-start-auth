@@ -61,7 +61,7 @@ function VerifyEmailPage() {
   if (verifyMutation.isSuccess) {
     return (
       <div className="flex flex-col items-center gap-4 text-center">
-        <HugeiconsIcon icon={CheckCircle} className="size-12 text-green-500" />
+        <HugeiconsIcon icon={CheckCircle} className="size-12 text-success" />
         <h1 className="text-xl font-bold">邮箱验证成功</h1>
         <p className="text-sm text-muted-foreground">即将跳转到首页...</p>
       </div>
@@ -122,6 +122,7 @@ function VerifyEmailPage() {
           <Link to="/auth/login">返回登录</Link>
         </Button>
         <Button
+          type="button"
           variant="link"
           size="sm"
           disabled={resendMutation.isPending}
