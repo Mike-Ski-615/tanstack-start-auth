@@ -19,16 +19,6 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
     member("student"),
   );
 
-  const OnlineStatus = enumType(
-    "OnlineStatus",
-    {
-      codecId: "pg/text@1",
-      nativeType: "text",
-    },
-    member("online"),
-    member("offline"),
-  );
-
   const DevicePlatform = enumType(
     "DevicePlatform",
     {
@@ -54,7 +44,6 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
       image: field.text(),
       bio: field.text(),
       role: field.namedType(Role).default("student"),
-      status: field.namedType(OnlineStatus).default("offline"),
       sessionVersion: field.int().default(0),
       emailVerifiedAt: field.temporal.timestamptzString().optional(),
       createdAt: field.temporal.createdAtString(),
@@ -186,7 +175,6 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
     },
     enums: {
       Role,
-      OnlineStatus,
       DevicePlatform,
     },
   };

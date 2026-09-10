@@ -54,19 +54,6 @@
               }
             ]
           },
-          "OnlineStatus": {
-            "codecId": "pg/text@1",
-            "members": [
-              {
-                "name": "online",
-                "value": "online"
-              },
-              {
-                "name": "offline",
-                "value": "offline"
-              }
-            ]
-          },
           "Role": {
             "codecId": "pg/text@1",
             "members": [
@@ -655,19 +642,6 @@
                   "kind": "scalar"
                 }
               },
-              "status": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                },
-                "valueSet": {
-                  "entityKind": "enum",
-                  "entityName": "OnlineStatus",
-                  "namespaceId": "public",
-                  "plane": "domain"
-                }
-              },
               "updatedAt": {
                 "nullable": false,
                 "type": {
@@ -739,9 +713,6 @@
                 },
                 "sessionVersion": {
                   "column": "sessionVersion"
-                },
-                "status": {
-                  "column": "status"
                 },
                 "updatedAt": {
                   "column": "updatedAt"
@@ -1190,11 +1161,6 @@
                   "expression": "\"role\" IN ('teacher', 'student')",
                   "name": "User_role_check_37b6aaf4",
                   "prefix": "User_role_check"
-                },
-                {
-                  "expression": "\"status\" IN ('online', 'offline')",
-                  "name": "User_status_check_966c8304",
-                  "prefix": "User_status_check"
                 }
               ],
               "columns": {
@@ -1266,21 +1232,6 @@
                   "nativeType": "int4",
                   "nullable": false
                 },
-                "status": {
-                  "codecId": "pg/text@1",
-                  "default": {
-                    "kind": "literal",
-                    "value": "offline"
-                  },
-                  "nativeType": "text",
-                  "nullable": false,
-                  "valueSet": {
-                    "entityKind": "valueSet",
-                    "entityName": "OnlineStatus",
-                    "namespaceId": "public",
-                    "plane": "storage"
-                  }
-                },
                 "updatedAt": {
                   "codecId": "pg/timestamptz-string@1",
                   "nativeType": "timestamptz",
@@ -1313,13 +1264,6 @@
                 "desktop"
               ]
             },
-            "OnlineStatus": {
-              "kind": "valueSet",
-              "values": [
-                "online",
-                "offline"
-              ]
-            },
             "Role": {
               "kind": "valueSet",
               "values": [
@@ -1333,7 +1277,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "4bb068fc8b074a2d60509d8ed51f72caf9064a9ad1da177824625ebaed1ba020"
+    "storageHash": "d8a6262e75ba99988488dfdb30bd0a4bafca14ebc19f3ac9832dc6a2641aba5c"
   },
   "execution": {
     "executionHash": "36f197e5006048d2e21aae611ce92a6878be7fe42d75df7b1254cc6a07965f81",
