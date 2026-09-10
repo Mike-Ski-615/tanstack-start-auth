@@ -29,11 +29,45 @@ const LIMITS = {
 
 type LimitKey = keyof typeof LIMITS;
 
+/**
+ * 限速的主体：被限的是什么（IP / 邮箱 / 两者）。
+ *
+ * 用对象而非拼好的字符串：以前调用方各自拼 identifier，结果出现三种风格
+ * （裸 `ip`、`ip:1.2.3.4`、`email:a@b.com`、`a@b.com:1.2.3.4`）。
+ * 拼错了不会报错，只会静默产生一个独立的计数器 —— 限速看上去在工作，
+ * 实际上没有挡任何人。现在 key 的形状由本模块决定，调用方拼不出花样。
+ *
+ * 字段值为 undefined 时会被跳过（键保留、值不参与），这样「无 IP」的
+ * 请求会落到同一个桶 —— 与改动前 `register:undefined` 的行为等价，
+ * 是已知上限，不是新引入的问题。
+ */
+export interface RateSubject {
+  ip?: string | undefined;
+  email?: string | undefined;
+}
+
+/**
+ * 把主体序列化成稳定的 key 片段。
+ *
+ * 按固定字段顺序手拼，不用 JSON.stringify —— 后者的输出取决于对象的
+ * 键插入顺序（{ip, email} 与 {email, ip} 会得到不同字符串），
+ * 那样同一个组合会分裂成两个计数器，限速被悄悄绕过。
+ *
+ * 同时跳过 undefined：让 {ip: "1.2.3.4"} 与 {ip: "1.2.3.4", email: undefined}
+ * 得到同一个 key，否则调用方写法一差就对不上了。
+ */
+function subjectKey(subject: RateSubject): string {
+  const parts: string[] = [];
+  if (subject.email !== undefined) parts.push(`email=${subject.email}`);
+  if (subject.ip !== undefined) parts.push(`ip=${subject.ip}`);
+  return parts.join("|");
+}
+
 export async function rateLimit(
   type: LimitKey,
-  identifier: string | undefined,
+  subject: RateSubject,
 ): Promise<{ allowed: boolean; remaining: number; resetAt: number }> {
-  const key = `${type}:${identifier}`;
+  const key = `${type}:${subjectKey(subject)}`;
   const max = LIMITS[type];
   const now = new Date();
   const nowIso = now.toISOString();

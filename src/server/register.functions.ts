@@ -32,7 +32,7 @@ export const register = createServerFn({
     try {
       // 速率限制：同一 IP 1 分钟最多 3 次注册
       const ip = getRequestIP();
-      const { allowed, resetAt } = await rateLimit("register", ip);
+      const { allowed, resetAt } = await rateLimit("register", { ip });
       if (!allowed) {
         setResponseHeader(
           "Retry-After",

@@ -33,7 +33,7 @@ export const login = createServerFn({
 
     // 速率限制：同一邮箱 + IP 组合 1 分钟最多 5 次
     const ip = getRequestIP();
-    const { allowed, resetAt } = await rateLimit("login", `${email}:${ip}`);
+    const { allowed, resetAt } = await rateLimit("login", { email, ip });
     if (!allowed) {
       setResponseStatus(429);
       setResponseHeader(

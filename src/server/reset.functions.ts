@@ -30,7 +30,7 @@ export const requestPasswordResetFn = createServerFn({
 
     // 速率限制：同一 IP 1 分钟最多 3 次重置请求（防邮件轰炸）
     const ip = getRequestIP();
-    const { allowed, resetAt } = await rateLimit("reset", ip);
+    const { allowed, resetAt } = await rateLimit("reset", { ip });
     if (!allowed) {
       setResponseStatus(429);
       setResponseHeader(
@@ -72,10 +72,7 @@ export const resetPasswordFn = createServerFn({
 
     // 限速：同一邮箱 + IP 组合 1 分钟最多 10 次
     const ip = getRequestIP();
-    const { allowed, resetAt } = await rateLimit(
-      "reset-verify",
-      `${email}:${ip}`,
-    );
+    const { allowed, resetAt } = await rateLimit("reset-verify", { email, ip });
     if (!allowed) {
       setResponseStatus(429);
       setResponseHeader(

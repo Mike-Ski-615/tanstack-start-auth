@@ -32,10 +32,7 @@ export const verifyEmailFn = createServerFn({
     // 限速：同一邮箱 + IP 组合 1 分钟最多 10 次验证尝试。
     // OTP 本身已有 5 次错误上限，这里防的是「不断换 OTP 重试」的轰炸。
     const ip = getRequestIP();
-    const { allowed, resetAt } = await rateLimit(
-      "verify-otp",
-      `${email}:${ip}`,
-    );
+    const { allowed, resetAt } = await rateLimit("verify-otp", { email, ip });
     if (!allowed) {
       setResponseStatus(429);
       setResponseHeader(
@@ -74,7 +71,7 @@ export const resendVerificationEmailFn = createServerFn({
 
     // 限速：同一 IP 1 分钟最多 3 次
     const ip = getRequestIP();
-    const { allowed, resetAt } = await rateLimit("resend", `ip:${ip}`);
+    const { allowed, resetAt } = await rateLimit("resend", { ip });
     if (!allowed) {
       setResponseStatus(429);
       setResponseHeader(
@@ -87,7 +84,7 @@ export const resendVerificationEmailFn = createServerFn({
     // 限速：同一邮箱 3 次/分钟（上限取自 LIMITS.resend，与 IP 维度共用）
     const { allowed: emailAllowed, resetAt: emailResetAt } = await rateLimit(
       "resend",
-      `email:${email}`,
+      { email },
     );
     if (!emailAllowed) {
       setResponseStatus(429);
