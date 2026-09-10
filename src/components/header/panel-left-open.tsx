@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { PanelLeftOpenIcon } from "@hugeicons/core-free-icons";
+import { PanelLeftCloseIcon } from "@hugeicons/core-free-icons";
 import { Button } from "#components/ui/button";
 import { useSidebar } from "#components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#components/ui/tooltip";
@@ -19,7 +19,7 @@ export function PanelLeftOpen() {
           onClick={toggleSidebar}
         >
           {/* 移动端由 HeaderBreadcrumb 等处提供触发；这个按钮只在侧边栏收起时出现 */}
-          <HugeiconsIcon icon={PanelLeftOpenIcon} />
+          <HugeiconsIcon icon={PanelLeftCloseIcon} />
           <span className="sr-only">展开侧边栏</span>
         </Button>
       </TooltipTrigger>

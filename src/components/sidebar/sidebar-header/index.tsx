@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { PanelLeftCloseIcon } from "@hugeicons/core-free-icons";
+import { PanelLeftOpenIcon } from "@hugeicons/core-free-icons";
 import { SidebarHeader, useSidebar } from "#components/ui/sidebar";
 import { SidebarBrand } from "#components/sidebar/sidebar-header/brand";
 import { SearchForm } from "#components/sidebar/sidebar-header/search-form";
@@ -16,7 +16,7 @@ export function AppSidebarHeader() {
         <Tooltip>
           <TooltipTrigger asChild>
             <Button type="button" variant="ghost" size="icon" onClick={toggleSidebar}>
-              <HugeiconsIcon icon={PanelLeftCloseIcon} />
+              <HugeiconsIcon icon={PanelLeftOpenIcon} />
               <span className="sr-only">收起侧边栏</span>
             </Button>
           </TooltipTrigger>
