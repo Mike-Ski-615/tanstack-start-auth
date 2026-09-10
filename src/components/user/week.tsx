@@ -68,7 +68,7 @@ export default function ThisWeek() {
               className="flex w-4 flex-col items-center gap-0.5"
             >
               <span
-                className={`block size-3 rounded-[2px] ${
+                className={`block size-3 rounded-xs ${
                   d.isToday ? "ring-1 ring-foreground" : ""
                 }`}
                 style={{ background: palette[d.level] }}

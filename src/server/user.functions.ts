@@ -15,8 +15,8 @@ export type User = {
   id: Char<36>;
   email: string;
   name: string;
-  image: string | null;
-  bio: string | null;
+  image: string;
+  bio: string;
   role: "teacher" | "student";
   createdAt: string;
   status: "online" | "offline";
@@ -71,7 +71,16 @@ export const getUserById = createServerFn({
     const currentUser = await getCurrentUser();
     if (!currentUser) return null;
 
-    return db.orm.public.User.where({ id: data.userId as Char<36> })
+    const user = await db.orm.public.User.where({ id: data.userId as Char<36> })
       .select(...PUBLIC_COLUMNS)
       .first();
+
+    if (!user) return null;
+
+    // 数据库有默认值，运行时不会是 null
+    return {
+      ...user,
+      image: user.image!,
+      bio: user.bio!,
+    };
   });

@@ -44,5 +44,10 @@ export async function getCurrentUser(): Promise<User | null> {
   // 节流更新 lastSeenAt（不阻塞请求）
   void touchLastSeen(session.deviceId as Char<36>);
 
-  return user;
+  // 数据库有默认值，运行时不会是 null
+  return {
+    ...user,
+    image: user.image!,
+    bio: user.bio!,
+  };
 }

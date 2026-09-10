@@ -11,8 +11,8 @@ export function UserView({ user }: { user: User }) {
         <header className=" flex min-w-0 items-center gap-4 rounded-2xl bg-card p-5 lg:flex-col lg:gap-3 lg:bg-transparent lg:py-4">
           <div className="relative shrink-0">
             <img
-              src={user.image ?? ""}
-              alt={`${user.name ?? "用户"} 的头像`}
+              src={user.image}
+              alt={`${user.name} 的头像`}
               className=" size-16 rounded-full object-cover lg:size-24"
             />
             <span
