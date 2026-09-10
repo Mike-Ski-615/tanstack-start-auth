@@ -7,12 +7,19 @@
  * 多实例部署时需替换为 Redis。
  */
 
+import {
+  WS_CLOSE_SESSION_REPLACED,
+  WS_CLOSE_ALL_SESSIONS_REVOKED,
+} from "#lib/ws-close-codes";
+
+export {
+  WS_CLOSE_SESSION_REPLACED,
+  WS_CLOSE_ALL_SESSIONS_REVOKED,
+};
+
 const peersBySession = new Map<string, Set<string>>();
 const peersByUser = new Map<string, Set<string>>();
 const peerRefs = new Map<string, { peer: any; userId: string; sessionId: string }>();
-
-export const WS_CLOSE_SESSION_REPLACED = 4001;
-export const WS_CLOSE_ALL_SESSIONS_REVOKED = 4002;
 
 /** 注册新 WS 连接。由 ws.ts open handler 调用。 */
 export function registerPeer(peerId: string, userId: string, sessionId: string, peer: any): void {

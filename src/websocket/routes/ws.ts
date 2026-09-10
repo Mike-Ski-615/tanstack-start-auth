@@ -8,11 +8,29 @@ import {
 } from "#lib/auth/ws-registry";
 
 /**
- * WS peer 上下文类型。
+ * WS peer 上下文：由 upgrade 写入，open/close 读出。
+ *
+ * crossws 的 Hooks 未把 upgrade 的 context 类型泛型传递到 open/close
+ * （两者均收到未参数化的 Peer），所以下面用断言+运行校验来桥接。
  */
 interface WsPeerContext {
   userId: string;
   sessionId: string;
+}
+
+/**
+ * 从 peer.context 取出本文件的上下文。
+ *
+ * 断言收在这里，且带运行校验：upgrade 改了 context 形状而忘了同步这里时，
+ * 会当场报错而不是带着 undefined 继续跑（registerPeer 拿到 undefined 后
+ * presence / kick 都会静默失效）。
+ */
+function getPeerContext(peer: { context: Record<string, unknown> }): WsPeerContext {
+  const { userId, sessionId } = peer.context;
+  if (typeof userId !== "string" || typeof sessionId !== "string") {
+    throw new Error("[WS] peer.context 缺少 userId/sessionId，upgrade 与 handler 不一致");
+  }
+  return { userId, sessionId };
 }
 
 export default defineWebSocketHandler({
@@ -34,9 +52,7 @@ export default defineWebSocketHandler({
   },
 
   async open(peer) {
-    const ctx = peer.context as unknown as WsPeerContext;
-    const userId = ctx.userId;
-    const sessionId = ctx.sessionId;
+    const { userId, sessionId } = getPeerContext(peer);
     const peerId = peer.id;
 
     // 注册到共享注册表
@@ -53,8 +69,7 @@ export default defineWebSocketHandler({
   },
 
   async close(peer, details) {
-    const ctx = peer.context as unknown as WsPeerContext;
-    const userId = ctx.userId;
+    const { userId } = getPeerContext(peer);
     const peerId = peer.id;
 
     // 从共享注册表注销

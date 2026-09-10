@@ -1,9 +1,12 @@
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
+import {
+  WS_CLOSE_SESSION_REPLACED,
+  WS_CLOSE_ALL_SESSIONS_REVOKED,
+} from "#lib/ws-close-codes";
 
-export const WS_CLOSE_SESSION_REPLACED = 4001;
-export const WS_CLOSE_ALL_SESSIONS_REVOKED = 4002;
+export { WS_CLOSE_SESSION_REPLACED, WS_CLOSE_ALL_SESSIONS_REVOKED };
 
 /**
  * WebSocket 客户端钩子 — 实时在线状态 + 被踢通知。
