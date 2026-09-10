@@ -36,7 +36,7 @@ export const requestPasswordResetFn = createServerFn({
     setResponseHeader("Cache-Control", "no-store");
 
     // 速率限制：同一 IP 1 分钟最多 3 次重置请求（防邮件轰炸）
-    const ip = getRequestIP() ?? "unknown";
+    const ip = getRequestIP();
     const { allowed, resetAt } = await rateLimit("reset", ip);
     if (!allowed) {
       setResponseStatus(429);

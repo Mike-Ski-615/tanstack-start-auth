@@ -27,7 +27,7 @@ type LimitKey = keyof typeof LIMITS;
 
 export async function rateLimit(
   type: LimitKey,
-  identifier: string,
+  identifier: string | undefined,
 ): Promise<{ allowed: boolean; remaining: number; resetAt: number }> {
   const key = `${type}:${identifier}`;
   const max = LIMITS[type];

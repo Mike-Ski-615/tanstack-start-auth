@@ -19,7 +19,7 @@ const DEFAULT_BIO = "这个人很懒,什么也没有留下";
  * 注册 ≠ 登录。注册后用户需点击邮件中的验证链接完成验证，
  * 验证通过后才创建 Session（自动登录）。
  *
- * 邮箱已占用直接 throw（客户端 onError 据此显示具体提示）；
+ * 邮箱已占用直接 throw（客户端 onError 显示笼统提示，不透传服务端文案）；
  * 并发竞态由数据库唯一约束兜底（违例以错误冒出）。
  */
 export const register = createServerFn({
@@ -31,7 +31,7 @@ export const register = createServerFn({
 
     try {
       // 速率限制：同一 IP 1 分钟最多 3 次注册
-      const ip = getRequestIP() ?? "unknown";
+      const ip = getRequestIP();
       const { allowed, resetAt } = await rateLimit("register", ip);
       if (!allowed) {
         setResponseHeader(
@@ -75,8 +75,6 @@ export const register = createServerFn({
         user: { id: user.id, email: user.email, name: user.name },
       };
     } catch (error) {
-      console.error("[Register] Error:", error);
-      const message = error instanceof Error ? error.message : "Unknown error";
-      throw new Error(`Registration failed: ${message}`);
+      throw new Error("[Register] failed", { cause: error });
     }
   });

@@ -1,6 +1,5 @@
 // Dummy Argon2 hash 用于用户不存在时的恒定时间校验，防止 timing attack 枚举邮箱
-const DUMMY_PASSWORD_HASH =
-  "$argon2id$v=19$m=65536,t=3,p=4$dummy$dummy";
+const DUMMY_PASSWORD_HASH = "$argon2id$v=19$m=65536,t=3,p=4$dummy$dummy";
 
 import { createServerFn } from "@tanstack/react-start";
 import {
@@ -13,7 +12,11 @@ import { db } from "#prisma/db";
 import { loginSchema } from "#schemas/auth";
 import { verifyPassword } from "#lib/auth/password";
 import { createAuthenticatedSession } from "#lib/auth/session-manager";
-import { setSessionCookie, setDeviceCookie, getDeviceKey } from "#lib/auth/session";
+import {
+  setSessionCookie,
+  setDeviceCookie,
+  getDeviceKey,
+} from "#lib/auth/session";
 import { rateLimit } from "#lib/auth/rate-limiter";
 import { kickSession } from "#lib/auth/ws-registry";
 
@@ -31,7 +34,7 @@ export const login = createServerFn({
     setResponseHeader("Cache-Control", "no-store");
 
     // 速率限制：同一邮箱 + IP 组合 1 分钟最多 5 次
-    const ip = getRequestIP() ?? "unknown";
+    const ip = getRequestIP();
     const { allowed, resetAt } = await rateLimit("login", `${email}:${ip}`);
     if (!allowed) {
       setResponseStatus(429);
@@ -55,12 +58,14 @@ export const login = createServerFn({
     // 读取 cookie 中的 deviceKey（同设备复用）
     const existingDeviceKey = getDeviceKey();
 
-    const { token, deviceKey, oldSessionId } = await createAuthenticatedSession({
-      userId: user.id,
-      deviceKey: existingDeviceKey,
-      userAgent: getRequestHeader("user-agent"),
-      ip: getRequestIP(),
-    });
+    const { token, deviceKey, oldSessionId } = await createAuthenticatedSession(
+      {
+        userId: user.id,
+        deviceKey: existingDeviceKey,
+        userAgent: getRequestHeader("user-agent"),
+        ip: getRequestIP(),
+      },
+    );
 
     setSessionCookie(token);
     setDeviceCookie(deviceKey);
