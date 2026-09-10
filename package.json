@@ -17,6 +17,7 @@
     "#prisma/*": "./src/prisma/*",
     "#server/*": "./src/server/*",
     "#schemas/*": "./src/schemas/*",
+    "#test/*": "./src/test/*",
     "#provider/*": "./src/provider/*",
     "#components/*": "./src/components/*"
   },

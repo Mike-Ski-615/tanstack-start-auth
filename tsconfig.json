@@ -18,7 +18,8 @@
       "#server/*": ["./src/server/*"],
       "#schemas/*": ["./src/schemas/*"],
       "#provider/*": ["./src/provider/*"],
-      "#components/*": ["./src/components/*"]
+      "#components/*": ["./src/components/*"],
+      "#test/*": ["./src/test/*"]
     },
     "resolvePackageJsonImports": true,
     "resolveJsonModule": true

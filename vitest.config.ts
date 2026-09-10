@@ -15,5 +15,11 @@ export default defineConfig({
     // 纯 node 环境即可；需要 DOM 的测试单独用 // @vitest-environment jsdom
     environment: "node",
     include: ["src/**/*.test.ts"],
+    setupFiles: ["src/test/setup.ts"],
+    // 认证测试要连真实 DB，串行跑避免用例间互相干扰（单设备模型下
+    // 同一用户的 Session/Device 是唯一约束，并发会随机失败）
+    fileParallelism: false,
+    // 涉及 Argon2 哈希 + 多次 DB 往返，默认 5s 不够
+    testTimeout: 20_000,
   },
 });
