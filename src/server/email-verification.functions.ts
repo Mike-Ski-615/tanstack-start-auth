@@ -2,13 +2,11 @@ import { createServerFn } from "@tanstack/react-start";
 import {
   getRequestHeader,
   getRequestIP,
-  getRequestIP as getRequestIPValue,
   setResponseStatus,
   setResponseHeader,
 } from "@tanstack/react-start/server";
-import { z } from "zod";
 import { db } from "#prisma/db";
-import { emailOnlySchema } from "#schemas/auth";
+import { emailOnlySchema, verifyEmailSchema } from "#schemas/auth";
 
 import { createAuthenticatedSession } from "#lib/auth/session-manager";
 import { kickSession } from "#lib/auth/ws-registry";
@@ -19,10 +17,6 @@ import {
 import { setSessionCookie, setDeviceCookie } from "#lib/auth/session";
 import { sendMail } from "#lib/auth/mail";
 import { rateLimit } from "#lib/auth/rate-limiter";
-
-const verifyEmailSchema = z.object({
-  token: z.string().min(1),
-});
 
 /**
  * 验证邮箱：校验 token → 标记 verifiedAt → createAuthenticatedSession（自动登录）。
@@ -41,7 +35,11 @@ export const verifyEmailFn = createServerFn({
     if (!userId) throw new Error("invalid_or_expired_token");
 
     // 验证通过 → 创建 Session（自动登录）
-    const { token: sessionToken, deviceKey, oldSessionId } = await createAuthenticatedSession({
+    const {
+      token: sessionToken,
+      deviceKey,
+      oldSessionId,
+    } = await createAuthenticatedSession({
       userId,
       userAgent: getRequestHeader("user-agent"),
       ip: getRequestIP(),
@@ -73,7 +71,7 @@ export const resendVerificationEmailFn = createServerFn({
     setResponseHeader("Cache-Control", "no-store");
 
     // 限速：同一 IP 1 分钟最多 3 次
-    const ip = getRequestIPValue() ?? "unknown";
+    const ip = getRequestIP();
     const { allowed, resetAt } = await rateLimit("resend", `ip:${ip}`);
     if (!allowed) {
       setResponseStatus(429);

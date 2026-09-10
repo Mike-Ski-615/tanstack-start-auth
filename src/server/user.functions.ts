@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { setResponseHeader } from "@tanstack/react-start/server";
-import { z } from "zod";
+import { userIdSchema } from "#schemas/auth";
 import { db } from "#prisma/db";
 import { getCurrentUser } from "#lib/auth/guard";
 import { PUBLIC_COLUMNS, type User } from "#lib/auth/current-user";
@@ -21,10 +21,6 @@ export const getUserFn = createServerFn({
   setResponseHeader("Cache-Control", "no-store");
 
   return getCurrentUser();
-});
-
-const userIdSchema = z.object({
-  userId: z.string().min(1),
 });
 
 /**
