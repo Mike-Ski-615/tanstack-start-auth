@@ -23,5 +23,6 @@
     },
     "resolvePackageJsonImports": true,
     "resolveJsonModule": true
-  }
+  },
+  "exclude": ["node_modules", "tasks"]
 }

@@ -1,16 +1,4 @@
-import { useState } from "react";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Search01Icon } from "@hugeicons/core-free-icons";
-
-import { Input } from "#components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "#components/ui/table";
+import * as React from "react";
 import {
   useTable,
   type ColumnDef,
@@ -20,97 +8,101 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 
-import { features, type DataTableFeatures } from "./data-table-features";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "#components/ui/table";
+
+import { features, type UsersTableFeatures } from "./data-table-features";
 import { DataTablePagination } from "./data-table-pagination";
-import { DataTableViewOptions } from "./data-table-view-options";
+import { DataTableToolbar } from "./data-table-toolbar";
 
 /**
- * 管理员用户表格。
+ * 用户表格（管理员用）。
  *
- * 严格照 shadcn 的 Data Table 指南（TanStack Table v9）实现，不额外定制：
- * - 排序 / 列级筛选 / 分页 / 列显隐 四块状态都由外部 state 驱动
- * - 渲染用 v9 的 <table.FlexRender />
- * - 分页与列开关抽成官方同名组件
- *
- * 刻意没做的（官方示例也没做）：列宽、行选择（管理员表格不做批量操作）。
+ * 结构照 shadcn 的 Tasks 示例（examples/tasks）：
+ * toolbar 在表格上方，pagination 在下方，行选择默认开启，初始每页 25 行。
  */
 interface DataTableProps<TData extends RowData> {
-  columns: ColumnDef<DataTableFeatures, TData>[];
+  columns: ColumnDef<UsersTableFeatures, TData>[];
   data: TData[];
-  /** 做列级筛选的列 id。默认按邮箱过滤。 */
-  filterColumn?: string;
-  filterPlaceholder?: string;
-  emptyText?: string;
-  /** 列 id → 中文显示名（列开关用）。 */
-  columnTitles?: Record<string, string>;
+  /** 主搜索框绑定的列 id。 */
+  searchColumn: string;
+  searchPlaceholder?: string;
+  /** 角色 faceted filter 选项（列表本身已按角色分时可不传）。 */
+  roleOptions?: { label: string; value: string }[];
+  /** 验证状态 faceted filter 选项。 */
+  verifiedOptions?: { label: string; value: string }[];
 }
 
 export function DataTable<TData extends RowData>({
   columns,
   data,
-  filterColumn = "email",
-  filterPlaceholder = "筛选邮箱…",
-  emptyText = "暂无数据",
-  columnTitles,
+  searchColumn,
+  searchPlaceholder,
+  roleOptions,
+  verifiedOptions,
 }: DataTableProps<TData>) {
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
+  const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([]);
 
   const table = useTable({
     features,
     data,
     columns,
+    state: {
+      sorting,
+      columnVisibility,
+      rowSelection,
+      columnFilters,
+    },
+    initialState: {
+      pagination: {
+        pageIndex: 0,
+        pageSize: 25,
+      },
+    },
+    enableRowSelection: true,
+    onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-    },
   });
 
-  const titleOf = columnTitles ? (id: string) => columnTitles[id] ?? id : undefined;
-
   return (
-    <div className="w-full">
-      <div className="flex items-center gap-2 py-4">
-        <div className="relative max-w-sm flex-1">
-          <HugeiconsIcon
-            icon={Search01Icon}
-            className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
-          />
-          <Input
-            placeholder={filterPlaceholder}
-            value={(table.getColumn(filterColumn)?.getFilterValue() as string) ?? ""}
-            onChange={(event) => table.getColumn(filterColumn)?.setFilterValue(event.target.value)}
-            className="pl-8"
-            aria-label="筛选用户"
-          />
-        </div>
-
-        <DataTableViewOptions table={table} titleOf={titleOf} />
-      </div>
-
-      <div className="overflow-hidden rounded-xl border bg-card">
+    <div className="flex flex-col gap-4">
+      <DataTableToolbar
+        table={table}
+        searchColumn={searchColumn}
+        searchPlaceholder={searchPlaceholder}
+        roleOptions={roleOptions}
+        verifiedOptions={verifiedOptions}
+      />
+      <div className="overflow-hidden rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder ? null : <table.FlexRender header={header} />}
-                  </TableHead>
-                ))}
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id} colSpan={header.colSpan}>
+                      {header.isPlaceholder ? null : <table.FlexRender header={header} />}
+                    </TableHead>
+                  );
+                })}
               </TableRow>
             ))}
           </TableHeader>
-
           <TableBody>
-            {table.getRowModel().rows.length ? (
+            {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       <table.FlexRender cell={cell} />
@@ -120,21 +112,15 @@ export function DataTable<TData extends RowData>({
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center text-muted-foreground"
-                >
-                  {emptyText}
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  没有结果。
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
-
-      <div className="py-4">
-        <DataTablePagination table={table} />
-      </div>
+      <DataTablePagination table={table} />
     </div>
   );
 }

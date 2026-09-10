@@ -44,6 +44,8 @@ import {
   useAdminUpdateProfileMutation,
   useAdminDeleteUserMutation,
 } from "#hooks/use-admin-mutations";
+import type { Row, RowData } from "@tanstack/react-table";
+import type { UsersTableFeatures } from "./data-table-features";
 import type { User } from "#lib/auth/current-user";
 import { adminResetPasswordSchema, adminUpdateProfileSchema } from "#schemas/auth";
 
@@ -59,9 +61,15 @@ import { adminResetPasswordSchema, adminUpdateProfileSchema } from "#schemas/aut
  * 调接口，也会被服务端拒。
  */
 
-type Props = { user: User };
+interface DataTableRowActionsProps<TData extends RowData> {
+  row: Row<UsersTableFeatures, TData>;
+}
 
-export function UserRowActions({ user }: Props) {
+export function DataTableRowActions<TData extends RowData>({
+  row,
+}: DataTableRowActionsProps<TData>) {
+  // 官方写法：从 row 取数据。这里 row.original 就是当前用户。
+  const user = row.original as User;
   const toTeacher = user.role === "student";
 
   const setRole = useAdminSetRoleMutation();
@@ -79,12 +87,18 @@ export function UserRowActions({ user }: Props) {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button type="button" variant="ghost" size="icon" aria-label={`对 ${user.name} 的操作`}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-8 data-[state=open]:bg-muted"
+          >
             <HugeiconsIcon icon={MoreHorizontalIcon} />
+            <span className="sr-only">打开菜单</span>
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className="w-[160px]">
           <DropdownMenuItem onSelect={() => setEditOpen(true)}>
             <HugeiconsIcon icon={UserEdit01Icon} />
             编辑资料

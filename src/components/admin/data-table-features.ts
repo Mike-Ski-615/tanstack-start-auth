@@ -1,33 +1,32 @@
 import {
+  columnFacetingFeature,
   columnFilteringFeature,
   columnVisibilityFeature,
+  createFacetedRowModel,
+  createFacetedUniqueValues,
   createFilteredRowModel,
   createPaginatedRowModel,
   createSortedRowModel,
   filterFn_includesString,
   rowPaginationFeature,
+  rowSelectionFeature,
   rowSortingFeature,
   sortFn_alphanumeric,
   sortFn_text,
   tableFeatures,
 } from "@tanstack/react-table";
 
-/**
- * 管理员表格启用的 feature。
- *
- * 严格按 shadcn 的 Data Table 指南（TanStack Table v9）来：
- * v9 改成显式注册制 —— 没注册的能力会被 tree-shake 掉，**内置的
- * 过滤函数与排序函数也一样要注册**（filterFns / sortFns），否则用了
- * 名字也找不到实现。
- *
- * 未注册 rowSelectionFeature：管理员表格不做批量操作。
- * 未注册 columnSizingFeature：列宽交给内容自适应，不写死。
- */
+// New in v9: declare the features this table uses — anything you don't
+// register is tree-shaken out of the bundle.
 export const features = tableFeatures({
+  columnFacetingFeature,
   columnFilteringFeature,
   columnVisibilityFeature,
   rowPaginationFeature,
+  rowSelectionFeature,
   rowSortingFeature,
+  facetedRowModel: createFacetedRowModel(),
+  facetedUniqueValues: createFacetedUniqueValues(),
   filteredRowModel: createFilteredRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
   sortedRowModel: createSortedRowModel(),
@@ -35,8 +34,6 @@ export const features = tableFeatures({
   sortFns: { alphanumeric: sortFn_alphanumeric, text: sortFn_text },
 });
 
-/**
- * 传给 ColumnDef / Column / Table / Row 的第一个泛型，
- * 让各处类型知道有哪些 feature API 可用。
- */
-export type DataTableFeatures = typeof features;
+// Pass this as the first generic argument to `ColumnDef`, `Column`, `Table`,
+// and `Row` so each type knows which feature APIs are available.
+export type UsersTableFeatures = typeof features;
