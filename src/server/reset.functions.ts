@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import {
-  getRequestHeader,
   getRequestIP,
   setResponseStatus,
   setResponseHeader,
@@ -10,12 +9,11 @@ import { emailOnlySchema, resetPasswordSchema } from "#schemas/auth";
 import { hashPassword } from "../lib/auth/password";
 import { sendMail } from "../lib/auth/mail";
 import {
-  createAuthenticatedSession,
   createResetOtp,
   verifyResetOtp,
   invalidateAllSessions,
+  signIn,
 } from "#lib/auth/session-manager";
-import { setSessionCookie, setDeviceCookie } from "#lib/auth/session";
 import { rateLimit } from "#lib/auth/rate-limiter";
 
 /**
@@ -107,17 +105,8 @@ export const resetPasswordFn = createServerFn({
       passwordHash: await hashPassword(password),
     });
 
-    // 创建新 Device + Session（自动登录）
-    const { token: sessionToken, deviceKey } = await createAuthenticatedSession(
-      {
-        userId,
-        userAgent: getRequestHeader("user-agent"),
-        ip: getRequestIP(),
-      },
-    );
-
-    setSessionCookie(sessionToken);
-    setDeviceCookie(deviceKey);
+    // 自动登录（新 Device + Session）
+    await signIn(userId);
 
     return { success: true };
   });

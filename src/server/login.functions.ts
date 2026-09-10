@@ -8,7 +8,6 @@ const DUMMY_PASSWORD_HASH =
 
 import { createServerFn } from "@tanstack/react-start";
 import {
-  getRequestHeader,
   getRequestIP,
   setResponseStatus,
   setResponseHeader,
@@ -16,12 +15,8 @@ import {
 import { db } from "#prisma/db";
 import { loginSchema } from "#schemas/auth";
 import { verifyPassword } from "#lib/auth/password";
-import { createAuthenticatedSession } from "#lib/auth/session-manager";
-import {
-  setSessionCookie,
-  setDeviceCookie,
-  getDeviceKey,
-} from "#lib/auth/session";
+import { signIn } from "#lib/auth/session-manager";
+import { getDeviceKey } from "#lib/auth/session";
 import { rateLimit } from "#lib/auth/rate-limiter";
 
 /**
@@ -62,15 +57,7 @@ export const login = createServerFn({
     // 读取 cookie 中的 deviceKey（同设备复用）
     const existingDeviceKey = getDeviceKey();
 
-    const { token, deviceKey } = await createAuthenticatedSession({
-      userId: user.id,
-      deviceKey: existingDeviceKey,
-      userAgent: getRequestHeader("user-agent"),
-      ip: getRequestIP(),
-    });
-
-    setSessionCookie(token);
-    setDeviceCookie(deviceKey);
+    await signIn(user.id, existingDeviceKey);
 
     return { success: true };
   });

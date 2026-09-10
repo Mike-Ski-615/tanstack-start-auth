@@ -1,14 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeader, getRequestIP } from "@tanstack/react-start/server";
 import { db } from "#prisma/db";
 import { hashPassword, verifyPassword } from "#lib/auth/password";
 import { changePasswordSchema, updateProfileSchema } from "#schemas/auth";
 import { getCurrentUser } from "#lib/auth/guard";
-import {
-  createAuthenticatedSession,
-  invalidateAllSessions,
-} from "#lib/auth/session-manager";
-import { setSessionCookie, setDeviceCookie } from "#lib/auth/session";
+import { invalidateAllSessions, signIn } from "#lib/auth/session-manager";
 
 /**
  * 更新当前登录用户的可编辑资料（name / bio）。
@@ -59,14 +54,8 @@ export const changePasswordFn = createServerFn({
       passwordHash: await hashPassword(newPassword),
     });
 
-    // 创建新 Device + Session（自动登录）
-    const { token, deviceKey } = await createAuthenticatedSession({
-      userId: user.id,
-      userAgent: getRequestHeader("user-agent"),
-      ip: getRequestIP(),
-    });
-    setSessionCookie(token);
-    setDeviceCookie(deviceKey);
+    // 自动登录（新 Device + Session）
+    await signIn(user.id);
 
     return { success: true as const };
   });

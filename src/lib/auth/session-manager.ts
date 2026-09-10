@@ -1,17 +1,22 @@
 /**
- * 会话管理：两个核心原语。
+ * 会话管理：核心原语与登录动作。
  *
+ * 原语：
  * - createAuthenticatedSession(): 创建认证会话（Device + Session）
+ * - invalidateAllSessions(): 全局失效
  * - createResetOtp() / verifyResetOtp(): 密码重置验证码
  *
- * 所有认证操作（登录/注册/改密/重置）都基于这些原语组合。
+ * 登录动作：
+ * - signIn(): 建会话 + 写两块 cookie（所有「登录成功」路径的统一入口）
  */
 
 import { db } from "#prisma/db";
+import { getRequestHeader, getRequestIP } from "@tanstack/react-start/server";
 import { PUBLIC_COLUMNS, type User } from "./current-user";
 import { generateToken, hashToken } from "./token";
 import { generateOtp, hashOtp, MAX_OTP_ATTEMPTS } from "./otp";
 import { ensureDevice } from "./device";
+import { setSessionCookie, setDeviceCookie } from "./session";
 
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 天
 const RESET_TOKEN_TTL_MS = 15 * 60 * 1000; // 15 分钟
@@ -97,6 +102,38 @@ export async function createAuthenticatedSession(params: {
   });
 
   return { token: rawToken, deviceKey: finalDeviceKey };
+}
+
+/**
+ * 登录：建会话 + 写两块 cookie。
+ *
+ * 为什么需要它：登录/邮箱验证/改密/重置密码四条路径都要做同一件事，
+ * 原先各自摊开写四行（建会话 + 设两个 cookie），且都得自己从请求里
+ * 挖 user-agent / IP。抽成一函数后：
+ *
+ * - 调用方从 4 行 + 3 个入参降到 1 行 + 1 个入参
+ * - 「两块 cookie 必须同时设」这个约束由本函数强制，不再靠人记住
+ * - 忘设 device cookie 会让每次登录都换新 Device（静默降级），已不可能
+ *
+ * deviceKey 暂为可选参数：本轮只做纯重构，保持各调用点原有行为
+ * （原先只有 login 传它，其余三处不传）。下一轮会去掉该参数，
+ * 让四条路径统一从 cookie 读。
+ */
+export async function signIn(
+  userId: string,
+  deviceKey?: string,
+): Promise<void> {
+  const { token, deviceKey: finalDeviceKey } = await createAuthenticatedSession(
+    {
+      userId,
+      deviceKey,
+      userAgent: getRequestHeader("user-agent"),
+      ip: getRequestIP(),
+    },
+  );
+
+  setSessionCookie(token);
+  setDeviceCookie(finalDeviceKey);
 }
 
 // ============================================================

@@ -183,24 +183,3 @@ export function withRequest<T>(
     ),
   );
 }
-
-/**
- * 读出 serverFn 里 setCookie 写入的 cookie。
- *
- * 测试需要拿会话令牌来模拟「已登录的浏览器」。
- */
-export function readSetCookies(event: H3Event): Record<string, string> {
-  const res = (event as unknown as { res?: { headers?: Headers } }).res;
-  if (!res?.headers) return {};
-  const raw =
-    (
-      res.headers as unknown as { getSetCookie?: () => string[] }
-    ).getSetCookie?.() ?? [];
-  const out: Record<string, string> = {};
-  for (const line of raw) {
-    const [pair] = line.split(";");
-    const idx = pair.indexOf("=");
-    if (idx > 0) out[pair.slice(0, idx).trim()] = pair.slice(idx + 1).trim();
-  }
-  return out;
-}

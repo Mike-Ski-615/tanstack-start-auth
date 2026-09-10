@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import {
-  getRequestHeader,
   getRequestIP,
   setResponseStatus,
   setResponseHeader,
@@ -8,12 +7,11 @@ import {
 import { db } from "#prisma/db";
 import { emailOnlySchema, verifyEmailOtpSchema } from "#schemas/auth";
 
-import { createAuthenticatedSession } from "#lib/auth/session-manager";
+import { signIn } from "#lib/auth/session-manager";
 import {
   createVerificationOtp,
   verifyEmailOtp,
 } from "#lib/auth/email-verification";
-import { setSessionCookie, setDeviceCookie } from "#lib/auth/session";
 import { sendMail } from "#lib/auth/mail";
 import { rateLimit } from "#lib/auth/rate-limiter";
 
@@ -54,17 +52,8 @@ export const verifyEmailFn = createServerFn({
     const result = await verifyEmailOtp(user.id, otp);
     if (!result.ok) throw new Error(result.reason);
 
-    // 验证通过 → 创建 Session（自动登录）
-    const { token: sessionToken, deviceKey } = await createAuthenticatedSession(
-      {
-        userId: result.userId,
-        userAgent: getRequestHeader("user-agent"),
-        ip: getRequestIP(),
-      },
-    );
-
-    setSessionCookie(sessionToken);
-    setDeviceCookie(deviceKey);
+    // 验证通过 → 自动登录
+    await signIn(result.userId);
 
     return { success: true };
   });
