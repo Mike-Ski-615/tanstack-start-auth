@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    name: 类型检查 + 测试
+    runs-on: ubuntu-latest
+
+    # 测试会真实建表、建用户、删数据，所以用一个一次性的 Postgres
+    # service container —— 与生产 Neon 完全隔离，job 结束即销毁。
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tanstack_auth_test
+        ports:
+          - 5432:5432
+        # 等到 Postgres 真正可接受连接再继续，否则 db update 会连不上
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # setup.ts 会检查这个地址必须指向本机，localhost 能通过
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/tanstack_auth_test
+      # 测试专用，不是生产密钥
+      SESSION_SECRET: ci-only-secret-not-used-for-real-sessions
+      APP_URL: http://localhost:3000
+      # 把 Argon2 降到最低强度：单个哈希 130ms → 3ms，
+      # 全量测试从 38s 降到 8s。强度参数不参与任何逻辑分支。
+      ARGON2_TEST_WEAK: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.13"
+
+      - name: 安装依赖
+        run: bun install --frozen-lockfile
+
+      - name: 建表（把 contract 推到测试库）
+        run: bun prisma db update
+
+      - name: 类型检查
+        run: bun run typecheck
+
+      - name: 测试
+        run: bun run test
