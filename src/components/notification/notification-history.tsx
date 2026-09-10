@@ -1,19 +1,28 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Link01Icon, CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
+import { Link01Icon, CheckmarkCircle02Icon, Delete02Icon } from "@hugeicons/core-free-icons";
 import { Link } from "@tanstack/react-router";
 
 import { Badge } from "#components/ui/badge";
+import { Button } from "#components/ui/button";
 import { cn } from "#lib/utils";
-import { useNotifications } from "#hooks/use-notifications";
+import {
+  useNotifications,
+  useMarkReadMutation,
+  useDeleteNotificationMutation,
+} from "#hooks/use-notifications";
 
 /**
  * 完整通知历史。
  *
  * 与铃铛里的列表不同：这里显示**全部**（含已读），铃铛那里是最近 50 条。
- * 只读 —— 已读/删除仍在铃铛里操作，这一页是「回头翻看」用的。
+ * 一条通知在两边都能标已读 / 删除 —— 数据是同一份（同一个 query key），
+ * 任一处操作后另一处立刻同步。
  */
 export function NotificationHistory() {
   const { data: items = [], isLoading } = useNotifications(true);
+
+  const markRead = useMarkReadMutation();
+  const remove = useDeleteNotificationMutation();
 
   if (isLoading) {
     return (
@@ -82,6 +91,36 @@ export function NotificationHistory() {
                 </span>
               )}
             </div>
+          </div>
+
+          {/* 操作区：放在内容之后 —— DOM 顺序即 Tab 顺序，先读正文再到按钮。
+              左右分布由前面那个 flex-1 撑开，不靠 ml-auto。 */}
+          <div className="flex shrink-0 items-center gap-1">
+            {!n.readAt && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 px-2 text-xs"
+                onClick={() => markRead.mutate(n.id)}
+                disabled={markRead.isPending}
+              >
+                <HugeiconsIcon icon={CheckmarkCircle02Icon} className="size-3.5" />
+                标为已读
+              </Button>
+            )}
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground hover:text-destructive"
+              aria-label={`删除通知：${n.title}`}
+              onClick={() => remove.mutate(n.id)}
+              disabled={remove.isPending}
+            >
+              <HugeiconsIcon icon={Delete02Icon} className="size-3.5" />
+            </Button>
           </div>
         </div>
       ))}

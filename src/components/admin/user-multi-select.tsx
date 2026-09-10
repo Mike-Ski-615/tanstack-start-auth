@@ -71,7 +71,7 @@ export function UserMultiSelect({
             <span className="font-normal text-muted-foreground">选择用户</span>
           ) : (
             <>
-              <Separator orientation="vertical" className="mx-2 h-4" />
+              <Separator orientation="vertical" className="mx-2 h-4 my-auto" />
               {selected.size > 2 ? (
                 <Badge variant="secondary" className="rounded-sm px-1 font-normal">
                   已选 {selected.size} 人
