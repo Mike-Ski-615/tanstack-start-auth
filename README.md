@@ -7,7 +7,7 @@
 - 🔐 **完整认证流程** —— 注册 / 登录 / 登出 / 邮箱验证 / 密码重置，单设备在线（新登录踢掉旧会话）
 - 🔑 **有状态会话** —— 会话令牌落库（Session 表只存 SHA-256 哈希，明文仅在 HTTP-only cookie），7 天过期。`sessionVersion` 递增即可全局失效，支持「撤销全部会话」
 - 🔄 **密码重置** —— 随机令牌 + 落库哈希 + 单条 SQL 原子消费（15 分钟有效）；请求入口防账号枚举（恒返回同一响应）；重置成功即自动登录。邮件当前输出到控制台（`src/lib/auth/mail.ts`）
-- 🛡️ **防枚举登录** —— 用户不存在时仍执行等价的 Argon2 校验，消除响应时间差异（`scripts/check-dummy-hash.ts` 回归检查）
+- 🛡️ **防枚举登录** —— 用户不存在时仍执行等价的 Argon2 校验，消除响应时间差异
 - ⚡ **实时在线状态** —— Nitro WebSocket（crossws）驱动 Presence；会话被替换/撤销时主动踢下线（关闭码 4001 / 4002）
 - 🧱 **受保护路由** —— `authenticated` 无路径布局路由在 `beforeLoad` 用 `getUserFn` 拦截，未登录 `redirect` 到登录页
 - 🗄️ **Prisma 8（契约优先）** —— TypeScript 定义数据契约，PostgreSQL 存储
@@ -62,7 +62,6 @@ bun run dev
 | `bun run build` | 生产构建 |
 | `bun run start` | 预览生产构建 |
 | `bun run contract:emit` | 修改 `src/prisma/contract.ts` 后重新生成契约（`contract.json` / `contract.d.ts`） |
-| `bun run scripts/check-dummy-hash.ts` | 校验登录防枚举的哑元哈希有效（见 CONTEXT.md 审计表） |
 
 ## 项目结构
 
@@ -106,7 +105,6 @@ src/
 │   └── status/                 # 各路由的 loading / error / not-found 页面
 └── router.tsx                  # 路由与 QueryClient 装配
 migrations/                     # Prisma 迁移记录与契约快照
-scripts/                        # 回归检查脚本
 ```
 
 ## 路由说明
