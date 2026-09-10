@@ -70,6 +70,12 @@ export const resetPasswordFn = createServerFn({
 
     const userId = result.userId;
 
+    // 注意：这里**不**写 User.emailVerifiedAt。
+    //
+    // 看似「能收到重置邮件就已经证明了邮箱归属」，但两者不等价：重置 OTP
+    // 证明的是「此刻能收到这封信」，邮箱验证证明的是「用户主动确认了这个
+    // 地址」。而且 emailVerifiedAt 不拦任何操作（登录 / 守卫都不看它），
+    // 所以「不改就进不去门」这个理由也不成立。详见 ADR-0001（已否决）。
     await rotatePassword(userId, password);
 
     return { success: true };

@@ -1,10 +1,7 @@
 import "#test/mock-server-env";
 import { mails, clearMails } from "#test/mock-server-env";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import {
-  requestPasswordResetFn,
-  resetPasswordFn,
-} from "#server/reset.functions";
+import { requestPasswordResetFn, resetPasswordFn } from "#server/reset.functions";
 import { resetPasswordSchema } from "#schemas/auth";
 import { MAX_OTP_ATTEMPTS } from "#lib/auth/otp";
 import { validateSession } from "#lib/auth/session-manager";
@@ -42,18 +39,23 @@ async function userWithResetOtp() {
   return { user, email, otp };
 }
 
+/** 同上的未验证版本（用于验证「重置不碰 emailVerifiedAt」这组）。 */
+async function unverifiedUserWithResetOtp() {
+  const { user, email } = await createUser({ verified: false });
+  created.push(user.id);
+  const { createResetOtp } = await import("#lib/auth/reset-otp");
+  const otp = await createResetOtp(user.id);
+  return { user, email, otp };
+}
+
 const requestReset = (email: string, ip = IP) =>
   withRequest({ ip }, () => requestPasswordResetFn({ data: { email } }));
 
-const doReset = (
-  data: { email: string; otp: string; password: string },
-  ip = IP,
-) => withRequest({ ip }, () => resetPasswordFn({ data }));
+const doReset = (data: { email: string; otp: string; password: string }, ip = IP) =>
+  withRequest({ ip }, () => resetPasswordFn({ data }));
 
-const resetValidated = (
-  data: { email: string; otp: string; password: string },
-  ip = IP,
-) => callServerFnValidated(resetPasswordFn, resetPasswordSchema, data, { ip });
+const resetValidated = (data: { email: string; otp: string; password: string }, ip = IP) =>
+  callServerFnValidated(resetPasswordFn, resetPasswordSchema, data, { ip });
 
 beforeEach(async () => {
   clearMails();
@@ -203,9 +205,7 @@ describe("执行重置 — 成功", () => {
     const { email, otp } = await userWithResetOtp();
 
     await doReset({ email, otp, password: "brandnew123" });
-    await expect(
-      doReset({ email, otp, password: "another123" }),
-    ).rejects.toThrow();
+    await expect(doReset({ email, otp, password: "another123" })).rejects.toThrow();
   });
 
   it("成功后建立新会话（自动登录）", async () => {
@@ -230,8 +230,7 @@ describe("执行重置 — 成功", () => {
     const { user, email, otp } = await userWithResetOtp();
 
     // 先建一个「攻击者持有的旧会话」
-    const { createAuthenticatedSession } =
-      await import("#lib/auth/session-manager");
+    const { createAuthenticatedSession } = await import("#lib/auth/session-manager");
     const { token: oldToken } = await createAuthenticatedSession({
       userId: user.id,
       userAgent: "attacker",
@@ -252,9 +251,7 @@ describe("执行重置 — 失败", () => {
     const before = await db.orm.public.User.where({ id: user.id }).first();
     const wrong = otp === "000000" ? "111111" : "000000";
 
-    await expect(
-      doReset({ email, otp: wrong, password: "brandnew123" }),
-    ).rejects.toThrow();
+    await expect(doReset({ email, otp: wrong, password: "brandnew123" })).rejects.toThrow();
 
     const after = await db.orm.public.User.where({ id: user.id }).first();
     expect(after!.passwordHash).toBe(before!.passwordHash);
@@ -284,9 +281,7 @@ describe("执行重置 — 失败", () => {
     const { user, email } = await createUser({ verified: true });
     created.push(user.id);
 
-    await expect(
-      doReset({ email, otp: "123456", password: "brandnew123" }),
-    ).rejects.toThrow();
+    await expect(doReset({ email, otp: "123456", password: "brandnew123" })).rejects.toThrow();
     expect(await getSessions(user.id)).toHaveLength(0);
   });
 
@@ -296,9 +291,7 @@ describe("执行重置 — 失败", () => {
       expiresAt: new Date(Date.now() - 1000).toISOString(),
     });
 
-    await expect(
-      doReset({ email, otp, password: "brandnew123" }),
-    ).rejects.toThrow();
+    await expect(doReset({ email, otp, password: "brandnew123" })).rejects.toThrow();
   });
 });
 
@@ -311,15 +304,11 @@ describe("执行重置 — 错误次数上限", () => {
       await doReset({ email, otp: wrong, password: "x" }).catch(() => {});
     }
 
-    await expect(
-      doReset({ email, otp, password: "brandnew123" }),
-    ).rejects.toThrow();
+    await expect(doReset({ email, otp, password: "brandnew123" })).rejects.toThrow();
 
     const after = await db.orm.public.User.where({ id: user.id }).first();
     const { verifyPassword } = await import("#lib/auth/password");
-    expect(await verifyPassword(after!.passwordHash, "brandnew123")).toBe(
-      false,
-    );
+    expect(await verifyPassword(after!.passwordHash, "brandnew123")).toBe(false);
   });
 
   it("上限内错误后正确 OTP 仍可用", async () => {
@@ -357,14 +346,83 @@ describe("执行重置 — 输入校验", () => {
 
   it("密码过短被拦下", async () => {
     const { email, otp } = await userWithResetOtp();
-    await expect(
-      resetValidated({ email, otp, password: "123" }),
-    ).rejects.toThrow();
+    await expect(resetValidated({ email, otp, password: "123" })).rejects.toThrow();
   });
 
   it("邮箱非法被拦下", async () => {
     await expect(
       resetValidated({ email: "bad", otp: "123456", password: "brandnew123" }),
     ).rejects.toThrow();
+  });
+});
+
+// ============================================================
+// 重置不写 emailVerifiedAt（ADR-0001 的决策，防回归）
+// ============================================================
+
+describe("重置密码不碰邮箱验证状态", () => {
+  /**
+   * 这一组不是「顺便测一下」，而是守住一个明确决策。
+   *
+   * 曾经讨论过「重置成功时顺带把邮箱标记为已验证」，理由是能收到重置邮件
+   * 就证明了邮箱归属。ADR-0001 已否决：两者不等价（前者是「此刻能收到信」，
+   * 后者是「用户主动确认了这个地址」），而且 emailVerifiedAt 不拦任何操作，
+   * 原决策要解决的「改了密码进不去门」并不存在。
+   *
+   * 风险在于：将来有人看到未验证用户重置成功，可能「顺手补上」那行 update。
+   * 这几条测试会在那一刻失败。
+   */
+
+  it("未验证用户重置后 emailVerifiedAt 仍为空", async () => {
+    const { user, email, otp } = await unverifiedUserWithResetOtp();
+
+    // 前置确认：该用户确实未验证
+    const before = await db.orm.public.User.where({ id: user.id }).first();
+    expect(before!.emailVerifiedAt ?? null).toBeNull();
+
+    await doReset({ email, otp, password: "brandnew123" });
+
+    const after = await db.orm.public.User.where({ id: user.id }).first();
+    expect(after!.emailVerifiedAt ?? null).toBeNull();
+  });
+
+  it("重置成功也不改变已验证用户的验证时间戳", async () => {
+    const { user, email } = await createUser({ verified: true });
+    created.push(user.id);
+    const before = await db.orm.public.User.where({ id: user.id }).first();
+    const stamp = before!.emailVerifiedAt;
+
+    const { createResetOtp } = await import("#lib/auth/reset-otp");
+    const otp = await createResetOtp(user.id);
+    await doReset({ email, otp, password: "brandnew123" });
+
+    const after = await db.orm.public.User.where({ id: user.id }).first();
+    // 时间戳原封不动（不是「被重新写了一次」）
+    expect(after!.emailVerifiedAt).toBe(stamp);
+  });
+
+  it("密码确实换了，只是验证状态没动（不是整个更新都失败了）", async () => {
+    const { user, email, otp } = await unverifiedUserWithResetOtp();
+    const before = await db.orm.public.User.where({ id: user.id }).first();
+
+    await doReset({ email, otp, password: "brandnew123" });
+
+    const after = await db.orm.public.User.where({ id: user.id }).first();
+    expect(after!.passwordHash).not.toBe(before!.passwordHash);
+    expect(after!.emailVerifiedAt ?? null).toBeNull();
+  });
+
+  it("emailVerifiedAt 的唯一写入点是邮箱验证流程", async () => {
+    const { user, email } = await createUser({ verified: false });
+    created.push(user.id);
+    const { createVerificationOtp, verifyEmailOtp } = await import("#lib/auth/email-verification");
+
+    const otp = await createVerificationOtp(user.id);
+    const r = await verifyEmailOtp(user.id, otp);
+    expect(r.ok).toBe(true);
+
+    const after = await db.orm.public.User.where({ id: user.id }).first();
+    expect(after!.emailVerifiedAt).toBeTruthy();
+    expect(after!.email).toBe(email);
   });
 });

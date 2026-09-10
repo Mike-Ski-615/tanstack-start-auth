@@ -21,15 +21,11 @@ const VERIFICATION_OTP_TTL_MS = 15 * 60 * 1000; // 15 分钟
 export async function createVerificationOtp(userId: string): Promise<string> {
   const otp = generateOtp();
   const tokenHash = hashOtp(otp);
-  const expiresAt = new Date(
-    Date.now() + VERIFICATION_OTP_TTL_MS,
-  ).toISOString();
+  const expiresAt = new Date(Date.now() + VERIFICATION_OTP_TTL_MS).toISOString();
   const now = new Date().toISOString();
 
   // 令该用户所有未验证的旧 OTP 失效
-  const unverified = await db.orm.public.EmailVerificationToken.where((t) =>
-    t.userId.eq(userId),
-  )
+  const unverified = await db.orm.public.EmailVerificationToken.where((t) => t.userId.eq(userId))
     .where((t) => t.verifiedAt.isNull())
     .all();
 
@@ -56,10 +52,7 @@ export async function createVerificationOtp(userId: string): Promise<string> {
  * 这里只声明本流程的表长什么样：查 EmailVerificationToken、以 verifiedAt
  * 作废、成功后额外同步 User.emailVerifiedAt。
  */
-export async function verifyEmailOtp(
-  userId: string,
-  otp: string,
-): Promise<OtpResult> {
+export async function verifyEmailOtp(userId: string, otp: string): Promise<OtpResult> {
   return consumeOtp(
     {
       findLive: (uid) =>
@@ -79,7 +72,11 @@ export async function verifyEmailOtp(
         });
       },
 
-      // 邮箱验证特有：验证通过要同步账户级状态
+      // 邮箱验证特有：验证通过要同步账户级状态。
+      //
+      // 这里是 emailVerifiedAt 的**唯一**写入点。密码重置刻意不写它 ——
+      // 「能收到重置邮件」不等于「用户确认了这个邮箱」，见 ADR-0001。
+      // 在别处看到写 emailVerifiedAt 时，先怀疑是不是引入了第二条语义。
       onSuccess: async (uid) => {
         await db.orm.public.User.where({ id: uid }).update({
           emailVerifiedAt: new Date().toISOString(),
@@ -95,9 +92,7 @@ export async function verifyEmailOtp(
  * 检查用户邮箱是否已验证（通过 User.emailVerifiedAt）。
  */
 export async function isEmailVerified(userId: string): Promise<boolean> {
-  const user = await db.orm.public.User.where({ id: userId })
-    .select("emailVerifiedAt")
-    .first();
+  const user = await db.orm.public.User.where({ id: userId }).select("emailVerifiedAt").first();
 
   return user?.emailVerifiedAt != null;
 }

@@ -161,7 +161,7 @@ http://localhost:3000/auth/verify-email ✅（需带 ?token=...）
 
 术语与设计决策集中在 [`CONTEXT.md`](CONTEXT.md) 和 [`docs/adr/`](docs/adr/)：
 
-- [`0001-reset-implies-verification.md`](docs/adr/0001-reset-implies-verification.md) —— 密码重置蕴含邮箱验证（**已废弃**，当前行为是不碰；是否为未决问题）
+- [`0001-reset-implies-verification.md`](docs/adr/0001-reset-implies-verification.md) —— 密码重置蕴含邮箱验证（**已否决**：能收到重置邮件不等于用户确认了邮箱；且 `emailVerifiedAt` 不拦任何操作，原决策要解决的死锁不存在）
 - [`0002-remove-email-verification.md`](docs/adr/0002-remove-email-verification.md) —— 移除邮箱验证，注册即登录（**已废弃**，邮箱验证已重新引入）
 - [`0003-native-uuid-ids-and-relations.md`](docs/adr/0003-native-uuid-ids-and-relations.md) —— 主键改用原生 uuid，并声明关系恢复外键完整性（已接受）
 - [`0004-atomic-counter-increments.md`](docs/adr/0004-atomic-counter-increments.md) —— 计数值改用原子 UPDATE/UPSERT（已接受，含一次真实事故的实测数据）
