@@ -14,6 +14,17 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "#lib/query-keys";
 import { toast } from "sonner";
 import { Button } from "#components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "#components/ui/alert-dialog";
 import { listSessionsFn, revokeAllSessionsFn } from "#server/sessions.functions";
 import { LoadingPage } from "#components/status/authenticated/settings/privacy-security/loading";
 import { ErrorPage } from "#components/status/authenticated/settings/privacy-security/error";
@@ -209,14 +220,40 @@ function SettingsPrivacySecurityPage() {
           <p className="mb-3 text-sm text-muted-foreground">
             撤销后所有设备都将需要重新登录。此操作会递增会话版本号，使所有旧会话立即失效。
           </p>
-          <Button
-            type="button"
-            variant="destructive"
-            disabled={revokeAllMutation.isPending}
-            onClick={() => revokeAllMutation.mutate()}
-          >
-            {revokeAllMutation.isPending ? "处理中..." : "撤销全部会话"}
-          </Button>
+          {/*
+            危险操作加确认：点一下就会把所有设备踢下线，且不可撤销。
+
+            文案遵循两条：确认按钮重复后果（「撤销全部会话」而非「确定」），
+            这样不看正文也能回答；按钮文字带动词（「取消」而非「否」）。
+
+            确认按钮用 destructive 变体，与页面上的触发按钮保持一致 ——
+            用户在弹窗里看到的仍然是同一个危险色。
+          */}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button type="button" variant="destructive" disabled={revokeAllMutation.isPending}>
+                {revokeAllMutation.isPending ? "处理中..." : "撤销全部会话"}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>撤销全部会话？</AlertDialogTitle>
+                <AlertDialogDescription>
+                  所有设备都将需要重新登录，包括当前这台。此操作无法撤销。
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel type="button">取消</AlertDialogCancel>
+                <AlertDialogAction
+                  type="button"
+                  variant="destructive"
+                  onClick={() => revokeAllMutation.mutate()}
+                >
+                  撤销全部会话
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </section>
     </div>
