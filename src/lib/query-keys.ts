@@ -18,6 +18,17 @@ export const queryKeys = {
    * 列表消失、出现在另一个列表里，两边都必须失效。invalidate 这个前缀
    * 一次搞定。具体列表用 adminUsersList(role)。
    */
+  /**
+   * 当前用户的通知列表。未读数用同一个前缀下的单独 key —— 30s 轮询只
+   * 拉未读数（轻），打开铃铛才拉列表（重）。
+   */
+  notifications: ["notifications"] as const,
+  notificationsList: ["notifications", "list"] as const,
+  notificationsUnread: ["notifications", "unread"] as const,
+  /** 管理员：已发出的通知（含统计）。 */
+  sentNotifications: ["sent-notifications"] as const,
+  /** 管理员：发通知时可选的师生名单。 */
+  selectableUsers: ["selectable-users"] as const,
   adminUsers: ["admin-users"] as const,
   /** 某个角色的用户列表。 */
   adminUsersList: (role: "student" | "teacher") => ["admin-users", role] as const,

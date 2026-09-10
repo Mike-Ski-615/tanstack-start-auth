@@ -104,8 +104,14 @@ describe("教师菜单", () => {
 });
 
 describe("管理员菜单", () => {
-  it("只有教师管理与学生管理", () => {
-    expect(idsOf("admin").sort()).toEqual(["manage-students", "manage-teachers"]);
+  it("只有管理与沟通两类（不含师生的任何菜单）", () => {
+    expect(idsOf("admin").sort()).toEqual(["manage-students", "manage-teachers", "notifications"]);
+  });
+
+  it("有发送通知的入口", () => {
+    const item = navItemsFor("admin").find((i) => i.id === "notifications");
+    expect(item).toBeTruthy();
+    expect(item!.to).toBe("/authenticated/admin/notifications");
   });
 
   it("与学生 / 教师的菜单完全不重叠", () => {

@@ -1,0 +1,147 @@
+/**
+ * 通知接口。
+ *
+ * 分两组：
+ *   - 管理侧（发送 / 列出已发 / 撤回）—— 每个 handler 第一行都是 requireAdmin()
+ *   - 用户侧（列表 / 未读数 / 已读 / 全部已读 / 删除）—— 只认自己的会话
+ *
+ * 用户侧的所有操作都从 guard 取 userId 再带进查询条件，绝不接受「你要操作
+ * 哪一行属于谁」这种参数 —— 只凭 recipientId 就能改别人那条是权限漏洞。
+ */
+
+import { createServerFn } from "@tanstack/react-start";
+import { setResponseHeader } from "@tanstack/react-start/server";
+import {
+  notificationBatchIdSchema,
+  notificationRecipientIdSchema,
+  sendNotificationSchema,
+} from "#schemas/auth";
+import { requireAdmin } from "#lib/auth/admin-guard";
+import { listManagedUsers } from "#lib/auth/admin-actions";
+import { getCurrentUser } from "#lib/auth/guard";
+import {
+  countUnread,
+  createNotification,
+  deleteNotificationBatch,
+  listNotificationsForUser,
+  listSentNotifications,
+  markAllRead,
+  markRead,
+  softDeleteForUser,
+} from "#lib/notifications";
+
+/** 未登录时统一抛这个（与 admin 的 forbidden 区分开）。 */
+const UNAUTHENTICATED = "unauthenticated";
+
+async function requireUserId(): Promise<string> {
+  const user = await getCurrentUser();
+  if (!user) throw new Error(UNAUTHENTICATED);
+  return user.id;
+}
+
+// ============================================================
+// 用户侧
+// ============================================================
+
+/** 当前用户的通知列表。 */
+export const listNotificationsFn = createServerFn({ method: "GET" }).handler(async () => {
+  // 个性化数据，禁止任何缓存
+  setResponseHeader("Cache-Control", "no-store");
+  return listNotificationsForUser(await requireUserId());
+});
+
+/** 未读数（铃铛徽章，30s 轮询）。 */
+export const unreadCountFn = createServerFn({ method: "GET" }).handler(async () => {
+  setResponseHeader("Cache-Control", "no-store");
+  return countUnread(await requireUserId());
+});
+
+/** 标记单条已读。 */
+export const markNotificationReadFn = createServerFn({ method: "POST" })
+  .validator(notificationRecipientIdSchema)
+  .handler(async ({ data }) => {
+    const userId = await requireUserId();
+    return { success: await markRead(data.recipientId, userId) };
+  });
+
+/** 全部标记已读。 */
+export const markAllNotificationsReadFn = createServerFn({
+  method: "POST",
+}).handler(async () => {
+  const userId = await requireUserId();
+  return { count: await markAllRead(userId) };
+});
+
+/** 删除（软删）自己的一条通知。 */
+export const deleteNotificationFn = createServerFn({ method: "POST" })
+  .validator(notificationRecipientIdSchema)
+  .handler(async ({ data }) => {
+    const userId = await requireUserId();
+    return { success: await softDeleteForUser(data.recipientId, userId) };
+  });
+
+// ============================================================
+// 管理侧
+// ============================================================
+
+/** 发送通知。 */
+export const sendNotificationFn = createServerFn({ method: "POST" })
+  .validator(sendNotificationSchema)
+  .handler(async ({ data }) => {
+    const admin = await requireAdmin();
+
+    // 勾了「全体」时忽略另外两项 —— 前端会禁用它们，这里兜一道：
+    // 否则「全体 + 指定人」会走 resolveRecipients 的 all 分支，静默丢弃指定项。
+    const target = data.all ? { all: true } : { roles: data.roles, userIds: data.userIds };
+
+    const { recipientCount } = await createNotification({
+      title: data.title,
+      body: data.body,
+      link: data.link || null,
+      target,
+      senderId: admin.id,
+    });
+
+    // 一个收件人都没有（比如选了空角色）也算失败，免得管理员以为发出去了
+    if (recipientCount === 0) throw new Error("no_recipients");
+
+    return { success: true, recipientCount };
+  });
+
+/** 列出已发出的通知（含收件数与已读数）。 */
+export const listSentNotificationsFn = createServerFn({
+  method: "GET",
+}).handler(async () => {
+  setResponseHeader("Cache-Control", "no-store");
+  await requireAdmin();
+  return listSentNotifications();
+});
+
+/** 撤回一条通知。 */
+export const deleteNotificationBatchFn = createServerFn({ method: "POST" })
+  .validator(notificationBatchIdSchema)
+  .handler(async ({ data }) => {
+    await requireAdmin();
+    return { success: await deleteNotificationBatch(data.notificationId) };
+  });
+
+/** 供发送页的用户选择器用：列出可选的师生。 */
+export const listSelectableUsersFn = createServerFn({ method: "GET" }).handler(async () => {
+  setResponseHeader("Cache-Control", "no-store");
+  await requireAdmin();
+  return listManagedUsersForPicker();
+});
+
+/** 供选择器用的精简形态（只给发通知时挑人看，不暴露多余字段）。 */
+async function listManagedUsersForPicker() {
+  const [students, teachers] = await Promise.all([
+    listManagedUsers("student"),
+    listManagedUsers("teacher"),
+  ]);
+  return [...students, ...teachers].map((u) => ({
+    id: u.id,
+    name: u.name,
+    email: u.email,
+    role: u.role,
+  }));
+}

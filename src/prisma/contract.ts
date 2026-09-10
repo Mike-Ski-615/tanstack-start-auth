@@ -142,6 +142,58 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
   });
 
   // ============================================================
+  // Notification / NotificationRecipient
+  // ============================================================
+
+  /**
+   * 管理员发出的一次通知（批次）。
+   *
+   * 分两层的原因：管理员发一次、收件人可能是几百人，但「撤回这条通知」
+   * 要以**发送动作**为单位。若只有收件人行，撤回就得靠 (title, createdAt)
+   * 之类的软匹配，不可靠。
+   *
+   * createdBy 不设外键：管理员账号被删时通知应保留（那是历史记录），
+   * 且 User 删除已在别处级联了 Session/Device，再加一条会扩大影响面。
+   */
+  const Notification = model("Notification", {
+    fields: {
+      id: field.id.uuidv7Native(),
+      title: field.text(),
+      body: field.text(),
+      // 站内路径（以 / 开头），可空。允许外链会变成钓鱼入口 —— 见 ADR-0007
+      link: field.text().optional(),
+      // 发送者的 userId（不加外键，理由见上）
+      createdBy: field.uuidNative(),
+      createdAt: field.temporal.createdAtString(),
+    },
+  });
+
+  /**
+   * 一条通知 × 一个收件人。
+   *
+   * 两个人的已读/删除状态各自独立，所以状态在这里而不在 Notification 上。
+   * userId 用真外键 + cascade：用户注销时他的通知自然消失。
+   */
+  const NotificationRecipient = model("NotificationRecipient", {
+    fields: {
+      id: field.id.uuidv7Native(),
+      notificationId: field.uuidNative(),
+      userId: field.uuidNative(),
+      // null = 未读
+      readAt: field.temporal.timestamptzString().optional(),
+      // 用户删除单条通知时打标记而非真删 —— 只影响他自己，不动别人的副本
+      deletedAt: field.temporal.timestamptzString().optional(),
+      createdAt: field.temporal.createdAtString(),
+    },
+    relations: {
+      notification: rel
+        .belongsTo(Notification, { from: "notificationId", to: "id" })
+        .sql({ fk: { onDelete: "cascade" } }),
+      user: rel.belongsTo(User, { from: "userId", to: "id" }).sql({ fk: { onDelete: "cascade" } }),
+    },
+  });
+
+  // ============================================================
   // RateLimit
   // ============================================================
 
@@ -155,14 +207,21 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
   });
 
   // ============================================================
-  // User 的背向关系
+  // 背向关系（hasMany 一律后置声明）
   // ============================================================
+
+  // 同理：Notification 的字段类型在上方已推断完，hasMany 放到这里，
+  // 避免「Cannot access 'NotificationRecipient' before initialization」。
+  const Notification$ = Notification.relations({
+    recipients: rel.hasMany(NotificationRecipient, { by: "notificationId" }),
+  });
 
   // 后置声明：User 的类型在上方已独立推断完，不必在前向引用 Device/Session
   // （放进 model("User", {...}) 会造成类型互相引用 → TS7022）。
   const User$ = User.relations({
     device: rel.hasOne(Device, { by: "userId" }),
     session: rel.hasOne(Session, { by: "userId" }),
+    notificationRecipients: rel.hasMany(NotificationRecipient, { by: "userId" }),
   });
 
   // ============================================================
@@ -177,6 +236,8 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
       ResetToken,
       EmailVerificationToken,
       RateLimit,
+      Notification: Notification$,
+      NotificationRecipient,
     },
     enums: {
       Role,

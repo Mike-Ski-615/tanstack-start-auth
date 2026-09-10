@@ -51,6 +51,27 @@ sessionVersion, emailVerifiedAt）；passwordHash 等存储层字段不进入查
 guard 只做转发。理由：会话校验反正要读 User 比对 sessionVersion，顺带返回即可，
 避免同一请求重复查库。
 
+### Notification（通知）
+
+两层结构：
+
+- `Notification` —— 管理员**发出的一次**（批次）：title / body / 可选 link / createdBy
+- `NotificationRecipient` —— **一条通知 × 一个收件人**：readAt（null=未读）/ deletedAt
+
+分两层是因为两者的删除语义不同：管理员**撤回**以批次为单位（真删，cascade
+带走所有收件行）；用户**删除**只影响自己那份（软删，打 `deletedAt`）。
+
+**受众只有 student / teacher**。管理员既不发给自己、也永远收不到 —— 与
+`MANAGED_ROLES` 的原则一致，`resolveRecipients` 三路都会剔除 admin 与发送者。
+
+发送目标三选可混：全体 / 按角色 / 指定人（后两者取并集去重）。勾「全体」时
+另外两项被忽略（前端禁用，接口层也兜一道）。
+
+`link` 必须是站内路径（以 `/` 开头，且拒绝 `//` 开头）—— 允许外链会变成
+钓鱼入口：管理员账号一旦被盗，攻击者能给全体师生发跳转到仿冒登录页的通知。
+
+未读数 30s 轮询（与 useSessionGuard 同节奏）；列表只在铃铛打开时才拉。
+
 ### Role（角色）
 
 三个值：`student` / `teacher` / `admin`，默认 `student`。两处定义必须同步：

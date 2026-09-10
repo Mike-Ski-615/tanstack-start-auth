@@ -82,3 +82,42 @@ export type UserIdValues = z.infer<typeof userIdSchema>;
 export type AdminSetRoleValues = z.infer<typeof adminSetRoleSchema>;
 export type AdminResetPasswordValues = z.infer<typeof adminResetPasswordSchema>;
 export type AdminUpdateProfileValues = z.infer<typeof adminUpdateProfileSchema>;
+
+// ============================================================
+// 通知（admin 发送；用户侧操作）
+// ============================================================
+
+/**
+ * 站内链接。
+ *
+ * 必须是站内路径（以 / 开头）—— 允许 http(s) 会变成钓鱼入口：
+ * 管理员账号一旦被盗，攻击者能给全体师生发一条跳转到仿冒登录页的通知。
+ * 同时拒绝 //evil.com（协议相对 URL 也会跳出站外）。
+ */
+const internalLinkField = z
+  .string()
+  .trim()
+  .max(500, "链接最多 500 个字符")
+  .refine((v) => v === "" || (/^\//.test(v) && !/^\/\//.test(v)), {
+    message: "链接必须是站内路径（以 / 开头）",
+  });
+
+export const sendNotificationSchema = z.object({
+  title: z.string().trim().min(1, "请输入标题").max(100, "标题最多 100 个字符"),
+  body: z.string().trim().min(1, "请输入内容").max(1000, "内容最多 1000 个字符"),
+  link: internalLinkField.optional(),
+  /** 发给全部师生。与 roles/userIds 互斥（前端会禁用，这里也兜一道）。 */
+  all: z.boolean().optional(),
+  roles: z.array(z.enum(["student", "teacher"])).optional(),
+  userIds: z.array(z.string().min(1)).optional(),
+});
+
+export const notificationRecipientIdSchema = z.object({
+  recipientId: z.string().min(1),
+});
+
+export const notificationBatchIdSchema = z.object({
+  notificationId: z.string().min(1),
+});
+
+export type SendNotificationValues = z.infer<typeof sendNotificationSchema>;

@@ -22,6 +22,7 @@ import { Route as AuthenticatedHelpRouteImport } from './routes/authenticated/he
 import { Route as AuthenticatedSettingsRouteImport } from './routes/authenticated/settings'
 import { Route as AuthenticatedStudentRouteImport } from './routes/authenticated/student'
 import { Route as AuthenticatedTeacherRouteImport } from './routes/authenticated/teacher'
+import { Route as AuthenticatedAdminNotificationsRouteImport } from './routes/authenticated/admin/notifications'
 import { Route as AuthenticatedAdminStudentsRouteImport } from './routes/authenticated/admin/students'
 import { Route as AuthenticatedAdminTeachersRouteImport } from './routes/authenticated/admin/teachers'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/authenticated/settings/account'
@@ -97,6 +98,12 @@ const AuthenticatedTeacherRoute = AuthenticatedTeacherRouteImport.update({
   path: '/teacher',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdminNotificationsRoute =
+  AuthenticatedAdminNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminStudentsRoute =
   AuthenticatedAdminStudentsRouteImport.update({
     id: '/students',
@@ -166,6 +173,7 @@ export interface FileRoutesByFullPath {
   '/authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/authenticated/student': typeof AuthenticatedStudentRoute
   '/authenticated/teacher': typeof AuthenticatedTeacherRoute
+  '/authenticated/admin/notifications': typeof AuthenticatedAdminNotificationsRoute
   '/authenticated/admin/students': typeof AuthenticatedAdminStudentsRoute
   '/authenticated/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
@@ -190,6 +198,7 @@ export interface FileRoutesByTo {
   '/authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/authenticated/student': typeof AuthenticatedStudentRoute
   '/authenticated/teacher': typeof AuthenticatedTeacherRoute
+  '/authenticated/admin/notifications': typeof AuthenticatedAdminNotificationsRoute
   '/authenticated/admin/students': typeof AuthenticatedAdminStudentsRoute
   '/authenticated/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
@@ -215,6 +224,7 @@ export interface FileRoutesById {
   '/authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/authenticated/student': typeof AuthenticatedStudentRoute
   '/authenticated/teacher': typeof AuthenticatedTeacherRoute
+  '/authenticated/admin/notifications': typeof AuthenticatedAdminNotificationsRoute
   '/authenticated/admin/students': typeof AuthenticatedAdminStudentsRoute
   '/authenticated/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
@@ -241,6 +251,7 @@ export interface FileRouteTypes {
     | '/authenticated/settings'
     | '/authenticated/student'
     | '/authenticated/teacher'
+    | '/authenticated/admin/notifications'
     | '/authenticated/admin/students'
     | '/authenticated/admin/teachers'
     | '/authenticated/settings/account'
@@ -265,6 +276,7 @@ export interface FileRouteTypes {
     | '/authenticated/settings'
     | '/authenticated/student'
     | '/authenticated/teacher'
+    | '/authenticated/admin/notifications'
     | '/authenticated/admin/students'
     | '/authenticated/admin/teachers'
     | '/authenticated/settings/account'
@@ -289,6 +301,7 @@ export interface FileRouteTypes {
     | '/authenticated/settings'
     | '/authenticated/student'
     | '/authenticated/teacher'
+    | '/authenticated/admin/notifications'
     | '/authenticated/admin/students'
     | '/authenticated/admin/teachers'
     | '/authenticated/settings/account'
@@ -399,6 +412,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTeacherRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/authenticated/admin/notifications': {
+      id: '/authenticated/admin/notifications'
+      path: '/notifications'
+      fullPath: '/authenticated/admin/notifications'
+      preLoaderRoute: typeof AuthenticatedAdminNotificationsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/authenticated/admin/students': {
       id: '/authenticated/admin/students'
       path: '/students'
@@ -484,11 +504,13 @@ const AuthRouteChildren: AuthRouteChildren = {
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminNotificationsRoute: typeof AuthenticatedAdminNotificationsRoute
   AuthenticatedAdminStudentsRoute: typeof AuthenticatedAdminStudentsRoute
   AuthenticatedAdminTeachersRoute: typeof AuthenticatedAdminTeachersRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminNotificationsRoute: AuthenticatedAdminNotificationsRoute,
   AuthenticatedAdminStudentsRoute: AuthenticatedAdminStudentsRoute,
   AuthenticatedAdminTeachersRoute: AuthenticatedAdminTeachersRoute,
 }
