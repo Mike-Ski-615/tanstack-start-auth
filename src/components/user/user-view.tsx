@@ -4,11 +4,18 @@ import { Separator } from "#components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "#components/ui/avatar";
 import type { UserProfile } from "#server/user.functions";
 import { daysSince } from "#lib/format";
+import { useContentWidth, CONTENT_WIDTH_CLASS } from "#provider/content-width-provider";
 
 export function UserView({ user, calendar, stats }: UserProfile) {
+  // 跟随 header 里的内容宽度设置。此前硬编码 max-w-7xl，三档设置在这一页
+  // 全是同一个宽度（实测 1184px），与 admin/student/teacher 的行为不一致。
+  const { width } = useContentWidth();
+
   return (
     <main className="min-h-full min-w-0">
-      <div className=" mx-auto flex w-full max-w-7xl min-w-0 flex-col gap-4 p-4 sm:gap-5 sm:p-6 lg:gap-6 lg:p-8">
+      <div
+        className={`flex min-w-0 flex-col gap-4 p-4 sm:gap-5 sm:p-6 lg:gap-6 lg:p-8 ${CONTENT_WIDTH_CLASS[width]}`}
+      >
         <header className=" flex min-w-0 items-center gap-4 rounded-2xl bg-card p-5 lg:flex-col lg:gap-3 lg:bg-transparent lg:py-4">
           <div className="relative shrink-0">
             {/*
@@ -61,7 +68,15 @@ export function UserView({ user, calendar, stats }: UserProfile) {
           </div>
         </dl>
 
-        <section className=" grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
+        {/*
+         * 分栏断点按内容定，不按设备预设。
+         *
+         * 实测：原来用 lg:（1024px）分栏时，热力图那栏只剩 408px —— 恰恰
+         * 是它最需要宽度的时候；而 900–1000px 单栏时也只有 596–696px。
+         * 热力图现在自带自适应（按容器宽度决定显示多少周），所以这里
+         * 不需要为它预留固定宽度，用 xl: 在真正宽裕时再分栏即可。
+         */}
+        <section className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
           <div className="min-w-0 overflow-hidden rounded-2xl bg-card p-4 sm:p-5">
             <Heatmap data={calendar} />
           </div>

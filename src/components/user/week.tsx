@@ -41,7 +41,8 @@ export default function ThisWeek({ data }: { data: ActivityDay[] }) {
   const weekTotal = days.reduce((sum, d) => sum + d.count, 0);
 
   return (
-    <div className="flex h-full w-full flex-col gap-3 rounded-2xl bg-card px-5 py-4">
+    // self-start：分栏时不被拉伸到与热力图同高（否则卡片下方留一大块空白）
+    <div className="flex w-full flex-col gap-3 self-start rounded-2xl bg-card px-5 py-4">
       <div className="flex items-baseline justify-between">
         <h2 className="font-semibold tracking-tight">本周</h2>
         <span className="text-xs text-muted-foreground">与热力图同源</span>
