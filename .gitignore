@@ -43,3 +43,6 @@ Thumbs.db
 
 # 注意：以下目录为 agent 配置，有意保留在版本库中，勿忽略：
 # .agents/ .claude/ .codex/ .cursor/ .devin/ .intent/ skills-lock.json docs/agents/
+
+# 测试环境变量含本机数据库密码，不入库；模板见 .env.test.example
+.env.test
