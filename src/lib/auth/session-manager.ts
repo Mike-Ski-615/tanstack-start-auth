@@ -51,14 +51,14 @@ export type ResetToken = {
  * - ensureDevice() 只管 Device
  * - createAuthenticatedSession() 只管 Session
  *
- * @returns { token, deviceKey, oldSessionId } 原始令牌 + deviceKey + 旧 sessionId（用于 kick WS）
+ * @returns { token, deviceKey } 原始令牌 + deviceKey
  */
 export async function createAuthenticatedSession(params: {
   userId: string;
   deviceKey?: string;
   userAgent?: string | null;
   ip?: string | null;
-}): Promise<{ token: string; deviceKey: string; oldSessionId: string | null }> {
+}): Promise<{ token: string; deviceKey: string }> {
   const { userId, deviceKey, userAgent = null, ip = null } = params;
 
   // 1. 确保 Device（单设备冲突时自动替换，不管 Session）
@@ -69,18 +69,18 @@ export async function createAuthenticatedSession(params: {
     ip,
   });
 
-  // 2. 查找旧 Session（用于 kick WS）
-  const oldSession = await db.orm.public.Session.where({ userId: userId }).first();
-  const oldSessionId = oldSession?.id ?? null;
-
-  // 3. 删除旧 Session
+  // 2. 删除旧 Session
+  //
+  // 一条 DELETE 完成，不做 SELECT + DELETE 两步：两步写法在并发登录时
+  // 是 TOCTOU —— 两个请求可能都读到同一条旧 Session，各自删一次，后到者
+  // 读到的还是已经被删掉的那条。单条 DELETE 没有这个窗口。
   await db.orm.public.Session.where({ userId: userId }).delete();
 
-  // 4. 读取当前 sessionVersion
+  // 3. 读取当前 sessionVersion
   const user = await db.orm.public.User.where({ id: userId }).first();
   const sessionVersion = user?.sessionVersion ?? 0;
 
-  // 5. 创建新 Session
+  // 4. 创建新 Session
   const rawToken = generateToken();
   const tokenHash = hashToken(rawToken);
   const expiresAt = new Date(Date.now() + SESSION_TTL_MS).toISOString();
@@ -95,7 +95,7 @@ export async function createAuthenticatedSession(params: {
     expiresAt,
   });
 
-  return { token: rawToken, deviceKey: finalDeviceKey, oldSessionId };
+  return { token: rawToken, deviceKey: finalDeviceKey };
 }
 
 // ============================================================
