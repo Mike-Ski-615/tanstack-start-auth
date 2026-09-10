@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { currentUserQueryOptions } from "#lib/queries/current-user";
 
 import { Switch } from "#components/ui/switch";
-import { Label } from "#components/ui/label";
 import { LoadingPage } from "#components/status/authenticated/loading";
 import { ErrorPage } from "#components/status/authenticated/error";
 import { NotFoundPage } from "#components/status/authenticated/not-found";
@@ -45,28 +44,29 @@ function SettingsBellPage() {
         <p className="mt-1 text-sm text-muted-foreground">管理站内消息与各类提醒偏好。</p>
       </header>
 
-      <section className="rounded-xl border bg-card">
-        <div className="flex items-start justify-between gap-4 p-4">
-          <div className="min-w-0 flex-1">
-            <Label htmlFor="notify-toast" className="text-sm font-medium">
-              新通知弹窗提醒
-            </Label>
-            <p className="mt-1 text-xs text-muted-foreground">
-              有新通知时在屏幕角落弹出提示。关掉后仍会出现在右上角的铃铛里， 只是不再打扰你。
-            </p>
-          </div>
+      {/*
+       * 用 <span> 而非 <Label htmlFor>：后者会把文字与开关关联，点文字也
+       * 会切换开关 —— 标准行为，但视觉上两者是分开的，用户会以为「开关
+       * 自己动了」。这里只让开关本体可点。
+       *
+       * 代价：屏幕阅读器失去「这段文字描述的是这个开关」的关联。用
+       * aria-labelledby 补回来，不牺牲可访问性。
+       */}
+      <div className="flex items-center justify-between gap-4">
+        <span id="notify-toast-label" className="text-sm font-medium">
+          新通知弹窗提醒
+        </span>
 
-          <Switch
-            id="notify-toast"
-            // 未加载完时按默认开启显示 —— 这一页必然在登录态下（布局已守卫），
-            // 出现 undefined 只可能是首帧，用 true 避免闪一下关闭态。
-            checked={user?.notifyOnNewMessage ?? true}
-            onCheckedChange={(checked) => update.mutate(checked)}
-            disabled={update.isPending}
-            aria-label="新通知弹窗提醒"
-          />
-        </div>
-      </section>
+        <Switch
+          id="notify-toast"
+          // 未加载完时按默认开启显示 —— 这一页必然在登录态下（布局已守卫），
+          // 出现 undefined 只可能是首帧，用 true 避免闪一下关闭态。
+          checked={user?.notifyOnNewMessage ?? true}
+          onCheckedChange={(checked) => update.mutate(checked)}
+          disabled={update.isPending}
+          aria-labelledby="notify-toast-label"
+        />
+      </div>
 
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-medium text-muted-foreground">通知历史</h2>

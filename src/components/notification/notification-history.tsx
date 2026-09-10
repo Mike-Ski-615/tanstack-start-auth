@@ -32,9 +32,11 @@ export function NotificationHistory() {
   }
 
   return (
-    <div className="divide-y rounded-xl border bg-card">
+    // 每条一张独立卡片（不是一个大卡片里切分）—— 条目之间有间距，
+    // 视觉上能一眼看出「这是几条各自独立的通知」。
+    <div className="flex flex-col gap-3">
       {items.map((n) => (
-        <div key={n.id} className="flex items-start gap-3 p-4">
+        <div key={n.id} className="flex items-start gap-3 rounded-xl border bg-card p-4">
           <span
             className={cn(
               "mt-1.5 size-2 shrink-0 rounded-full",
