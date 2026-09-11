@@ -1,6 +1,7 @@
 import type { ErrorComponentProps } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { Button } from "#components/ui/button";
+import { CONTENT_WIDTH_CLASS, SIDEBAR_GUTTER_CLASS } from "#provider/content-width-provider";
 
 /**
  * 管理区错误（/authenticated/admin）。
@@ -13,7 +14,10 @@ import { Button } from "#components/ui/button";
  */
 export function ErrorPage({ reset }: ErrorComponentProps) {
   return (
-    <div className="flex flex-1 flex-col items-start gap-3">
+    // 容器类名用页面那组常数：本状态页会**替换**本路由自己的组件，那层包裹得自己带
+    <div
+      className={`flex flex-1 flex-col items-start gap-3 p-4 sm:p-5 ${SIDEBAR_GUTTER_CLASS} ${CONTENT_WIDTH_CLASS}`}
+    >
       <h1 className="text-2xl font-semibold tracking-tight text-foreground">管理区出错了</h1>
       <p className="text-sm text-muted-foreground">
         管理页面没能加载出来。可以重试，或先回到教师管理。

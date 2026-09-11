@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ROLE_HOME, type Role } from "#lib/auth/current-user";
+import { CONTENT_WIDTH_CLASS, SIDEBAR_GUTTER_CLASS } from "#provider/content-width-provider";
 
 /**
  * 学生工作台未找到（/authenticated/student）。
@@ -22,7 +23,10 @@ export function NotFoundPage() {
   const fallback: string = role ? ROLE_HOME[role] : "/";
 
   return (
-    <section className="flex flex-col items-start gap-3 p-4 lg:ps-7">
+    // 容器类名用页面那组常数：本状态页会**替换**本路由自己的组件，那层包裹得自己带
+    <section
+      className={`flex flex-col items-start gap-3 p-4 ${SIDEBAR_GUTTER_CLASS} ${CONTENT_WIDTH_CLASS}`}
+    >
       <h1 className="text-2xl font-bold text-foreground">页面不存在</h1>
       <p className="text-sm text-muted-foreground">没找到这个学生工作台地址。</p>
       <Link

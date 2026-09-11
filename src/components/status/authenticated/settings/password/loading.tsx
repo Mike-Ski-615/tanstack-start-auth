@@ -1,4 +1,5 @@
 import { Skeleton } from "#components/ui/skeleton";
+import { FieldGroup } from "#components/ui/field";
 
 /**
  * 密码设置加载态（/authenticated/settings/password）。
@@ -7,10 +8,16 @@ import { Skeleton } from "#components/ui/skeleton";
  *
  * 骨架照这页真实结构（已对齐源码）：
  *   header（图标 + 标题 + 说明）
- *   → `<form>` 内的 `FieldGroup`
- *   → 两个 Field（当前密码 / 新密码），每个是 FieldLabel + Input
+ *   → `FieldGroup` 内的两个 Field（当前密码 / 新密码），每个是 FieldLabel + Input
  *   → 底部提交按钮
- * 这是表单页，所以摆字段而不是卡片 —— 否则加载完整页换形。
+ *
+ * 两个刻意的对齐点：
+ *
+ * - `FieldGroup` 用**真组件**而不是抄它的类名。以前这里写死 `flex flex-col gap-5`，
+ *   而 FieldGroup 实际是 `flex w-full flex-col gap-5 @container/field-group …` ——
+ *   少的不只是 `w-full`，还有容器查询上下文。用真组件就永远不会差。
+ * - 根元素是 `<div>` 而页面是 `<form>`。这是**有意的偏离**：盒子尺寸与类名完全
+ *   一致（切换不位移），但加载态里不该出现一个没有提交行为的表单。
  */
 export function LoadingPage() {
   return (
@@ -26,25 +33,23 @@ export function LoadingPage() {
         </div>
       </header>
 
-      <form className="flex flex-col gap-6">
-        <div className="flex flex-col gap-5">
-          {/* 当前密码 */}
-          <div className="flex flex-col gap-2">
-            <Skeleton className="h-4 w-16" />
-            <Skeleton className="h-8 w-full" />
-          </div>
-
-          {/* 新密码 */}
-          <div className="flex flex-col gap-2">
-            <Skeleton className="h-4 w-14" />
-            <Skeleton className="h-8 w-full" />
-          </div>
+      <FieldGroup>
+        {/* 当前密码 */}
+        <div className="flex flex-col gap-2">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-8 w-full" />
         </div>
 
-        <div className="flex justify-end">
-          <Skeleton className="h-8 w-24" />
+        {/* 新密码 */}
+        <div className="flex flex-col gap-2">
+          <Skeleton className="h-4 w-14" />
+          <Skeleton className="h-8 w-full" />
         </div>
-      </form>
+      </FieldGroup>
+
+      <div className="flex justify-end">
+        <Skeleton className="h-8 w-24" />
+      </div>
     </div>
   );
 }

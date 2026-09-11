@@ -278,6 +278,31 @@ User
        └── Session (1:1) ──── session-token = 认证凭证
 ```
 
+### 状态页与骨架（`components/status/`）
+
+每个路由都有自己的 loading / error / not-found，**完全定制、互不共用**（仓库所有者
+指定的约定，由 `route-states.test.ts` 钉住）；目录结构镜像 `src/routes/`。
+
+两个容易踩的点：
+
+1. **状态页会替换它服务的那个路由的组件**（router-core 的 Match：`pending` /
+   `error` 时直接返回那个元素），所以**页面那层包裹不在**，状态页得自己带上。
+   容器必须**引用页面用的同一组常数**（`content-width-provider` 导出的
+   `SIDEBAR_GUTTER_CLASS` / `CONTENT_WIDTH_CLASS`），不能抄字面值 —— 抄了就会出现
+   「加载/出错时全宽、正常时居中」的跳动，而且**不报错**。这条已错过三次
+   （`student` / `teacher` / `admin` 的三件套都漏过 `content-region`）。
+   `loading-alignment.test.ts` 现在盯着它。
+
+2. **不是所有骨架都会被看到**。路由只有 loader / `beforeLoad` 异步时才进入 pending
+   态。当前可触发的只有 8 个：`auth`（布局）、`authenticated`（布局）、
+   `admin/notifications`、`admin/students`、`admin/teachers`、`settings/account`、
+   `settings/bell`、`settings/privacy-security`；另有 4 个页面在组件里直接渲染骨架
+   （`isPending` 分支）。其余骨架（含 `student` / `teacher` / `admin` 三个工作台）
+   进不了 pending —— 它们仍按约定保留，但改它们时不必担心「有人会看到」。
+
+   > 判断方法：看该路由的 `beforeLoad` 是否 `await` / 返回 promise，以及页面组件里
+   > 有没有 `isPending` 分支。
+
 ### 安全审计状态
 
 | 模块                     | 状态     | 备注                                                                                                                                                                                                                 |
