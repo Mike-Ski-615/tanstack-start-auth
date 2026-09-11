@@ -59,7 +59,7 @@ export default function ThisWeek({ data }: { data: ActivityDay[] }) {
             <div
               key={d.key}
               title={`${d.key}${d.isToday ? " · 今天" : ""} · ${d.count} 次`}
-              className="flex w-4 flex-col items-center gap-0.5"
+              className="flex min-w-4 flex-col items-center gap-0.5"
             >
               <span
                 className={`block size-3 rounded-xs ${d.isToday ? "ring-1 ring-foreground" : ""}`}

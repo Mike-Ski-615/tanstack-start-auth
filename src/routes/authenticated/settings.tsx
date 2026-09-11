@@ -48,7 +48,12 @@ function SettingsLayout() {
 
         <DialogDescription className="sr-only">Customize your settings here.</DialogDescription>
 
-        <SidebarProvider className="h-full min-h-0 items-stretch">
+        {/* 窄屏纵向堆叠（导航条 + 内容），md 以上恢复成左右两栏 */}
+        <SidebarProvider
+          className="h-full min-h-0 flex-col items-stretch md:flex-row"
+          persist={false}
+          hotkey={false}
+        >
           {/* Sidebar */}
           <Sidebar collapsible="none" className="hidden h-full border-r md:flex">
             <SidebarContent>
@@ -106,6 +111,34 @@ function SettingsLayout() {
               </SidebarGroup>
             </SidebarContent>
           </Sidebar>
+
+          {/*
+            窄屏导航。
+
+            md 以下侧栏整个隐藏（上面那个 Sidebar 是 hidden md:flex），
+            而 DialogContent 在 sm 就能到 max-w-175 —— 不补这一条，
+            640–767px 之间弹窗里没有任何导航，各设置分区只能手改 URL。
+
+            复用同一份 SETTINGS_NAV，不另写一套列表。
+          */}
+          <nav
+            aria-label="设置"
+            className="flex shrink-0 gap-1 overflow-x-auto border-b p-2 md:hidden"
+          >
+            {SETTINGS_NAV.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                activeProps={{
+                  className: "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
+                }}
+                className="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1.5 text-sm whitespace-nowrap"
+              >
+                <HugeiconsIcon icon={item.icon} />
+                <span>{item.title}</span>
+              </Link>
+            ))}
+          </nav>
 
           {/* Main */}
           <main className="flex min-h-0 min-w-0 flex-1 flex-col">

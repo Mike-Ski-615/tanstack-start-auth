@@ -66,11 +66,20 @@ function SidebarProvider({
   className,
   style,
   children,
+  /**
+   * 嵌套 provider（如设置弹窗里的导航栏）必须关掉这两项：
+   * 它们与全局 provider 共用同一个 cookie、同绑一个 Ctrl+B，
+   * 不关就会出现「按一下切两层侧栏」和「内层状态写进全局」。
+   */
+  persist = true,
+  hotkey = true,
   ...props
 }: React.ComponentProps<"div"> & {
   defaultOpen?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  persist?: boolean;
+  hotkey?: boolean;
 }) {
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
@@ -90,9 +99,11 @@ function SidebarProvider({
       }
 
       // This sets the cookie to keep the sidebar state.
-      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+      if (persist) {
+        document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+      }
     },
-    [setOpenProp, open],
+    [setOpenProp, open, persist],
   );
 
   // Animate the sidebar width whenever the settled open state changes
@@ -111,7 +122,7 @@ function SidebarProvider({
   }, [isMobile, setOpen, setOpenMobile]);
 
   // Toggle the sidebar with Ctrl + B.
-  useHotkeys("ctrl+b", toggleSidebar, { preventDefault: true });
+  useHotkeys("ctrl+b", toggleSidebar, { preventDefault: true, enabled: hotkey });
 
   // We add a state so that we can do data-state="expanded" or "collapsed".
   // This makes it easier to style the sidebar with Tailwind classes.

@@ -43,7 +43,9 @@ function HelpPage() {
   }, []);
 
   return (
-    <div className="grid h-full min-h-0 w-full grid-rows-[minmax(0,1fr)] grid-cols-1 gap-y-6 xl:gap-x-10 2xl:grid-cols-[minmax(0,1fr)_minmax(0,48rem)_minmax(0,1fr)]">
+    // relative：下面两个渐隐遮罩是 absolute inset-x-0，需要以**这个滚动区**
+    // 为定位祖先，否则会落到 SidebarInset/视口上，跟随不到本页的滚动容器。
+    <div className="relative grid h-full min-h-0 w-full grid-rows-[minmax(0,1fr)] grid-cols-1 gap-y-6 xl:gap-x-10 2xl:grid-cols-[minmax(0,1fr)_minmax(0,48rem)_minmax(0,1fr)]">
       <div
         className="
             pointer-events-none

@@ -90,7 +90,12 @@ function AdminNotificationsPage() {
         <p className="text-muted-foreground">通知会出现在收件人的铃铛里，并计入未读数。</p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      {/*
+        分栏按**容器**宽度而非视口：父级宽度由 header 上的 ContentWidthToggle
+        控制，narrow 档（max-w-3xl ≈768px）时视口 lg: 照样触发，把两个面板
+        各压到 ~370px。容器查询让断点跟着实际可用宽度走。
+      */}
+      <div className="@container grid gap-6 @3xl:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>新建通知</CardTitle>
@@ -169,14 +174,14 @@ function AdminNotificationsPage() {
                     </Label>
                   </div>
 
-                  <div className="flex flex-col gap-2 pl-6">
+                  <div className="flex flex-col gap-2 ps-6">
                     <p className="text-xs text-muted-foreground">
                       按角色（可与下面的指定用户叠加）
                     </p>
                     <RoleMultiSelect value={roles} onChange={setRoles} disabled={all} />
                   </div>
 
-                  <div className="flex flex-col gap-2 pl-6">
+                  <div className="flex flex-col gap-2 ps-6">
                     <p className="text-xs text-muted-foreground">指定用户</p>
                     <UserMultiSelect
                       users={users}

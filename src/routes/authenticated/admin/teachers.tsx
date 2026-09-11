@@ -31,7 +31,7 @@ function AdminTeachersPage() {
   const { data: teachers = [] } = useQuery(adminUsersQueryOptions("teacher"));
 
   return (
-    <div className="flex h-full flex-1 flex-col gap-8 p-8">
+    <div className="flex flex-1 flex-col gap-8">
       <div className="flex flex-col gap-1">
         <h2 className="text-2xl font-semibold tracking-tight">教师管理</h2>
         <p className="text-muted-foreground">这里是你账号下的全部教师，共 {teachers.length} 位。</p>

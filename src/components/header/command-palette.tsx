@@ -33,13 +33,12 @@ export function CommandPalette({ className, role }: { className?: string; role: 
       <Button
         type="button"
         variant="secondary"
-        className={cn(`justify-start sm:w-40 lg:w-56 xl:w-72 w-32`, className)}
+        className={cn("w-32 min-w-0 shrink justify-start sm:flex-1 sm:max-w-72", className)}
         onClick={() => setOpen(true)}
       >
         <HugeiconsIcon icon={Search01Icon} />
-        <span className="hidden xl:inline-flex">搜索文档...</span>
-        <span className="inline-flex xl:hidden">搜索...</span>
-        <KbdGroup className="ml-auto hidden xl:flex">
+        <span className="truncate">搜索...</span>
+        <KbdGroup className="ml-auto hidden shrink-0 sm:flex">
           <Kbd>Ctrl</Kbd>
           <span>+</span>
           <Kbd>K</Kbd>

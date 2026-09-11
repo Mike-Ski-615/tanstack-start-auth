@@ -57,7 +57,7 @@ export function HeaderBell() {
               {unread > 0 && (
                 <Badge
                   variant="destructive"
-                  className="absolute -top-0.5 -right-0.5 h-4 min-w-4 rounded-full px-1 text-[10px] leading-none tabular-nums"
+                  className="absolute -top-0.5 -end-0.5 h-4 min-w-4 rounded-full px-1 text-[10px] leading-none tabular-nums"
                 >
                   {badge}
                 </Badge>

@@ -30,13 +30,15 @@ export function DataTableToolbar<TData extends RowData>({
   const isFiltered = table.state.columnFilters.length > 0;
 
   return (
-    <div className="flex items-center justify-between">
+    // 表格区的宽度由 ContentWidthToggle 控制，所以断点看**容器**而非视口：
+    // 视口 lg: 在 narrow 档下会把搜索框拉宽、却把「视图」按钮隐藏。
+    <div className="@container flex items-center justify-between">
       <div className="flex flex-1 items-center gap-2">
         <Input
           placeholder={searchPlaceholder}
           value={(table.getColumn(searchColumn)?.getFilterValue() as string) ?? ""}
           onChange={(event) => table.getColumn(searchColumn)?.setFilterValue(event.target.value)}
-          className="h-8 w-37.5 lg:w-62.5"
+          className="h-8 w-37.5 @2xl:w-62.5"
         />
 
         {roleOptions && table.getColumn("role") && (

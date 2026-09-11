@@ -13,14 +13,15 @@ export function Header({ role }: { role: Role }) {
   const { open } = useSidebar();
 
   return (
-    <header className={cn("flex h-12 shrink-0 items-center gap-2 border-b p-2", open && "pl-4")}>
+    <header className={cn("flex h-12 shrink-0 items-center gap-2 border-b p-2", open && "ps-4")}>
       <PanelLeftOpen />
       <Separator
         className={cn(open && "md:hidden", "my-auto data-[orientation=vertical]:h-4")}
         orientation="vertical"
       />
       <HeaderBreadcrumb />
-      <CommandPalette className="ml-auto" role={role} />
+      {/* flex-1 + max-w-72 已经把右侧图标推到边，不再需要 ms-auto */}
+      <CommandPalette role={role} />
       <Separator className="my-auto data-[orientation=vertical]:h-4" orientation="vertical" />
       <HeaderBell />
       <Separator className="my-auto data-[orientation=vertical]:h-4" orientation="vertical" />

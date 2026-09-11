@@ -73,7 +73,7 @@ export const columns = columnHelper.columns([
       if (!role) return null;
 
       return (
-        <div className="flex w-25 items-center gap-2">
+        <div className="flex min-w-25 items-center gap-2">
           {role.icon && <HugeiconsIcon icon={role.icon} className="size-4 text-muted-foreground" />}
           <span>{role.label}</span>
         </div>
@@ -94,7 +94,7 @@ export const columns = columnHelper.columns([
       if (!state) return null;
 
       return (
-        <div className="flex w-25 items-center gap-2">
+        <div className="flex min-w-25 items-center gap-2">
           {state.icon && (
             <HugeiconsIcon icon={state.icon} className="size-4 text-muted-foreground" />
           )}

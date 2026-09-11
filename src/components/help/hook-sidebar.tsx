@@ -56,7 +56,7 @@ const Rail = ({
         animate={{ top: from, height: Math.max(0, (y ?? 0) - CORNER - from) }}
         transition={travel}
         style={dashed ? { backgroundImage: DASH } : { backgroundColor: "currentColor" }}
-        className="absolute left-0.5 w-px"
+        className="absolute start-0.5 w-px"
       />
       <motion.svg
         initial={false}
@@ -66,7 +66,7 @@ const Rail = ({
         height="7"
         viewBox="0 0 12 7"
         fill="none"
-        className="absolute left-0.5"
+        className="absolute start-0.5"
       >
         <path
           d="M0.5 0a6 6 0 0 0 6 6H12"
@@ -138,7 +138,7 @@ export function HookSidebar({
       {label && (
         <span
           data-slot="hook-sidebar-label"
-          className="pb-3 pl-0.5 pr-2 font-sans text-base font-medium uppercase tracking-wide text-foreground"
+          className="pb-3 ps-0.5 pe-2 font-sans text-base font-medium uppercase tracking-wide text-foreground"
         >
           {label}
         </span>
@@ -179,7 +179,7 @@ export function HookSidebar({
             onBlur: () => setFocusInside(false),
             onClick: () => select(index),
             className: cn(
-              "w-fit rounded-lg py-1.5 pl-5 pr-2 text-left text-sm transition-colors duration-200 motion-reduce:transition-none",
+              "w-fit rounded-lg py-1.5 ps-5 pe-2 text-left text-sm transition-colors duration-200 motion-reduce:transition-none",
               isActive ? "text-foreground" : "text-foreground/50 hover:text-foreground/80",
             ),
           };
