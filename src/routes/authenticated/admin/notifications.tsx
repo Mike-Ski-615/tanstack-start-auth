@@ -23,6 +23,7 @@ import {
   NOTIFICATION_TITLE_MAX,
   sendNotificationSchema,
 } from "#schemas/auth";
+import type { ManagedRole } from "#lib/auth/current-user";
 import { LoadingPage } from "#components/status/authenticated/admin/notifications/loading";
 import { ErrorPage } from "#components/status/authenticated/admin/notifications/error";
 import { NotFoundPage } from "#components/status/authenticated/admin/notifications/not-found";
@@ -53,17 +54,14 @@ function AdminNotificationsPage() {
   const send = useSendNotificationMutation();
 
   const [all, setAll] = useState(false);
-  const [roles, setRoles] = useState<("student" | "teacher")[]>([]);
+  const [roles, setRoles] = useState<ManagedRole[]>([]);
   const [userIds, setUserIds] = useState<string[]>([]);
 
   // 角色与指定人取并集去重 —— 与接口层 resolveRecipients 同一套规则，
   // 这样提示的人数就是实际会收到的人数。
   const targetCount = all
     ? users.length
-    : new Set([
-        ...users.filter((u) => roles.includes(u.role as "student" | "teacher")).map((u) => u.id),
-        ...userIds,
-      ]).size;
+    : new Set([...users.filter((u) => roles.includes(u.role)).map((u) => u.id), ...userIds]).size;
 
   const form = useForm({
     defaultValues: { title: "", body: "", link: "" },

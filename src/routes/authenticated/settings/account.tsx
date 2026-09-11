@@ -13,6 +13,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { securityInfoQueryOptions } from "#lib/queries/sessions";
 import { currentUserQueryOptions } from "#lib/queries/user";
+import { ROLE_LABEL } from "#lib/auth/current-user";
 import { LoadingPage } from "#components/status/authenticated/settings/account/loading";
 import { ErrorPage } from "#components/status/authenticated/settings/account/error";
 import { NotFoundPage } from "#components/status/authenticated/settings/account/not-found";
@@ -26,12 +27,6 @@ export const Route = createFileRoute("/authenticated/settings/account")({
   },
   component: SettingsAccountPage,
 });
-
-const ROLE_LABELS: Record<string, string> = {
-  student: "学生",
-  teacher: "教师",
-  admin: "管理员",
-};
 
 function SettingsAccountPage() {
   const { data: user } = useQuery(currentUserQueryOptions);
@@ -88,7 +83,7 @@ function SettingsAccountPage() {
           </div>
           <div className="grid grid-cols-[100px_1fr] gap-1 p-4">
             <span className="text-xs text-muted-foreground">角色</span>
-            <span className="text-sm">{ROLE_LABELS[user.role] ?? user.role}</span>
+            <span className="text-sm">{ROLE_LABEL[user.role]}</span>
           </div>
         </div>
       </section>

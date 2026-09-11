@@ -14,6 +14,7 @@ import {
 } from "#components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "#components/ui/popover";
 import { Separator } from "#components/ui/separator";
+import { MANAGED_ROLES, ROLE_LABEL, type ManagedRole } from "#lib/auth/current-user";
 import { cn } from "#lib/utils";
 
 /**
@@ -27,12 +28,8 @@ export type SelectableUser = {
   id: string;
   name: string;
   email: string;
-  role: string;
-};
-
-const ROLE_LABEL: Record<string, string> = {
-  student: "学生",
-  teacher: "教师",
+  /** 只能是受管角色 —— 选择器只列受管角色（见 listManagedUsersForPicker）。 */
+  role: ManagedRole;
 };
 
 export function UserMultiSelect({
@@ -121,7 +118,7 @@ export function UserMultiSelect({
                     </div>
                     <span className="truncate">{u.name}</span>
                     <span className="ml-auto truncate text-xs text-muted-foreground">
-                      {ROLE_LABEL[u.role] ?? u.role}
+                      {ROLE_LABEL[u.role]}
                     </span>
                   </CommandItem>
                 );
@@ -140,22 +137,22 @@ export function RoleMultiSelect({
   onChange,
   disabled,
 }: {
-  value: ("student" | "teacher")[];
-  onChange: (next: ("student" | "teacher")[]) => void;
+  value: ManagedRole[];
+  onChange: (next: ManagedRole[]) => void;
   disabled?: boolean;
 }) {
   const selected = new Set(value);
-  const toggle = (role: "student" | "teacher") => {
+  const toggle = (role: ManagedRole) => {
     const next = new Set(selected);
     if (next.has(role)) next.delete(role);
     else next.add(role);
-    // 展开 Set<"student" | "teacher"> 已经是那个联合类型的数组，无需断言。
+    // 展开 Set<ManagedRole> 已经是那个联合类型的数组，无需断言。
     onChange([...next]);
   };
 
   return (
     <div className="flex gap-2">
-      {(["student", "teacher"] as const).map((role) => {
+      {MANAGED_ROLES.map((role) => {
         const on = selected.has(role);
         return (
           <Button

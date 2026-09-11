@@ -13,7 +13,7 @@
  */
 
 import { db } from "#prisma/db";
-import { isManagedRole, MANAGED_ROLES, type ManagedRole } from "#lib/auth/admin-actions";
+import { isManagedRole, MANAGED_ROLES, type ManagedRole } from "#lib/auth/current-user";
 import { ERROR_MESSAGE } from "#lib/error-messages";
 
 /** 单次发送的收件人上限。防手滑给几万人建行（每人一行）。 */

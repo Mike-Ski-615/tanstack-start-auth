@@ -156,10 +156,18 @@ describe("admin 用户的认证链路", () => {
  *
  * 这个守卫是为了消掉调用点上的 `u.role as ManagedRole` 才引入的，
  * 所以顺手把闸门本身钉住。
+ *
+ * 它住在 #lib/auth/current-user（零依赖的叶子）—— 客户端也要判断
+ * 「这个角色算不算受管」，而它原先所在的 admin-actions 会拉进 db，客户端够不着。
+ *
+ * 名单本身与 ROLES 的关系（= 去掉 admin）**不再单独断言**：MANAGED_ROLES 现在
+ * 就是从 ROLES 推导的，再断言一次是同义反复。守门人换成了两个更早的地方 ——
+ * 类型检查器（ROLE_LABEL / ROLE_ICON 的 Record 漏角色就编译不过），
+ * 以及下面那组打数据库 CHECK 约束的用例。
  */
 describe("isManagedRole", () => {
   it("只认 student / teacher，admin 一律排除", async () => {
-    const { isManagedRole } = await import("#lib/auth/admin-actions");
+    const { isManagedRole } = await import("#lib/auth/current-user");
 
     expect(isManagedRole("student")).toBe(true);
     expect(isManagedRole("teacher")).toBe(true);
@@ -168,15 +176,10 @@ describe("isManagedRole", () => {
   });
 
   it("对非角色值一律返回 false（不抛错）", async () => {
-    const { isManagedRole } = await import("#lib/auth/admin-actions");
+    const { isManagedRole } = await import("#lib/auth/current-user");
 
     for (const v of ["", "x", "STUDENT", "Admin"]) {
       expect(isManagedRole(v), `${v} 不该被认作受管角色`).toBe(false);
     }
-  });
-
-  it("与 ROLES 的关系：受管角色是 ROLES 去掉 admin", async () => {
-    const { MANAGED_ROLES } = await import("#lib/auth/admin-actions");
-    expect([...MANAGED_ROLES].sort()).toEqual(ROLES.filter((r) => r !== "admin").sort());
   });
 });

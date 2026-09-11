@@ -19,13 +19,10 @@ import {
 } from "#schemas/auth";
 import { ERROR_MESSAGE } from "#lib/error-messages";
 import { db } from "#prisma/db";
-import { PUBLIC_COLUMNS } from "#lib/auth/current-user";
+import { isManagedRole, PUBLIC_COLUMNS } from "#lib/auth/current-user";
 import { requireAdmin } from "#lib/auth/admin-guard";
 import { adminResetPassword, listManagedUsers } from "#lib/auth/admin-actions";
 import { invalidateAllSessions } from "#lib/auth/session-manager";
-
-/** 可被管理的角色（admin 自身排除在外）。 */
-const MANAGED_ROLES = ["student", "teacher"] as const;
 
 /**
  * 错误文案（用户可读）。
@@ -53,7 +50,9 @@ async function requireManageableTarget(targetId: string, adminId: string) {
     .first();
 
   // 管理员不可被操作，视同不存在 —— 不区分「没有这个人」和「这是管理员」。
-  if (!target || !MANAGED_ROLES.includes(target.role as "student" | "teacher")) {
+  // 用 isManagedRole 而非本地 .includes()：受管角色是词汇表的一部分，
+  // 住在一个 module 里（#lib/auth/current-user）。
+  if (!target || !isManagedRole(target.role)) {
     throw new Error(NOT_FOUND);
   }
 

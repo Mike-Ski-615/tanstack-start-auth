@@ -14,28 +14,9 @@
  */
 
 import { db } from "#prisma/db";
-import { PUBLIC_COLUMNS, type User } from "./current-user";
+import { PUBLIC_COLUMNS, type ManagedRole, type User } from "./current-user";
 import { hashPassword } from "./password";
 import { invalidateAllSessions } from "./session-manager";
-
-/** 可被管理的角色（admin 自身排除在外）。 */
-export const MANAGED_ROLES = ["student", "teacher"] as const;
-export type ManagedRole = (typeof MANAGED_ROLES)[number];
-
-/**
- * 类型守卫：某个角色是否可被管理。
- *
- * 之所以不直接写 `MANAGED_ROLES.includes(x)`：数据库里的角色是
- * `"student" | "teacher" | "admin"` 这个更宽的类型，而 `includes` 的参数
- * 被约束成数组元素的字面量联合，直接传会报错，逼得到处写
- * `x as ManagedRole`。那个断言是把自己的类型问题往调用点上推，
- * 而且断言后仍然是错的（admin 并不会因此变成不受管）。
- *
- * 用 readonly string[] 收参再断言，把窄化集中在这一个函数里。
- */
-export function isManagedRole(role: string): role is ManagedRole {
-  return (MANAGED_ROLES as readonly string[]).includes(role);
-}
 
 /**
  * 列出某个可管理角色的全部用户（按注册时间倒序）。

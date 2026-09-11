@@ -18,6 +18,7 @@ import {
   sendNotificationSchema,
 } from "#schemas/auth";
 import { db } from "#prisma/db";
+import { MANAGED_ROLES } from "#lib/auth/current-user";
 import { requireAdmin } from "#lib/auth/admin-guard";
 import { listManagedUsers } from "#lib/auth/admin-actions";
 import { getCurrentUser } from "#lib/auth/guard";
@@ -150,16 +151,22 @@ export const listSelectableUsersFn = createServerFn({ method: "GET" }).handler(a
   return listManagedUsersForPicker();
 });
 
-/** 供选择器用的精简形态（只给发通知时挑人看，不暴露多余字段）。 */
+/** 供选择器用的精简形态（只给发通知时挑人看，不暴露多余字段）。
+ *
+ * role 取自已查询的角色（不是行里的 u.role）：两者必然相等，而后者是更宽的
+ * Role，会让调用方的 .includes() 报错、逼出一个 as 断言。
+ */
 async function listManagedUsersForPicker() {
-  const [students, teachers] = await Promise.all([
-    listManagedUsers("student"),
-    listManagedUsers("teacher"),
-  ]);
-  return [...students, ...teachers].map((u) => ({
-    id: u.id,
-    name: u.name,
-    email: u.email,
-    role: u.role,
-  }));
+  const lists = await Promise.all(
+    MANAGED_ROLES.map(async (role) => {
+      const users = await listManagedUsers(role);
+      return users.map((u) => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role,
+      }));
+    }),
+  );
+  return lists.flat();
 }

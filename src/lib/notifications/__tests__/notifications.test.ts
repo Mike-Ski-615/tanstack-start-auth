@@ -14,7 +14,7 @@ import {
   deleteNotificationBatch,
   MAX_RECIPIENTS,
 } from "#lib/notifications";
-import type { ManagedRole } from "#lib/auth/admin-actions";
+import type { ManagedRole } from "#lib/auth/current-user";
 
 /**
  * 通知的核心逻辑。

@@ -109,6 +109,17 @@ guard 只做转发。理由：会话校验反正要读 User 比对 sessionVersio
 `prisma/contract.ts` 的 Role enum（数据库 CHECK 约束）与
 `lib/auth/current-user.ts` 的 `ROLES`（应用层类型 + `ROLE_HOME` 路由表）。
 
+**其余角色词汇全部从 `ROLES` 派生，只有这一个 home**（都在 `current-user.ts`）：
+`MANAGED_ROLES`（受管角色 = `ROLES` 去掉 admin）、守卫 `isManagedRole()`、
+显示名 `ROLE_LABEL`。加第 4 个角色时这些自动跟进；唯一会编译报错的地方是
+`ROLE_LABEL` / `components/admin/data.tsx` 的 `ROLE_ICON`（`Record` 漏键），
+而那正是要有人的地方。
+
+> 为什么它们住在 `current-user.ts`（零依赖的叶子）而不在 `admin-actions.ts`：
+> 后者 import 了 db，客户端够不着。放错位置的代价是客户端各自再写一份 ——
+> 曾有三处各存标签、两处类型是 `Record<string, string>`，加角色只会静默
+> 渲染成原始枚举值。
+
 **用途只有路由重定向**：登录后按 `ROLE_HOME[user.role]` 落到对应工作台，
 每个工作台的 `beforeLoad` 再校验自己的角色，不符就跳回**他自己**那个
 （不是跳到对家 —— 否则新角色会造成乱跳）。

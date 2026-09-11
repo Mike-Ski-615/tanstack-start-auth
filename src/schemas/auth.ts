@@ -1,4 +1,5 @@
 import z from "zod";
+import { MANAGED_ROLES } from "#lib/auth/current-user";
 
 const emailField = z.string().min(1, "请输入邮箱").pipe(z.email("邮箱格式不正确"));
 const passwordField = z.string().min(6, "密码至少 6 位").max(32, "密码最多 32 位");
@@ -51,10 +52,14 @@ export const userIdSchema = z.object({
 // 管理员操作（仅 admin 可调用，校验在 server fn 里做）
 // ============================================================
 
-/** 管理员改目标用户的角色。只允许改成非 admin 值 —— 见 admin.functions.ts。 */
+/** 管理员改目标用户的角色。只允许改成非 admin 值 —— 见 admin.functions.ts。
+ *
+ * 枚举从 MANAGED_ROLES 推导而非另写一份字面量：受管角色只有一处定义
+ * （#lib/auth/current-user），加第 4 个角色时 schema 自动跟进。
+ */
 export const adminSetRoleSchema = z.object({
   userId: z.string().min(1),
-  role: z.enum(["student", "teacher"]),
+  role: z.enum(MANAGED_ROLES),
 });
 
 /** 管理员重置目标用户的密码（不需要旧密码 —— 那是本人改密才要的）。 */
@@ -128,7 +133,10 @@ export const sendNotificationSchema = z.object({
   link: internalLinkField.optional(),
   /** 发给全部师生。与 roles/userIds 互斥（前端会禁用，这里也兜一道）。 */
   all: z.boolean().optional(),
-  roles: z.array(z.enum(["student", "teacher"])).optional(),
+  /** 用 MANAGED_ROLES：今天「可被管理的角色」与「可收通知的角色」恰好同一集合
+   *  （见 current-user.ts 的注释）。真出现「能被管理但不能收通知」的角色时，
+   *  这里要拆成一个独立的名字，而不是继续白拿受管清单。 */
+  roles: z.array(z.enum(MANAGED_ROLES)).optional(),
   userIds: z.array(z.string().min(1)).optional(),
 });
 
