@@ -1,7 +1,6 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ROLE_HOME } from "#lib/auth/current-user";
-import { currentUserQueryOptions, getCachedCurrentUser } from "#lib/queries/user";
+import { currentUserQueryOptions, requireRole } from "#lib/queries/user";
 import { CONTENT_WIDTH_CLASS, SIDEBAR_GUTTER_CLASS } from "#provider/content-width-provider";
 import { LoadingPage } from "#components/status/authenticated/teacher/loading";
 import { ErrorPage } from "#components/status/authenticated/teacher/error";
@@ -13,15 +12,8 @@ export const Route = createFileRoute("/authenticated/teacher")({
   notFoundComponent: NotFoundPage,
   component: TeacherPage,
   beforeLoad: ({ context }) => {
-    // 父布局已把 currentUser 放进缓存，这里同步读同一份（不发请求）。
-    const user = getCachedCurrentUser(context.queryClient);
-    if (!user) throw redirect({ to: "/auth/login" });
-    // 不是本工作台的角色时，跳回**他自己**的默认工作台（而非对家）。
-    // 用 ROLE_HOME 而非写死目标：新增角色时这里不用改，
-    // 也不会出现「admin 访问 teacher 页 → 跳到 student」这种乱跳。
-    if (user.role !== "teacher") {
-      throw redirect({ to: ROLE_HOME[user.role] });
-    }
+    // 工作台准入：未登录 → 登录页；角色不符 → 回他自己的工作台
+    requireRole(context.queryClient, "teacher");
   },
 });
 

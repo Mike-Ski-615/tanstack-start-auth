@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { ROLE_HOME } from "#lib/auth/current-user";
-import { getCachedCurrentUser } from "#lib/queries/user";
+import { requireRole } from "#lib/queries/user";
 import { CONTENT_WIDTH_CLASS, SIDEBAR_GUTTER_CLASS } from "#provider/content-width-provider";
 import { LoadingPage } from "#components/status/authenticated/admin/loading";
 import { ErrorPage } from "#components/status/authenticated/admin/error";
@@ -22,16 +22,14 @@ export const Route = createFileRoute("/authenticated/admin")({
   notFoundComponent: NotFoundPage,
   component: AdminLayout,
   beforeLoad: ({ context, location }) => {
-    // 父布局已把 currentUser 放进缓存，这里同步读同一份（不发请求）。
-    const user = getCachedCurrentUser(context.queryClient);
-    if (!user) throw redirect({ to: "/auth/login" });
-    if (user.role !== "admin") {
-      throw redirect({ to: ROLE_HOME[user.role] });
-    }
+    // 工作台准入：未登录 → 登录页；角色不符 → 回他自己的工作台
+    requireRole(context.queryClient, "admin");
 
-    // 管理区首页：默认进教师管理
+    // 管理区首页：默认进教师管理。
+    // 这是路由自己的事，不进 requireRole —— 而且它不能泛化：
+    // student/teacher 的 ROLE_HOME 就是它们自己的路径，泛化会变成自我重定向。
     if (location.pathname === "/authenticated/admin") {
-      throw redirect({ to: "/authenticated/admin/teachers" });
+      throw redirect({ to: ROLE_HOME.admin });
     }
   },
 });

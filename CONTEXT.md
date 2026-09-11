@@ -124,6 +124,14 @@ guard 只做转发。理由：会话校验反正要读 User 比对 sessionVersio
 每个工作台的 `beforeLoad` 再校验自己的角色，不符就跳回**他自己**那个
 （不是跳到对家 —— 否则新角色会造成乱跳）。
 
+那个校验是**一份**：`lib/queries/user.ts` 的 `requireRole(queryClient, role)`。
+三个工作台路由各自只写一行 `requireRole(context.queryClient, "<角色>")` ——
+之前三步（读缓存 → 无会话跳登录页 → 角色不符回自己的 ROLE_HOME）在三个文件
+里各写了一遍。工作台**首页自己的**重定向不进它（只有 admin 区需要，
+且不能泛化：student/teacher 的 ROLE_HOME 就是它们自己的路径）。
+`src/lib/queries/__tests__/workspace-guards.test.ts` 从 `ROLES × ROLE_HOME`
+推出应该有哪几个受守卫的工作台路由，防止复制路由时忘改角色字面量。
+
 **服务端没有任何基于 role 的校验**。这个结论很重要：它意味着目前
 「老师 / 管理员」的描述都是**业务分组，不是权限**，任何登录用户能调用的
 serverFn 都能被任何角色调用。要加真权限时，得先补服务端校验。
