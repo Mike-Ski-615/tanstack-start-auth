@@ -41,11 +41,16 @@ export const register = createServerFn({
     await enforceRateLimit("register", { ip });
 
     /*
-     * 两种情况（新建 / 已存在）返回的**形状**必须完全一致，
+     * 两种情况（新建 / 已存在）的响应必须**逐字段完全相同**，
      * 否则攻击者能靠字段存在性区分。下面两个分支的 return 都对齐这个形状。
      *
-     * user.id 在已存在分支里用空串占位（新用户是真实 id）—— 前端只用到
-     * email 去跳验证码页，不使用 id，所以空串不影响流程。
+     * 为什么**不返回 id**：以前这里给已存在分支填 `id: ""`、新用户填真 uuid ——
+     * 字段名一样，但**值**就是一个现成的枚举接口：POST 一个邮箱，看 id 是不是
+     * 空串就知道注册没注册。当时写的是「前端只用 email 跳验证码页，不使用
+     * id」——前端不用，攻击者会用。
+     *
+     * 现在两个分支都不带 id（客户端确实只需要 email）。
+     * `__tests__/register.test.ts` 的「逐字段相同」那条测试盯着这件事。
      */
     const existingUser = await db.orm.public.User.where({ email }).first();
 
@@ -74,10 +79,10 @@ export const register = createServerFn({
         console.error("[Register] 已存在账号的提醒邮件发送失败", error);
       }
 
-      // 与成功响应同形：user.id 用空串占位（前端只用 email，不使用 id）
+      // 与成功响应同形，逐字段相同（不含 id —— 理由见方法头）
       return {
         success: true,
-        user: { id: "", email, name },
+        user: { email, name },
       };
     }
 
@@ -107,6 +112,6 @@ export const register = createServerFn({
 
     return {
       success: true,
-      user: { id: user.id, email: user.email, name: user.name },
+      user: { email: user.email, name: user.name },
     };
   });

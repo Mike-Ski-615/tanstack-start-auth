@@ -209,43 +209,30 @@ describe("注册 — 邮箱冲突", () => {
     await expect(reg({ name: "B", email, password: TEST_PASSWORD })).resolves.not.toThrow();
   });
 
-  it("重复注册的响应与首次注册同形", async () => {
+  it("重复注册的响应与首次注册逐字段相同（防枚举的要害）", async () => {
     /*
-     * 不用 callServerFnResult 拿返回值：register 的 __executeServer 不把
-     * handler 返回值放在 result 上（写接口的返回走响应流，不是返回值 ——
-     * 这是 callServerFnResult 文档里就声明了的限制）。
+     * 这条测试断言的是**响应的值**，不只是「不报错」。
      *
-     * 直接调 __executeServer 看它**不报错**，再用数据库与邮件副作用断言：
-     * 如果响应形状不同，攻击者能靠字段存在性区分 —— 而形状不同的根源是
-     * 走了不同的代码路径，那必然表现为多建了用户 / 发了验证码邮件。
+     * 以前只能断言副作用（没多建用户、发的是提醒邮件），因为返回值拿不到；
+     * 那时漏掉了真正的口子：已存在分支返回 `user.id = ""`，新建分支返回真
+     * uuid —— 字段名一样，但**值**就是一个现成的枚举接口：POST 一个邮箱，
+     * 看 id 是不是空串就知道注册没注册。整个防枚举设计（同一形状、同一文案）
+     * 被这一个值绕过了，而它自己的注释还写着「前端不使用 id，所以不影响流程」
+     * —— 前端不用，攻击者会用。
+     *
+     * 现在直接比对两次响应的值，这条口子不可能再溜过去。
      */
     const email = uniqueEmail();
+    const payload = { name: "A", email, password: TEST_PASSWORD };
     // 显式传 { ip }：不传的话 subjectKey() 会跳过 ip，落到 `register:` 这个
     // 空 subject 桶上 —— 与 beforeEach 清的桶不是同一个，会让计数跨用例累积。
-    await callServerFnValidated(
-      register,
-      registerSchema,
-      {
-        name: "A",
-        email,
-        password: TEST_PASSWORD,
-      },
-      { ip: IP },
-    );
+    const first = await callServerFnValidated(register, registerSchema, payload, { ip: IP });
     await userByEmail(email);
 
     clearMails();
-    // 第二次注册不报错
-    await callServerFnValidated(
-      register,
-      registerSchema,
-      {
-        name: "B",
-        email,
-        password: TEST_PASSWORD,
-      },
-      { ip: IP },
-    );
+    // 第二次注册：同一份表单（同名同邮箱），响应必须与第一次**一模一样**
+    const second = await callServerFnValidated(register, registerSchema, payload, { ip: IP });
+    expect(second).toEqual(first);
 
     // 没多建用户
     const users = await db.orm.public.User.where({ email }).all();

@@ -180,8 +180,10 @@ async function runOnServerPath(
  * 与 validator 都真实执行，`.server()` 中间件挂的鉴权才是被回归网盯着的东西。
  * 细节见 resolveServerImplementation 的注释。
  *
- * 习惯上与原来一致：失败 → `rejects.toThrow()`；成功 → 断言数据库副作用
- * （比断言返回值更严格）。返回值现在也拿得到了。
+ * 返回值拿得到（以前拿不到 —— client 存根要经 RPC 传输层回传 result）。
+ * 所以断言策略现在是两把都能用：
+ *   失败 → `rejects.toThrow()`；成功 → `expect(await callServerFn(...)).toEqual(...)`
+ * 需要校验「非法输入被拦在入口」的用例用 callServerFnValidated。
  */
 export function callServerFn<TArgs, TResult>(
   fn: ExecutableServerFn,
@@ -189,32 +191,6 @@ export function callServerFn<TArgs, TResult>(
   ctx: CallContext = {},
 ): Promise<TResult> {
   return withRequest(ctx, () => runOnServerPath(fn, args, "POST")) as Promise<TResult>;
-}
-
-/**
- * 调用 serverFn 并拿到返回值。
- *
- * `callServerFn` 现在也走服务端实现，两者等价 —— 保留这个名字是为了
- * 不动既有用例。
- */
-export function callServerFnResult<TArgs, TResult>(
-  fn: ExecutableServerFn,
-  args: TArgs,
-  ctx: CallContext = {},
-): Promise<TResult> {
-  return callServerFn<TArgs, TResult>(fn, args, ctx);
-}
-
-/** 带校验、且能拿到返回值。 */
-export function callServerFnResultValidated<TArgs, TResult>(
-  fn: ExecutableServerFn,
-  schema: ValidatorLike<TArgs>,
-  args: TArgs,
-  ctx: CallContext = {},
-): Promise<TResult> {
-  const parsed = schema.safeParse(args);
-  if (!parsed.success) return Promise.reject(parsed.error);
-  return callServerFnResult<TArgs, TResult>(fn, parsed.data, ctx);
 }
 
 /** zod 风格的 schema（只用到 safeParse）。 */
