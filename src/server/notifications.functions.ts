@@ -2,11 +2,16 @@
  * 通知接口。
  *
  * 分两组：
- *   - 管理侧（发送 / 列出已发 / 撤回）—— 每个 handler 第一行都是 requireAdmin()
- *   - 用户侧（列表 / 未读数 / 已读 / 全部已读 / 删除）—— 只认自己的会话
+ *   - 管理侧（发送 / 列出已发 / 撤回）—— 每个 handler 第一行都是 await requireAdmin()
+ *   - 用户侧（列表 / 未读数 / 已读 / 全部已读 / 删除）—— 每个 handler 第一行都是
+ *     await requireUserId()，只认自己的会话
  *
- * 用户侧的所有操作都从 guard 取 userId 再带进查询条件，绝不接受「你要操作
+ * 用户侧的所有操作都从会话取 userId 再带进查询条件，绝不接受「你要操作
  * 哪一行属于谁」这种参数 —— 只凭 recipientId 就能改别人那条是权限漏洞。
+ *
+ * 这两个守卫现在都在 #lib/auth 里（requireUserId 与 requireAdmin 平级）：
+ * 原先这里有一个私有的 requireUserId()，是同一份「取 guard → 无则抛」的
+ * 第五份拷贝。
  */
 
 import { createServerFn } from "@tanstack/react-start";
@@ -20,8 +25,8 @@ import {
 import { db } from "#prisma/db";
 import { MANAGED_ROLES } from "#lib/auth/current-user";
 import { requireAdmin } from "#lib/auth/admin-guard";
+import { requireUserId } from "#lib/auth/guard";
 import { listManagedUsers } from "#lib/auth/admin-actions";
-import { getCurrentUser } from "#lib/auth/guard";
 import { ERROR_MESSAGE } from "#lib/error-messages";
 import {
   countUnread,
@@ -34,22 +39,12 @@ import {
   softDeleteForUser,
 } from "#lib/notifications";
 
-/** 未登录时统一抛这个（与 admin 的 forbidden 区分开）。 */
-const UNAUTHENTICATED = ERROR_MESSAGE.UNAUTHENTICATED;
-
-async function requireUserId(): Promise<string> {
-  const user = await getCurrentUser();
-  if (!user) throw new Error(UNAUTHENTICATED);
-  return user.id;
-}
-
 // ============================================================
 // 用户侧
 // ============================================================
 
 /** 当前用户的通知列表。 */
 export const listNotificationsFn = createServerFn({ method: "GET" }).handler(async () => {
-  // 个性化数据，禁止任何缓存
   setResponseHeader("Cache-Control", "no-store");
   return listNotificationsForUser(await requireUserId());
 });
@@ -131,9 +126,9 @@ export const sendNotificationFn = createServerFn({ method: "POST" })
 export const listSentNotificationsFn = createServerFn({
   method: "GET",
 }).handler(async () => {
-  setResponseHeader("Cache-Control", "no-store");
   await requireAdmin();
   return listSentNotifications();
+  setResponseHeader("Cache-Control", "no-store");
 });
 
 /** 撤回一条通知。 */

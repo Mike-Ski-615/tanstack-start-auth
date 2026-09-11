@@ -3,7 +3,7 @@ import { db } from "#prisma/db";
 import { verifyPassword } from "#lib/auth/password";
 import { rotatePassword } from "#lib/auth/password-rotation";
 import { changePasswordSchema, updateProfileSchema } from "#schemas/auth";
-import { getCurrentUser } from "#lib/auth/guard";
+import { getCurrentUser, requireUserId } from "#lib/auth/guard";
 import { ERROR_MESSAGE } from "#lib/error-messages";
 
 /**
@@ -15,10 +15,9 @@ export const updateProfileFn = createServerFn({
 })
   .validator(updateProfileSchema)
   .handler(async ({ data: { name, bio } }) => {
-    const user = await getCurrentUser();
-    if (!user) throw new Error(ERROR_MESSAGE.UNAUTHENTICATED);
+    const userId = await requireUserId();
 
-    await db.orm.public.User.where({ id: user.id }).update({
+    await db.orm.public.User.where({ id: userId }).update({
       name,
       bio,
     });
@@ -31,6 +30,10 @@ export const updateProfileFn = createServerFn({
  * 改密后全局失效所有旧 Session → createAuthenticatedSession。
  * 即使攻击者持有旧 token，改密后立即失效。
  * 防枚举：当前密码错误与用户不存在抛同一笼统文案。
+ *
+ * 这里用 `getCurrentUser` 而非 `requireUserId`：无会话时抛的是 WRONG_PASSWORD
+ * 而不是 UNAUTHENTICATED —— 那个文案是防枚举的一部分，不该被一次
+ * 重构顺手改掉。
  */
 export const changePasswordFn = createServerFn({
   method: "POST",

@@ -7,6 +7,23 @@
  * 删任何人账号。前端隐藏菜单**不是**访问控制。
  *
  * 每个 admin 接口的第一行都必须是 `await requireAdmin()`。
+ *
+ * ## 这条约定为何还靠人记
+ *
+ * 它本来应该由类型系统保证：把 `requireAdmin()` 改成
+ * `createMiddleware().server()` 中间件，漏挂就读不到 `context.user`，编译不过。
+ * 那条路**试过且撤回了** —— 不是设计问题，是当时它无法被回归网看见：
+ *
+ * 测试直调 serverFn 走的是 client 存根路径（`executeMiddleware(..., "client")`），
+ * 而 `.server()` 中间件在 client 路径上一条都不执行 —— 于是每一个鉴权用例
+ * 都变成「调用成功」，测试全绿而鉴权实际上没跑。
+ *
+ * 这个障碍**已经修掉**（见 vitest.config.ts 与 src/test/request.ts：测试现在
+ * 经编译后的服务端实现模块 `*?tss-serverfn-split` 调用，`.server()` 中间件与
+ * validator 都真实执行）。所以中间件化现在是**可测的** —— 只是还没做。
+ * 要做的话，12 个调用点与这个文件里的 `requireAdmin()` 一起换成
+ * `.middleware([...])`，并删掉此文件的函数版本（两套并存等于留了一条
+ * 绕过中间件的写法）。
  */
 import { getCurrentUser } from "./guard";
 import type { User } from "./current-user";

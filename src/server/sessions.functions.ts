@@ -1,21 +1,23 @@
 import { createServerFn } from "@tanstack/react-start";
 import { setResponseHeader } from "@tanstack/react-start/server";
 import { db } from "#prisma/db";
-import { getCurrentUser } from "#lib/auth/guard";
+import { getCurrentUser, requireUserId } from "#lib/auth/guard";
 import { invalidateAllSessions } from "#lib/auth/session-manager";
-import { ERROR_MESSAGE } from "#lib/error-messages";
 
 /**
  * 当前用户的设备、会话、账户安全信息（用于隐私与安全页展示）。
  *
  * 单设备模型：一个用户最多一个 Device + 一个 Session。
+ *
+ * 用 `getCurrentUser` 而非 `requireUserId`：未登录时返回空壳（`device: null`）
+ * 而不是抛错 —— 页面靠这个形状渲染「无设备」态。
  */
 export const listSessionsFn = createServerFn({
   method: "GET",
 }).handler(async () => {
+  const user = await getCurrentUser();
   setResponseHeader("Cache-Control", "no-store");
 
-  const user = await getCurrentUser();
   if (!user) return { device: null, session: null, emailVerifiedAt: null };
 
   // 分成两次查询，而不是 include()：
@@ -49,13 +51,11 @@ export const listSessionsFn = createServerFn({
 export const revokeAllSessionsFn = createServerFn({
   method: "POST",
 }).handler(async () => {
+  const userId = await requireUserId();
   setResponseHeader("Cache-Control", "no-store");
 
-  const user = await getCurrentUser();
-  if (!user) throw new Error(ERROR_MESSAGE.UNAUTHENTICATED);
-
   // 递增 sessionVersion → 所有 Session 全局失效
-  await invalidateAllSessions(user.id);
+  await invalidateAllSessions(userId);
 
   return { success: true as const };
 });
