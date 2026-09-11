@@ -13,6 +13,7 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { mockEvent } from "h3-v2";
 import { runWithStartContext } from "@tanstack/start-storage-context";
+import { startInstance } from "../start";
 
 const EVENT_STORAGE_KEY = Symbol.for("tanstack-start:event-storage");
 
@@ -68,6 +69,29 @@ function setLastStatus(code: number | undefined) {
 /** 读取最近一次 withRequest 结束时的响应状态码。 */
 export function lastResponseStatus(): number | undefined {
   return (globalThis as unknown as Record<symbol, number | undefined>)[LAST_STATUS_KEY];
+}
+
+/**
+ * 最近一次 withRequest 里设置的响应头。
+ *
+ * 用途同上，但管的是响应头层的行为 —— 例如全局中间件挂的
+ * `Cache-Control: no-store`、限速的 `Retry-After`。这些是「路线装对了」
+ * 而非「业务算对了」，不看头就只能靠人工 curl。
+ */
+const LAST_HEADERS_KEY = Symbol.for("test:last-response-headers");
+
+function setLastHeaders(headers: Record<string, string> | undefined) {
+  (globalThis as unknown as Record<symbol, Record<string, string> | undefined>)[LAST_HEADERS_KEY] =
+    headers;
+}
+
+/** 读取最近一次 withRequest 结束时的响应头（键名已小写）。 */
+export function lastResponseHeaders(): Record<string, string> {
+  return (
+    (globalThis as unknown as Record<symbol, Record<string, string> | undefined>)[
+      LAST_HEADERS_KEY
+    ] ?? {}
+  );
 }
 
 /**
@@ -218,11 +242,36 @@ export function callServerFnValidated<TArgs, TResult>(
 }
 
 /**
+ * 当前请求的 start options —— 从 src/start.ts 取，与真实服务器同一来源。
+ *
+ * 真实服务器是这么取的（见 @tanstack/start-server-core 的 createStartHandler）：
+ * `entries.startEntry.startInstance.getOptions()`，结果进 startOptions。
+ * 而全局 `functionMiddleware` 就藏在里面 —— serverFn 执行时是：
+ *
+ *     flattenMiddlewares([...getStartOptions()?.functionMiddleware ?? [], ...本函数的])
+ *
+ * 所以这里必须**真去读它**：以前写死 `startOptions: {}`，后果是
+ * src/start.ts 挂的全局中间件（所有 serverFn 一律 no-store）在测试里
+ * 完全不执行 —— 而测试全绿。这正是这个仓库反复踩的同一类坑：
+ * 测试环境与生产不一致时，被静默跳过的那条保证没人会发现。
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let startOptionsCache: any;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function loadStartOptions(): Promise<any> {
+  if (!startOptionsCache) {
+    startOptionsCache = (await startInstance.getOptions()) ?? {};
+  }
+  return startOptionsCache;
+}
+
+/**
  * 在给定的请求上下文里执行 fn。
  *
  * 可嵌套 —— 外层上下文在 fn 返回后恢复。
  */
-export function withRequest<T>(ctx: CallContext, fn: () => Promise<T> | T): Promise<T> {
+export async function withRequest<T>(ctx: CallContext, fn: () => Promise<T> | T): Promise<T> {
   const headers = new Headers();
   for (const [k, v] of Object.entries(ctx.headers ?? {})) headers.set(k, v);
   if (ctx.cookies && Object.keys(ctx.cookies).length > 0) {
@@ -268,7 +317,7 @@ export function withRequest<T>(ctx: CallContext, fn: () => Promise<T> | T): Prom
       throw new Error("[test] serverFn 不应访问 router");
     },
     request: new Request(ctx.url ?? "http://localhost:3000/"),
-    startOptions: {},
+    startOptions: await loadStartOptions(),
     // __executeServer 会把它合并进 serverFn 的 context 参数。
     // 用空对象而非 undefined，避免 merge 时抛错。
     contextAfterGlobalMiddlewares: {},
@@ -276,17 +325,16 @@ export function withRequest<T>(ctx: CallContext, fn: () => Promise<T> | T): Prom
     handlerType: "serverFn" as const,
   };
 
-  return Promise.resolve(
-    storage.run({ h3Event: event }, () =>
-      runWithStartContext(startContext as never, async () => {
-        try {
-          return await fn();
-        } finally {
-          // 记下本次请求的响应状态（供 429 断言使用）
-          const res = (event as unknown as { res?: { status?: number } }).res;
-          setLastStatus(res?.status);
-        }
-      }),
-    ),
+  return storage.run({ h3Event: event }, () =>
+    runWithStartContext(startContext as never, async () => {
+      try {
+        return await fn();
+      } finally {
+        // 记下本次请求的响应状态与响应头（供 429 / no-store 断言使用）
+        const res = (event as unknown as { res?: { status?: number; headers?: Headers } }).res;
+        setLastStatus(res?.status);
+        setLastHeaders(res?.headers ? Object.fromEntries(res.headers.entries()) : undefined);
+      }
+    }),
   );
 }

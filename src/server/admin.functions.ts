@@ -1,19 +1,23 @@
 /**
  * 管理员接口：列表 + 对师生账号的操作。
  *
- * **每个 handler 的第一行都是 await requireAdmin()** —— 全项目基于 role 的
+ * **每个 handler 都挂了 `.middleware([requireAdmin])`** —— 全项目基于 role 的
  * 服务端校验在这里。前端隐藏菜单不算访问控制：接口一旦漏了这道检查，
  * 学生直接 POST 就能拿到全部用户邮箱、改任何人角色、删任何人账号。
  *
- * 这条约定为何还靠人记、以及将来怎么变成编译期保证，见
- * `#lib/auth/admin-guard.ts` 的说明。
+ * 这条约定以前靠注释与人记（「每个 handler 第一行都必须是 await
+ * requireAdmin()」）—— 忘了写不会报错，接口就是公开的。
+ *
+ * 现在有两道网（见 #lib/auth/middleware.ts）：
+ *   1. 读了 `context.user` 的 handler，漏挂中间件**编译不过**
+ *   2. 不读它的（listUsersByRoleFn 就是），由
+ *      `__tests__/guarded-handlers.test.ts` 按文件扫链上的中间件盯着
  *
  * 目标限制：这些接口只作用于 student / teacher。管理员账号既不出现在
  * 列表里，也不接受这些操作 —— 由 requireTargetIsManaged() 强制。
  */
 
 import { createServerFn } from "@tanstack/react-start";
-import { setResponseHeader } from "@tanstack/react-start/server";
 import {
   adminResetPasswordSchema,
   adminSetRoleSchema,
@@ -23,7 +27,7 @@ import {
 import { ERROR_MESSAGE } from "#lib/error-messages";
 import { db } from "#prisma/db";
 import { isManagedRole, PUBLIC_COLUMNS } from "#lib/auth/current-user";
-import { requireAdmin } from "#lib/auth/admin-guard";
+import { requireAdmin } from "#lib/auth/middleware";
 import { adminResetPassword, listManagedUsers } from "#lib/auth/admin-actions";
 import { invalidateAllSessions } from "#lib/auth/session-manager";
 
@@ -72,11 +76,9 @@ async function requireManageableTarget(targetId: string, adminId: string) {
  * 排序放在服务端（按注册时间倒序），前端表格的排序是客户端行为。
  */
 export const listUsersByRoleFn = createServerFn({ method: "GET" })
+  .middleware([requireAdmin])
   .validator(adminSetRoleSchema.pick({ role: true }))
   .handler(async ({ data }) => {
-    setResponseHeader("Cache-Control", "no-store");
-    await requireAdmin();
-
     return listManagedUsers(data.role);
   });
 
@@ -86,10 +88,10 @@ export const listUsersByRoleFn = createServerFn({ method: "GET" })
 
 /** 改角色（学生 ↔ 教师）。 */
 export const adminSetUserRoleFn = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
   .validator(adminSetRoleSchema)
-  .handler(async ({ data }) => {
-    const admin = await requireAdmin();
-    await requireManageableTarget(data.userId, admin.id);
+  .handler(async ({ data, context }) => {
+    await requireManageableTarget(data.userId, context.user.id);
 
     await db.orm.public.User.where({ id: data.userId }).update({
       role: data.role,
@@ -107,10 +109,10 @@ export const adminSetUserRoleFn = createServerFn({ method: "POST" })
  * 与改角色/改密不同，这是纯会话操作 —— 用户重新登录即恢复原状。
  */
 export const adminKickUserFn = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
   .validator(userIdSchema)
-  .handler(async ({ data }) => {
-    const admin = await requireAdmin();
-    await requireManageableTarget(data.userId, admin.id);
+  .handler(async ({ data, context }) => {
+    await requireManageableTarget(data.userId, context.user.id);
 
     await invalidateAllSessions(data.userId);
 
@@ -119,10 +121,10 @@ export const adminKickUserFn = createServerFn({ method: "POST" })
 
 /** 重置他人密码。会自动踢下线（adminResetPassword 内部做了）。 */
 export const adminResetUserPasswordFn = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
   .validator(adminResetPasswordSchema)
-  .handler(async ({ data }) => {
-    const admin = await requireAdmin();
-    await requireManageableTarget(data.userId, admin.id);
+  .handler(async ({ data, context }) => {
+    await requireManageableTarget(data.userId, context.user.id);
 
     await adminResetPassword(data.userId, data.password);
 
@@ -131,10 +133,10 @@ export const adminResetUserPasswordFn = createServerFn({ method: "POST" })
 
 /** 改资料（姓名 / 简介）。 */
 export const adminUpdateUserProfileFn = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
   .validator(adminUpdateProfileSchema)
-  .handler(async ({ data }) => {
-    const admin = await requireAdmin();
-    await requireManageableTarget(data.userId, admin.id);
+  .handler(async ({ data, context }) => {
+    await requireManageableTarget(data.userId, context.user.id);
 
     await db.orm.public.User.where({ id: data.userId }).update({
       name: data.name,
@@ -153,10 +155,10 @@ export const adminUpdateUserProfileFn = createServerFn({ method: "POST" })
  * 但仍存在」—— 这是可接受的中间态（他登不进去，可以重来一次）。
  */
 export const adminDeleteUserFn = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
   .validator(userIdSchema)
-  .handler(async ({ data }) => {
-    const admin = await requireAdmin();
-    await requireManageableTarget(data.userId, admin.id);
+  .handler(async ({ data, context }) => {
+    await requireManageableTarget(data.userId, context.user.id);
 
     await db.orm.public.Session.where((s) => s.userId.eq(data.userId)).delete();
     await db.orm.public.Device.where((d) => d.userId.eq(data.userId)).delete();

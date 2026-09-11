@@ -32,7 +32,7 @@ export const ERROR_MESSAGE = {
    * 权限不足。
    *
    * 未登录与「登录了但不是 admin」用同一句：不区分这两种情况，
-   * 避免给探测者额外信息（见 admin-guard 的说明）。
+   * 避免给探测者额外信息（见 lib/auth/middleware.ts 的 requireAdmin）。
    */
   FORBIDDEN: "权限不足，请重新登录",
 

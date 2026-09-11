@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestIP, setResponseHeader } from "@tanstack/react-start/server";
+import { getRequestIP } from "@tanstack/react-start/server";
 import { db } from "#prisma/db";
 import { emailOnlySchema, verifyEmailOtpSchema } from "#schemas/auth";
 
@@ -21,8 +21,6 @@ export const verifyEmailFn = createServerFn({
 })
   .validator(verifyEmailOtpSchema)
   .handler(async ({ data: { email, otp } }) => {
-    setResponseHeader("Cache-Control", "no-store");
-
     // 限速：同一邮箱 + IP 组合 1 分钟最多 10 次验证尝试。
     // OTP 本身已有 5 次错误上限，这里防的是「不断换 OTP 重试」的轰炸。
     const ip = getRequestIP();
@@ -53,8 +51,6 @@ export const resendVerificationEmailFn = createServerFn({
 })
   .validator(emailOnlySchema)
   .handler(async ({ data: { email } }) => {
-    setResponseHeader("Cache-Control", "no-store");
-
     // 限速：同一 IP 1 分钟最多 3 次
     const ip = getRequestIP();
     await enforceRateLimit("resend", { ip });

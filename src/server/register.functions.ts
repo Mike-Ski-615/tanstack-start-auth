@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestIP, setResponseHeader } from "@tanstack/react-start/server";
+import { getRequestIP } from "@tanstack/react-start/server";
 import { db } from "#prisma/db";
 
 import { registerSchema } from "#schemas/auth";
@@ -36,8 +36,6 @@ export const register = createServerFn({
 })
   .validator(registerSchema)
   .handler(async ({ data: { name, email, password } }) => {
-    setResponseHeader("Cache-Control", "no-store");
-
     // 速率限制：同一 IP 1 分钟最多 3 次注册
     const ip = getRequestIP();
     await enforceRateLimit("register", { ip });

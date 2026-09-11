@@ -7,7 +7,7 @@ const DUMMY_PASSWORD_HASH =
   "$argon2id$v=19$m=65536,t=3,p=1$0IJWluIg0PQoVokT8IL6Yw$I3uYiR6qTsLLo1pq0jfitvOfAOD/QRz+5EaZ1kiGzos";
 
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestIP, setResponseHeader } from "@tanstack/react-start/server";
+import { getRequestIP } from "@tanstack/react-start/server";
 import { db } from "#prisma/db";
 import { loginSchema } from "#schemas/auth";
 import { verifyPassword } from "#lib/auth/password";
@@ -26,8 +26,6 @@ export const login = createServerFn({
 })
   .validator(loginSchema)
   .handler(async ({ data: { email, password } }) => {
-    setResponseHeader("Cache-Control", "no-store");
-
     // 速率限制：同一邮箱 + IP 组合 1 分钟最多 5 次
     const ip = getRequestIP();
     await enforceRateLimit("login", { email, ip });

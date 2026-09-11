@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestIP, setResponseHeader } from "@tanstack/react-start/server";
+import { getRequestIP } from "@tanstack/react-start/server";
 import { db } from "#prisma/db";
 import { emailOnlySchema, resetPasswordSchema } from "#schemas/auth";
 import { sendMail } from "../lib/auth/mail";
@@ -22,8 +22,6 @@ export const requestPasswordResetFn = createServerFn({
 })
   .validator(emailOnlySchema)
   .handler(async ({ data: { email } }) => {
-    setResponseHeader("Cache-Control", "no-store");
-
     // 速率限制：同一 IP 1 分钟最多 3 次重置请求（防邮件轰炸）
     const ip = getRequestIP();
     await enforceRateLimit("reset", { ip });
@@ -56,8 +54,6 @@ export const resetPasswordFn = createServerFn({
 })
   .validator(resetPasswordSchema)
   .handler(async ({ data: { email, otp, password } }) => {
-    setResponseHeader("Cache-Control", "no-store");
-
     // 限速：同一邮箱 + IP 组合 1 分钟最多 10 次
     const ip = getRequestIP();
     await enforceRateLimit("reset-verify", { email, ip });

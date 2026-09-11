@@ -13,6 +13,7 @@ import {
   callServerFnResult,
   callServerFnResultValidated,
   lastResponseStatus,
+  lastResponseHeaders,
   type CallContext,
   type ExecutableServerFn,
 } from "./request";
@@ -133,6 +134,7 @@ export {
   callServerFnResult,
   callServerFnResultValidated,
   lastResponseStatus,
+  lastResponseHeaders,
   type CallContext,
   type ExecutableServerFn,
 };

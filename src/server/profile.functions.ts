@@ -3,7 +3,7 @@ import { db } from "#prisma/db";
 import { verifyPassword } from "#lib/auth/password";
 import { rotatePassword } from "#lib/auth/password-rotation";
 import { changePasswordSchema, updateProfileSchema } from "#schemas/auth";
-import { getCurrentUser, requireUserId } from "#lib/auth/guard";
+import { requireUser, withUser } from "#lib/auth/middleware";
 import { ERROR_MESSAGE } from "#lib/error-messages";
 
 /**
@@ -13,11 +13,10 @@ import { ERROR_MESSAGE } from "#lib/error-messages";
 export const updateProfileFn = createServerFn({
   method: "POST",
 })
+  .middleware([requireUser])
   .validator(updateProfileSchema)
-  .handler(async ({ data: { name, bio } }) => {
-    const userId = await requireUserId();
-
-    await db.orm.public.User.where({ id: userId }).update({
+  .handler(async ({ data: { name, bio }, context }) => {
+    await db.orm.public.User.where({ id: context.user.id }).update({
       name,
       bio,
     });
@@ -31,16 +30,17 @@ export const updateProfileFn = createServerFn({
  * 即使攻击者持有旧 token，改密后立即失效。
  * 防枚举：当前密码错误与用户不存在抛同一笼统文案。
  *
- * 这里用 `getCurrentUser` 而非 `requireUserId`：无会话时抛的是 WRONG_PASSWORD
+ * 这里用 `withUser` 而非 `requireUser`：无会话时抛的是 WRONG_PASSWORD
  * 而不是 UNAUTHENTICATED —— 那个文案是防枚举的一部分，不该被一次
  * 重构顺手改掉。
  */
 export const changePasswordFn = createServerFn({
   method: "POST",
 })
+  .middleware([withUser])
   .validator(changePasswordSchema)
-  .handler(async ({ data: { currentPassword, newPassword } }) => {
-    const user = await getCurrentUser();
+  .handler(async ({ data: { currentPassword, newPassword }, context }) => {
+    const user = context.user;
     if (!user) throw new Error(ERROR_MESSAGE.WRONG_PASSWORD);
 
     const fullUser = await db.orm.public.User.where({ id: user.id }).first();

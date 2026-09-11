@@ -120,7 +120,7 @@ guard 只做转发。理由：会话校验反正要读 User 比对 sessionVersio
 > 曾有三处各存标签、两处类型是 `Record<string, string>`，加角色只会静默
 > 渲染成原始枚举值。
 
-**用途只有路由重定向**：登录后按 `ROLE_HOME[user.role]` 落到对应工作台，
+**用途一：路由落点。** 登录后按 `ROLE_HOME[user.role]` 落到对应工作台，
 每个工作台的 `beforeLoad` 再校验自己的角色，不符就跳回**他自己**那个
 （不是跳到对家 —— 否则新角色会造成乱跳）。
 
@@ -132,12 +132,18 @@ guard 只做转发。理由：会话校验反正要读 User 比对 sessionVersio
 `src/lib/queries/__tests__/workspace-guards.test.ts` 从 `ROLES × ROLE_HOME`
 推出应该有哪几个受守卫的工作台路由，防止复制路由时忘改角色字面量。
 
-**服务端没有任何基于 role 的校验**。这个结论很重要：它意味着目前
-「老师 / 管理员」的描述都是**业务分组，不是权限**，任何登录用户能调用的
-serverFn 都能被任何角色调用。要加真权限时，得先补服务端校验。
+**用途二：服务端准入 —— 但目前只有 `admin` 这一处。** 管理接口全部挂
+`.middleware([requireAdmin])`（`admin.functions.ts` 6 个 +
+`notifications.functions.ts` 管理侧 4 个），见 `lib/auth/middleware.ts`。
+这是 `role` 唯一影响服务端行为的地方。
 
-`admin` 是预留值 —— 不比其他角色多任何权限，工作台页与其他两页等价。
-详见 TODO。
+除它之外，**`role` 不构成权限边界**：`teacher` 与 `student` 在服务端完全等价，
+任何持有会话的用户都能调用所有非管理接口（包括用户列表、任意用户主页）。
+侧边栏的 `NAV_BY_ROLE` 只是可见性，不是访问控制。
+
+要扩成真正的角色权限体系，第一件事是定义每个角色的能力矩阵，
+而不是逐个接口再加一个 `requireXxx` —— 现在这套「每个文件声明自己挂了哪个
+中间件」的约定由 `src/server/__tests__/guarded-handlers.test.ts` 盯着。
 
 **侧边栏按角色分**（`data/nav.ts` 的 `NAV_BY_ROLE`）：
 
@@ -274,29 +280,29 @@ User
 
 ### 安全审计状态
 
-| 模块                     | 状态     | 备注                                                                                                                            |
-| ------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| OTP 消费规则             | PASS     | 两条流程共用 `otp-store.consumeOtp`，规则只一份                                                                                 |
-| OTP 错误次数上限         | PASS     | 单个 OTP 错 5 次即作废（MAX_OTP_ATTEMPTS）；输错次数与作废在同一次操作完成，不留可继续撞的记录                                  |
-| OTP 错误计数重置         | PASS     | 重发换新记录，attempts 从 0 开始                                                                                                |
-| Device/Session 解耦      | PASS     | ensureDevice 只管 Device；Session.deviceId 故意无 FK（ADR-0003）                                                                |
-| 会话创建统入口           | PASS     | 四条路径走 `signIn`，不会漏设某块 cookie                                                                                        |
-| Device 身份延续          | PASS     | 凡建会话的路径都从 cookie 读 deviceKey，改密不会换设备                                                                          |
-| Login timing attack      | PASS     | DUMMY_PASSWORD_HASH 必须为 argon2id 真实产物：伪哈希（如 `$dummy$dummy`）会让 argon2Verify 抛异常而不执行计算，反而放大时间差异 |
-| Resend without session   | PASS     | email + IP 双维度限速                                                                                                           |
-| DB-side purge            | PASS     | deleteAndCount 替代 JS filter                                                                                                   |
-| sessionVersion increment | PASS     | 单条原子 UPDATE（ADR-0004）                                                                                                     |
-| RateLimit increment      | PASS     | 单条原子 UPSERT（ADR-0004）                                                                                                     |
-| UUID foreign-key types   | PASS     | 已消除全部 as unknown as（ADR-0003）                                                                                            |
-| 回归网                   | 355 用例 | vitest；cookie 层、guard、device（含 lastSeen 节流）均有直接用例；pre-commit 与 CI 都跑                                         |
+| 模块                     | 状态     | 备注                                                                                                                                                                                                                 |
+| ------------------------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| OTP 消费规则             | PASS     | 两条流程共用 `otp-store.consumeOtp`，规则只一份                                                                                                                                                                      |
+| OTP 错误次数上限         | PASS     | 单个 OTP 错 5 次即作废（MAX_OTP_ATTEMPTS）；输错次数与作废在同一次操作完成，不留可继续撞的记录                                                                                                                       |
+| OTP 错误计数重置         | PASS     | 重发换新记录，attempts 从 0 开始                                                                                                                                                                                     |
+| Device/Session 解耦      | PASS     | ensureDevice 只管 Device；Session.deviceId 故意无 FK（ADR-0003）                                                                                                                                                     |
+| 会话创建统入口           | PASS     | 四条路径走 `signIn`，不会漏设某块 cookie                                                                                                                                                                             |
+| Device 身份延续          | PASS     | 凡建会话的路径都从 cookie 读 deviceKey，改密不会换设备                                                                                                                                                               |
+| Login timing attack      | PASS     | DUMMY_PASSWORD_HASH 必须为 argon2id 真实产物：伪哈希（如 `$dummy$dummy`）会让 argon2Verify 抛异常而不执行计算，反而放大时间差异                                                                                      |
+| 管理接口准入             | PASS     | 10 个管理接口全部挂 `.middleware([requireAdmin])`（lib/auth/middleware.ts）。两道网：读了 context.user 的漏挂编译不过；不读它的由 `guarded-handlers.test.ts` 按文件扫链上的中间件。未登录与非 admin 抛同一 FORBIDDEN |
+| Resend without session   | PASS     | email + IP 双维度限速                                                                                                                                                                                                |
+| DB-side purge            | PASS     | deleteAndCount 替代 JS filter                                                                                                                                                                                        |
+| sessionVersion increment | PASS     | 单条原子 UPDATE（ADR-0004）                                                                                                                                                                                          |
+| RateLimit increment      | PASS     | 单条原子 UPSERT（ADR-0004）                                                                                                                                                                                          |
+| UUID foreign-key types   | PASS     | 已消除全部 as unknown as（ADR-0003）                                                                                                                                                                                 |
+| 回归网                   | 706 用例 | vitest；cookie 层、guard、device（含 lastSeen 节流）均有直接用例；测试经编译后的服务端实现跑，`.server()` 中间件与 validator 真实执行（见 CONTEXT 与 src/test/request.ts）；pre-commit 与 CI 都跑                    |
 
 ### TODO
 
-1. **`admin` 角色是预留的** —— 枚举里已有（student / teacher / admin），但 admin
-   目前不比其他角色多任何权限，登录后落在一个与其他两页等价的占位工作台。
-   接入真实管理功能时需要先定义「管理员能做什么」。注意：`role` 至今只用于
-   路由重定向，**服务端没有任何基于 role 的校验** —— 真要做权限控制，
-   第一件事是补上它。
+1. **角色权限体系只有 `admin` 一格** —— 管理接口（教师/学生管理、通知发送与
+   撤回）已经要求 admin，这是 `role` 唯一影响服务端行为的地方。但 `teacher`
+   与 `student` 在服务端完全等价，且管理接口之外没有任何准入检查（见 Role
+   一节）。要扩成真正的权限模型，先定义能力矩阵，别逐个接口补检查。
 2. **`mail.ts` 目前只往控制台输出** —— 接真实 SMTP 时那段发送逻辑尚无测试覆盖
    （测试里被 mock 掉了）。
 3. **重置成功后未引导用户去验证邮箱** —— 当前重置完只改密码，设置页仍显示
