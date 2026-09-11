@@ -134,6 +134,51 @@ describe("QueryClient 有全局错误兜底", () => {
   });
 });
 
+describe("defaultOptions.queries 显式声明了默认值", () => {
+  // 必须先剥注释：说明性注释里会引用 `gcTime: ...` / `retry: ...` 等
+  // 作为例子，不剥的话下面的断言会被注释满足，测试形同虚设。
+  const router = stripComments(read("src/router.tsx"));
+
+  /*
+   * 不配 queries 时会落到库默认，而库默认里有一条很隐形的：
+   *     const retry = config.retry ?? (isServer() ? 0 : 3);
+   * 即浏览器端默认重试 3 次 + 指数退避，一次失败最长约 7 秒才报错。
+   * 不翻库源码看不出来 —— 所以这里钉住「必须显式写明」。
+   */
+  it("显式写了 retry（不依赖库默认的 3 次）", () => {
+    expect(router).toMatch(/defaultOptions:\s*\{[\s\S]*queries:\s*\{[\s\S]*retry:/);
+  });
+
+  it("显式写了 staleTime（库默认是 0，即每次挂载都重取）", () => {
+    expect(router).toMatch(/defaultOptions:\s*\{[\s\S]*queries:\s*\{[\s\S]*staleTime:/);
+  });
+
+  it("显式写了 gcTime（库默认浏览器端只有 5 分钟）", () => {
+    expect(router).toMatch(/defaultOptions:\s*\{[\s\S]*queries:\s*\{[\s\S]*gcTime:/);
+  });
+
+  it("库的隐式默认 gcTime 确实是 5 分钟（注释引用的依据仍成立）", () => {
+    const removable = readFileSync(
+      "node_modules/@tanstack/query-core/build/modern/removable.js",
+      "utf8",
+    );
+    // newGcTime ?? (isServer() ? Infinity : 3e5)   ← 3e5 = 5 分钟
+    expect(removable, "库默认变了，router.tsx 的注释需要同步").toMatch(
+      /newGcTime \?\? \(isServer\(\) \? Infinity : 3e5\)/,
+    );
+  });
+
+  it("库的隐式默认确实是 3 次重试（注释里引用的依据仍成立）", () => {
+    const retryer = readFileSync(
+      "node_modules/@tanstack/query-core/build/modern/retryer.js",
+      "utf8",
+    );
+    expect(retryer, "库默认变了，router.tsx 的注释需要同步").toMatch(
+      /config\.retry \?\? \(isServer\(\) \? 0 : 3\)/,
+    );
+  });
+});
+
 describe("查询错误的组件级兜底", () => {
   const boundary = read("src/components/query-error-boundary.tsx");
   const root = read("src/routes/__root.tsx");
@@ -176,7 +221,7 @@ describe("页面的三态处理", () => {
   ];
 
   it.each(listComponents)("%s 列表三态齐全", (f) => {
-    const src = read(f);
+    const src = stripComments(read(f));
     expect(src, `${f} 没处理加载态`).toMatch(/isPending/);
     expect(src, `${f} 没处理错误态`).toMatch(/\berror\b/);
     // 错误文案直接展示 message，不再给一个笼统的固定句
@@ -184,7 +229,7 @@ describe("页面的三态处理", () => {
   });
 
   it.each(listComponents)("%s 的三态同形（都是居中 + 图标 + 文字）", (f) => {
-    const src = read(f);
+    const src = stripComments(read(f));
     // 加载中 = 转圈图标；失败 = 告警图标；两者都应出现
     expect(src, `${f} 缺少加载图标`).toMatch(/Loading02Icon/);
     expect(src, `${f} 缺少失败图标`).toMatch(/Alert01Icon/);
@@ -200,13 +245,13 @@ describe("页面的三态处理", () => {
   });
 
   it.each(pages)("%s 同时处理了 pending 与 error", (f) => {
-    const src = read(f);
+    const src = stripComments(read(f));
     expect(src, `${f} 没处理加载态`).toMatch(/isPending/);
     expect(src, `${f} 没处理错误态`).toMatch(/\berror\b/);
   });
 
   it.each(pages)("%s 的 error 分支在渲染内容之前", (f) => {
-    const src = read(f);
+    const src = stripComments(read(f));
     // 允许 `if (error)`、`if (isPending || error)`、`error ?` 三种写法
     const err = src.search(/if \([^)]*\berror\b[^)]*\)|error \?/);
     // 主 return：缩进为两空格的 return（排除早返回里那个四空格的）
@@ -234,5 +279,83 @@ describe("会话守卫覆盖查询失败（安全路径）", () => {
 
   it("首次查询中不跳（还没结果就跳会误伤）", () => {
     expect(guard).not.toMatch(/data === undefined[\s\S]{0,120}navigate/);
+  });
+});
+
+describe("queryKey 集中定义（防重复请求）", () => {
+  /*
+   * query-keys.ts 的注释写明：「散在各处写字符串 key 是重复请求的常见来源
+   * —— beforeLoad 写成 ["current-user"]、hook 里写成 ["session-guard"]，
+   * 两处就永远命不中同一份缓存。」
+   *
+   * 所以除 query-keys.ts 自身外，不该有人裸写 key 数组。
+   */
+  it("没有裸写的 queryKey 数组", () => {
+    const bare = /queryKey:\s*\[/;
+    for (const f of sourceFiles) {
+      if (f.endsWith("src/lib/query-keys.ts")) continue;
+      const m = bare.exec(stripComments(read(f)));
+      expect(m, `${f} 裸写了 queryKey，应改用 queryKeys.*`).toBeNull();
+    }
+  });
+
+  it("queryKeys 导出了 userById（原来裸写的那处）", () => {
+    const keys = read("src/lib/query-keys.ts");
+    expect(keys).toMatch(/userById:\s*\(userId: string\)/);
+  });
+});
+
+describe("同一份数据只有一个 useQuery 定义", () => {
+  /*
+   * securityInfo 原先在 account.tsx 与 privacy-security.tsx 各写一遍
+   * （同 key 同 fn）—— 看起来一样但是「碰巧一致」：任何一处加了
+   * staleTime / select / 不同的 retry，两个页面读到的就是行为分叉的数据。
+   * 现在统一走 securityInfoQueryOptions。
+   */
+  it("securityInfo 只在 security-info.ts 里定义一次", () => {
+    const defs = sourceFiles.filter((f) => {
+      const src = stripComments(read(f));
+      return /listSessionsFn\(\)/.test(src) && /queryFn:/.test(src);
+    });
+    expect(defs, `多处定义了同一个查询：${defs.join(", ")}`).toEqual([
+      "src/lib/queries/security-info.ts",
+    ]);
+  });
+
+  it("两个消费方都走同一个 queryOptions", () => {
+    for (const f of [
+      "src/routes/authenticated/settings/account.tsx",
+      "src/routes/authenticated/settings/privacy-security.tsx",
+    ]) {
+      expect(read(f), `${f} 没复用 securityInfoQueryOptions`).toContain("securityInfoQueryOptions");
+    }
+  });
+});
+
+describe("注册接口不泄漏账号是否存在（防枚举）", () => {
+  const src = read("src/server/register.functions.ts");
+
+  it("邮箱已存在时不抛错", () => {
+    // 若这里 throw，等于给攻击者一个免费的账号枚举接口
+    const existingBlock = /if \(existingUser\) \{([\s\S]*?)\n    \}/.exec(src);
+    expect(existingBlock, "没找到 existingUser 分支").not.toBeNull();
+    expect(existingBlock![1], "邮箱已存在时不应 throw").not.toMatch(/throw/);
+  });
+
+  it("邮箱已存在时仍返回 success: true", () => {
+    const existingBlock = /if \(existingUser\) \{([\s\S]*?)\n    \}/.exec(src);
+    expect(existingBlock![1]).toMatch(/success: true/);
+  });
+
+  it("但会给邮箱持有者发提醒邮件（否则真忘密码的用户会卡死）", () => {
+    const existingBlock = /if \(existingUser\) \{([\s\S]*?)\n    \}/.exec(src);
+    expect(existingBlock![1]).toMatch(/sendMail\(/);
+    expect(existingBlock![1]).toMatch(/已注册过/);
+  });
+
+  it("与既有实现一致：忘记密码接口也是恒返回同响应", () => {
+    // 项目里原本就有正确的防枚举范式，注册现在与它对齐
+    const reset = read("src/server/reset.functions.ts");
+    expect(reset).toMatch(/无论邮箱是否存在，恒返回同一响应/);
   });
 });

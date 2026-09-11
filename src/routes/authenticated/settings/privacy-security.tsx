@@ -12,6 +12,7 @@ import {
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "#lib/query-keys";
+import { securityInfoQueryOptions } from "#lib/queries/security-info";
 import { Button } from "#components/ui/button";
 import {
   AlertDialog,
@@ -24,7 +25,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "#components/ui/alert-dialog";
-import { listSessionsFn, revokeAllSessionsFn } from "#server/sessions.functions";
+import { revokeAllSessionsFn } from "#server/sessions.functions";
 import { LoadingPage } from "#components/status/authenticated/settings/privacy-security/loading";
 import { ErrorPage } from "#components/status/authenticated/settings/privacy-security/error";
 import { NotFoundPage } from "#components/status/authenticated/settings/privacy-security/not-found";
@@ -57,10 +58,7 @@ function SettingsPrivacySecurityPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const { data, isPending, error, refetch } = useQuery({
-    queryKey: queryKeys.securityInfo,
-    queryFn: () => listSessionsFn(),
-  });
+  const { data, isPending, error, refetch } = useQuery(securityInfoQueryOptions);
 
   const revokeAllMutation = useMutation({
     mutationFn: () => revokeAllSessionsFn(),

@@ -11,8 +11,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { queryKeys } from "#lib/query-keys";
-import { listSessionsFn } from "#server/sessions.functions";
+import { securityInfoQueryOptions } from "#lib/queries/security-info";
 import { LoadingPage } from "#components/status/authenticated/settings/account/loading";
 import { ErrorPage } from "#components/status/authenticated/settings/account/error";
 import { NotFoundPage } from "#components/status/authenticated/settings/account/not-found";
@@ -32,10 +31,7 @@ const ROLE_LABELS: Record<string, string> = {
 function SettingsAccountPage() {
   const { user } = Route.useRouteContext();
 
-  const { data, isPending, error, refetch } = useQuery({
-    queryKey: queryKeys.securityInfo,
-    queryFn: () => listSessionsFn(),
-  });
+  const { data, isPending, error, refetch } = useQuery(securityInfoQueryOptions);
 
   /*
    * 这一页全是「只读的真值」：邮箱验证状态、设备信息。

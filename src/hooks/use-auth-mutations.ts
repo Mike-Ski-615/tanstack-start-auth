@@ -30,16 +30,25 @@ export function useRegisterMutation() {
   return useMutation({
     mutationFn: (data: RegisterValues) => register({ data }),
     onSuccess: (data) => {
-      // 注册 ≠ 登录：跳转到验证码输入页（验证成功后自动登录）
-      toast.success("注册成功，验证码已发送至邮箱");
+      /*
+       * 注册 ≠ 登录：跳转到验证码输入页（验证成功后自动登录）。
+       *
+       * 注意：服务端在「邮箱已存在」时**也走这条路径**（返回同形的响应），
+       * 所以这里不能推断“这是新用户”。区分只发生在邮件里（新用户收到验证码，
+       * 已注册者收到提醒）—— 详见 register.functions.ts。
+       */
+      toast.success("验证码已发送，请查收邮箱");
       navigate({
         to: "/auth/verify-email",
         search: { email: data.user.email },
       });
     },
-    onError: () => {
-      toast.error("注册失败，请检查信息后重试");
-    },
+    /*
+     * 这里的 onError 只会在**真失败**时触发（限速、网络、配置错误）——
+     * 邮箱重复不再走这条路，所以不存在枚举泄漏。文案用 error.message，
+     * 它是服务端给的用户可读句子（见 lib/error-messages.ts）。
+     */
+    onError: (error: Error) => toast.error(error.message),
   });
 }
 

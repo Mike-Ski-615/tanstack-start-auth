@@ -32,4 +32,6 @@ export const queryKeys = {
   adminUsers: ["admin-users"] as const,
   /** 某个角色的用户列表。 */
   adminUsersList: (role: "student" | "teacher") => ["admin-users", role] as const,
+  /** 某个用户的公开资料（用户主页）。 */
+  userById: (userId: string) => ["user", userId] as const,
 };

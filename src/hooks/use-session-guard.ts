@@ -43,8 +43,8 @@ export function useSessionGuard() {
   const { data, error } = useQuery({
     ...currentUserQueryOptions,
     refetchInterval: SESSION_POLL_INTERVAL_MS,
-    // 切回标签页时立刻查一次，避免「切回来还要等一个轮询周期」
-    refetchOnWindowFocus: true,
+    // refetchOnWindowFocus 走全局默认（见 router.tsx）。
+    //
     // 覆盖 currentUserQueryOptions 里的 retry: false。
     // 那个 false 是为「返回 null（= 确定未登录）」设的 —— 那种情况重试无意义；
     // 但这里是守卫，需要区分「确定未登录」与「查不出来」。

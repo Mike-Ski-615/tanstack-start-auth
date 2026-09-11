@@ -26,6 +26,28 @@ import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query
  * 只保留在 QueryCache 上（见 query-core 的 QueryCacheConfig：
  * `onError?: (error, query) => void`，而 QueryObserverOptions 里没有）。
  * 所以下面分开写：变更走 defaultOptions，查询走 queryCache。
+ *
+ * ### defaultOptions.queries 的取值
+ *
+ * 以前这里完全没配 queries，于是全靠库默认值。而库的默认里有一条很隐形的：
+ *
+ *     // query-core/retryer.js
+ *     const retry = config.retry ?? (isServer() ? 0 : 3);
+ *
+ * 即浏览器端**默认重试 3 次**且有指数退避 —— 一次失败最长要约 7 秒才报错。
+ * 不翻库源码看不出来，所以在这里显式写出来。
+ *
+ * 各值的选择：
+ *   staleTime: 30s  —— 库默认是 0，意味着每次挂载/窗口聚焦都重新请求。
+ *                     30s 内切换页面直接命中缓存，数据仍算是新的。
+ *                     轮询类（通知/会话）与实时性要求高的地方各自覆盖。
+ *   retry: 1        —— 比库默认的 3 次更克制：失败大多不是瞬时的，
+ *                     快速把错误交给页面自己的错误态比默默等 7 秒好。
+ *   refetchOnWindowFocus: true —— 切回标签页时对齐一次，配合上面的
+ *                     staleTime 不会频繁发请求。
+ *
+ * 需要差异的地方就局部覆盖（queryOptions 或 useQuery 的选项），
+ * 下面几处都有各自的注释说明为何不一样。
  */
 export function getRouter() {
   const queryClient = new QueryClient({
@@ -37,6 +59,19 @@ export function getRouter() {
       },
     }),
     defaultOptions: {
+      queries: {
+        staleTime: 30_000,
+        // gcTime: 缓存的垃圾回收时间。库默认是浏览器端 5 分钟
+        // （query-core/removable.js: `newGcTime ?? (isServer() ? Infinity : 3e5)`），
+        // 对通知列表这类数据偏短 —— 用户离开 5 分钟后回来又要重取。
+        // skill 建议 30 分钟，这里照办。
+        // 注：v5 把 v4 的 cacheTime 改名为 gcTime。
+        gcTime: 30 * 60 * 1000,
+        // retry: 1 而非 skill 建议的 2 —— 页面都有自己的错误态与重试按钮，
+        // 快速把错误交出去比默默多等一轮更可控（库默认是 3，更长）。
+        retry: 1,
+        refetchOnWindowFocus: true,
+      },
       mutations: {
         onError: (error) => {
           if (typeof window === "undefined") return;

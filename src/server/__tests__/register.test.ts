@@ -184,12 +184,54 @@ describe("注册 — 成功路径", () => {
 // ============================================================
 
 describe("注册 — 邮箱冲突", () => {
-  it("同一邮箱重复注册抛错", async () => {
+  /*
+   * 核心不变式：重复注册**不报错**，且响应与成功一模一样。
+   * 报错就等于给攻击者一个免费的账号枚举接口（拿邮箱列表跑一遍就能
+   * 筛出哪些人在这里有账号），注册限速是每 IP 每分钟 3 次，拦不住分布式枚举。
+   */
+  it("同一邮箱重复注册不报错（防枚举）", async () => {
     const email = uniqueEmail();
     await reg({ name: "A", email, password: TEST_PASSWORD });
     await userByEmail(email);
 
-    await expect(reg({ name: "B", email, password: TEST_PASSWORD })).rejects.toThrow();
+    // 不 rejects：这是有意为之，不是漏了校验
+    await expect(reg({ name: "B", email, password: TEST_PASSWORD })).resolves.not.toThrow();
+  });
+
+  it("重复注册的响应与首次注册同形", async () => {
+    /*
+     * 不用 callServerFnResult 拿返回值：register 的 __executeServer 不把
+     * handler 返回值放在 result 上（写接口的返回走响应流，不是返回值 ——
+     * 这是 callServerFnResult 文档里就声明了的限制）。
+     *
+     * 直接调 __executeServer 看它**不报错**，再用数据库与邮件副作用断言：
+     * 如果响应形状不同，攻击者能靠字段存在性区分 —— 而形状不同的根源是
+     * 走了不同的代码路径，那必然表现为多建了用户 / 发了验证码邮件。
+     */
+    const email = uniqueEmail();
+    await callServerFnValidated(register, registerSchema, {
+      name: "A",
+      email,
+      password: TEST_PASSWORD,
+    });
+    await userByEmail(email);
+
+    clearMails();
+    // 第二次注册不报错
+    await callServerFnValidated(register, registerSchema, {
+      name: "B",
+      email,
+      password: TEST_PASSWORD,
+    });
+
+    // 没多建用户
+    const users = await db.orm.public.User.where({ email }).all();
+    expect(users).toHaveLength(1);
+
+    // 发的是提醒邮件（不是验证码）—— 验证码只在真新建用户时发
+    expect(mails).toHaveLength(1);
+    expect(mails[0].subject).toContain("已注册过");
+    expect(mails[0].text).not.toContain("验证码是");
   });
 
   it("重复注册不产生第二个用户", async () => {
@@ -197,7 +239,7 @@ describe("注册 — 邮箱冲突", () => {
     await reg({ name: "A", email, password: TEST_PASSWORD });
     await userByEmail(email);
 
-    await reg({ name: "B", email, password: TEST_PASSWORD }).catch(() => {});
+    await reg({ name: "B", email, password: TEST_PASSWORD });
 
     const users = await db.orm.public.User.where({ email }).all();
     expect(users).toHaveLength(1);
@@ -210,21 +252,33 @@ describe("注册 — 邮箱冲突", () => {
     const u = await userByEmail(email);
     const before = await getEmailOtps(u!.id);
 
-    await reg({ name: "B", email, password: TEST_PASSWORD }).catch(() => {});
+    await reg({ name: "B", email, password: TEST_PASSWORD });
 
     const after = await getEmailOtps(u!.id);
     expect(after).toHaveLength(before.length);
     expect(after[0].tokenHash).toBe(before[0].tokenHash);
   });
 
-  it("重复注册不发第二封邮件", async () => {
+  /*
+   * 重复注册**要**发一封邮件，但内容不是验证码而是「你已注册过」。
+   *
+   * 这封邮件是必需的：不留任何通知的话，忘了自己注册过的用户会卡在
+   * 验证码页永远等不到邮件。区分职责由邮件承担（只有邮箱持有者能看），
+   * 接口响应保持与成功一致 —— 这正是防枚举的做法。
+   */
+  it("重复注册发提醒邮件，且不含验证码", async () => {
     const email = uniqueEmail();
     await reg({ name: "A", email, password: TEST_PASSWORD });
     await userByEmail(email);
 
     clearMails();
-    await reg({ name: "B", email, password: TEST_PASSWORD }).catch(() => {});
-    expect(mails).toHaveLength(0);
+    await reg({ name: "B", email, password: TEST_PASSWORD });
+
+    expect(mails).toHaveLength(1);
+    expect(mails[0].to).toBe(email);
+    expect(mails[0].subject).toContain("已注册过");
+    // 不发验证码：否则等于泄了个可用的登录凭证
+    expect(mails[0].text).not.toContain("验证码是");
   });
 });
 
@@ -396,19 +450,27 @@ describe("注册 — 数据完整性", () => {
     expect(o1[0].tokenHash).not.toBe(o2[0].tokenHash);
   });
 
-  it("并发注册同一邮箱只成功一次（唯一约束兜底）", async () => {
+  it("并发注册同一邮箱只建一个用户（唯一约束兜底）", async () => {
     const email = uniqueEmail("race");
+    /*
+     * 两个请求同时进来时，两边可能都过了「查重」那道检查（都是未存在），
+     * 然后双双尝试 INSERT —— 靠的是数据库唯一约束。
+     *
+     * 不断言“只有一个 fulfilled”：防枚举后重复注册**不该报错**（返回与成功
+     * 同形），所以两个都可能 fulfilled。真正的不变式是数据库里只有一个人，
+     * 且不会因此多发一份验证码。
+     */
     const results = await Promise.allSettled([
       reg({ name: "A", email, password: TEST_PASSWORD }),
       reg({ name: "B", email, password: TEST_PASSWORD }),
     ]);
 
-    await userByEmail(email);
+    // 至少一个成功；另一个要么也“成功”（撞存后走已存在分支），
+    // 要么被唯一约束拦下 —— 两种都不应崩得没边
+    expect(results.some((r) => r.status === "fulfilled")).toBe(true);
+
     const users = await db.orm.public.User.where({ email }).all();
     expect(users).toHaveLength(1);
-
-    const ok = results.filter((r) => r.status === "fulfilled");
-    expect(ok.length).toBeLessThanOrEqual(1);
   });
 
   it("并发注册不同邮箱互不影响", async () => {

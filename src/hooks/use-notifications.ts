@@ -37,11 +37,9 @@ export function useUnreadCount() {
   return useQuery({
     queryKey: queryKeys.notificationsUnread,
     queryFn: () => unreadCountFn(),
+    // 轮询以主动感知别人（管理员）产生的通知 —— 本客户端无从得知何时变化。
+    // refetchOnWindowFocus 与 retry 走全局默认（见 router.tsx），不再重复写。
     refetchInterval: NOTIFICATION_POLL_INTERVAL_MS,
-    // 切回标签页时立刻查一次，避免「切回来还要等一个轮询周期」
-    refetchOnWindowFocus: true,
-    // 未读数是轻查询，没必要每次失败就重试三次
-    retry: 1,
   });
 }
 
