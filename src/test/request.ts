@@ -53,23 +53,6 @@ export interface CallContext {
 }
 
 /**
- * 当前请求上下文。
- *
- * 用 globalThis 保存：getRequestIP 的 mock 在另一个模块作用域里执行，
- * 需要读到调用方设置的 IP。
- */
-const CURRENT_CTX_KEY = Symbol.for("test:current-request-ctx");
-
-function setCurrentCtx(ctx: CallContext | undefined) {
-  (globalThis as unknown as Record<symbol, CallContext | undefined>)[CURRENT_CTX_KEY] = ctx;
-}
-
-/** 供 module mock 读取当前注入的 IP。 */
-export function currentRequestIP(): string | undefined {
-  return (globalThis as unknown as Record<symbol, CallContext | undefined>)[CURRENT_CTX_KEY]?.ip;
-}
-
-/**
  * 最近一次 withRequest 里设置的响应状态码。
  *
  * serverFn 通过 setResponseStatus 设的是 event 上的状态，测试拿不到
@@ -88,36 +71,16 @@ export function lastResponseStatus(): number | undefined {
 }
 
 /**
- * 在指定请求上下文里调 serverFn。
+ * serverFn 对象上真正的服务端入口。
  *
- * 两个实测出来的限制（都已确认原因，不是猜的）：
+ * 类型故意放宽（用 unknown 收）：serverFn 的实际类型是 TanStack 生成的复杂
+ * 泛型，与这里的签名对不上。测试里传进来的参数是手写的，语义正确即可。
  *
- * 1. validator 不执行。executeMiddleware 里写的是
- *    `if (validator && env === "server")`，而测试直调走的是 client 存根
- *    路径（env === "client"），所以在测试里非法输入不会像生产那样被拦在
- *    入口 —— 会直接跑到 handler 里落库。
- *    需要校验覆盖的用例用 callServerFnValidated。
- *
- * 2. 拿不到成功返回值（客户端存根要经 RPC 传输层回传 result），
- *    但失败会正常抛错。所以断言策略是：
- *      失败 → rejects.toThrow()
- *      成功 → 断言数据库副作用（比断言返回值更严格）
+ * `url` 是编译器写入的 `/_serverFn/<functionId>` —— **这是取服务端实现的钥匙**，
+ * 见下面的 resolveServerImplementation。
  */
-export function callServerFn<TArgs, TResult>(
-  fn: (opts: { data: TArgs }) => Promise<TResult>,
-  args: TArgs,
-  ctx: CallContext = {},
-): Promise<TResult> {
-  return withRequest(ctx, () => fn({ data: args }));
-}
-
-/**
- * serverFn 对象上真正的服务端执行入口。
- *
- * 类型故意放宽（fn 用 unknown 收）：serverFn 的实际类型是 TanStack 生成的
- * 复杂泛型，与这里的签名对不上。测试里传进来的参数是手写的，语义正确即可。
- */
-type ExecutableServerFn = {
+export type ExecutableServerFn = {
+  url?: string;
   __executeServer?: (opts: {
     method: "GET" | "POST";
     data: unknown;
@@ -126,29 +89,96 @@ type ExecutableServerFn = {
   }) => Promise<unknown>;
 };
 
+/** serverFn 的返回值形状：服务端路径把结果 **和错误** 都放在这里。 */
+type ServerFnOutcome = { result?: unknown; error?: unknown };
+
 /**
- * 调用 serverFn 并**拿到返回值**（callServerFn 拿不到，原因见文件头）。
+ * 取 serverFn 的服务端实现。
  *
- * 走的是 serverFn 上的 `__executeServer`，即服务端真正执行 handler 的那条
- * 路径 —— 所以返回值是 handler 的原值，不经 RPC 传输层。
+ * ## 为什么不能直接用 `fn(...)` 或 `fn.__executeServer(...)`
  *
- * 仅用于必须断言返回值的读接口（比如列表）。写接口优先用 callServerFn /
- * callServerFnValidated 并断言数据库副作用 —— 那比断言返回值更严格。
+ * Start 编译器把每个 serverFn 拆成两个模块：
+ *
+ * - **调用方模块**（`src/server/x.functions.ts` 本体）：`.handler()` 的第一个
+ *   参数被换成 RPC 桩，第二个参数（真 handler）**不在这里**。
+ *   所以这个模块里的 `fn.__executeServer` 没有 handler 可跑，
+ *   只会静默返回 `{ result: undefined, error: undefined }` —— 不报错，
+ *   所以断言会以一种很难查的方式失效。
+ * - **服务端实现模块**（`...?tss-serverfn-split`）：`.handler(桩, 真 handler)`，
+ *   `fn.__executeServer` 在这里是活的。
+ *
+ * `fn.url` 里的 functionId 就是通往后者的钥匙，而编译器生成的
+ * `#tanstack-start-server-fn-resolver` 虚拟模块提供了查询入口。
+ *
+ * ## 拿到的是真服务端路径
+ *
+ * 返回的实现是 `(opts) => fn.__executeServer(opts)`，而 `__executeServer` 走
+ * `executeMiddleware(..., "server")` —— 因此：
+ *
+ * - **`.server()` 中间件会执行**（认证中间件在这里生效）
+ * - **validator 会执行**（与生产一致，非法输入被拦在入口）
+ *
+ * 对比：直接 `fn({ data })` 走的是 `executeMiddleware(..., "client")`，
+ * 只跑 `.client()` 中间件、不跑 validator。
+ */
+async function resolveServerImplementation(fn: ExecutableServerFn) {
+  const url = fn.url;
+  if (!url) {
+    throw new Error(
+      "callServerFn: 该 serverFn 没有 url，说明 tanstackStart 插件没加载（见 vitest.config.ts）",
+    );
+  }
+  const functionId = url.slice(url.lastIndexOf("/") + 1);
+  const { getServerFnById } = await import("#tanstack-start-server-fn-resolver");
+  return getServerFnById(functionId, { origin: "server" });
+}
+
+/**
+ * 执行一次服务端路径，并把「错误装在返回值里」翻译回「抛错」。
+ *
+ * redirect 也在这条路上（executeMiddleware 把它放进 `error`），一并透传。
+ */
+async function runOnServerPath(
+  fn: ExecutableServerFn,
+  args: unknown,
+  method: "GET" | "POST",
+): Promise<unknown> {
+  const run = await resolveServerImplementation(fn);
+  const outcome = (await run({ method, data: args })) as ServerFnOutcome;
+  if (outcome?.error) throw outcome.error;
+  return outcome?.result;
+}
+
+/**
+ * 在指定请求上下文里调 serverFn。
+ *
+ * 走的是编译后的**服务端实现**，与生产同一条路径 —— 因此 `.server()` 中间件
+ * 与 validator 都真实执行，`.server()` 中间件挂的鉴权才是被回归网盯着的东西。
+ * 细节见 resolveServerImplementation 的注释。
+ *
+ * 习惯上与原来一致：失败 → `rejects.toThrow()`；成功 → 断言数据库副作用
+ * （比断言返回值更严格）。返回值现在也拿得到了。
+ */
+export function callServerFn<TArgs, TResult>(
+  fn: ExecutableServerFn,
+  args: TArgs,
+  ctx: CallContext = {},
+): Promise<TResult> {
+  return withRequest(ctx, () => runOnServerPath(fn, args, "POST")) as Promise<TResult>;
+}
+
+/**
+ * 调用 serverFn 并拿到返回值。
+ *
+ * `callServerFn` 现在也走服务端实现，两者等价 —— 保留这个名字是为了
+ * 不动既有用例。
  */
 export function callServerFnResult<TArgs, TResult>(
   fn: ExecutableServerFn,
   args: TArgs,
   ctx: CallContext = {},
 ): Promise<TResult> {
-  const exec = fn.__executeServer;
-  if (!exec) {
-    throw new Error("callServerFnResult: 该函数没有 __executeServer（不是 serverFn？）");
-  }
-  return withRequest(ctx, async () => {
-    const r = await exec({ method: "POST", data: args });
-    // 服务端路径的返回值可能被包了一层 { result }，也可能就是原值。
-    return ((r as { result?: unknown })?.result ?? r) as TResult;
-  });
+  return callServerFn<TArgs, TResult>(fn, args, ctx);
 }
 
 /** 带校验、且能拿到返回值。 */
@@ -169,12 +199,13 @@ export interface ValidatorLike<T> {
 }
 
 /**
- * 带 schema 校验的 serverFn 调用，模拟生产环境 env==="server" 的行为。
+ * 带 schema 校验的 serverFn 调用。
  *
- * 校验失败时抛错（与生产一致：校验不过就不进 handler，因此不会落库）。
+ * 保留是为了兼容既有用例，但**不再有必要** —— `callServerFn` 现在也走
+ * 服务端路径，validator 会真实执行（这条路径下非法输入会被拦在入口）。
  */
 export function callServerFnValidated<TArgs, TResult>(
-  fn: (opts: { data: TArgs }) => Promise<TResult>,
+  fn: ExecutableServerFn,
   schema: ValidatorLike<TArgs>,
   args: TArgs,
   ctx: CallContext = {},
@@ -208,6 +239,22 @@ export function withRequest<T>(ctx: CallContext, fn: () => Promise<T> | T): Prom
     headers,
   }) as H3Event;
 
+  /*
+   * 把 IP 写进 event —— 交给生产代码自己的 getRequestIP() 去读。
+   *
+   * h3 的实现是 `event.req.context?.clientAddress || event.req.ip`
+   * （见 h3-v2 的 getRequestIP），而它原本读的 socket 地址 mockEvent 造不出来。
+   * 以前这里是靠 `vi.mock("@tanstack/react-start/server")` 换掉 getRequestIP ——
+   * 但那个 mock 到不了 serverFn 的编译产物（`*?tss-serverfn-split`），
+   * 于是**走服务端路径时 IP 维度静默失效**（限速桶全落进空 subject）。
+   * 写在 event 上就没有这个问题：无论代码从哪条路径调 getRequestIP 都读得到。
+   */
+  if (ctx.ip) {
+    const req = (event as unknown as { req: { ip?: string; context?: Record<string, unknown> } })
+      .req;
+    req.ip = ctx.ip;
+  }
+
   const storage = getStorage();
 
   // TanStack 有两层 AsyncLocalStorage：eventStorage（h3Event）与
@@ -232,16 +279,12 @@ export function withRequest<T>(ctx: CallContext, fn: () => Promise<T> | T): Prom
   return Promise.resolve(
     storage.run({ h3Event: event }, () =>
       runWithStartContext(startContext as never, async () => {
-        const prev = currentRequestIP();
-        setCurrentCtx(ctx);
         try {
           return await fn();
         } finally {
           // 记下本次请求的响应状态（供 429 断言使用）
           const res = (event as unknown as { res?: { status?: number } }).res;
           setLastStatus(res?.status);
-          // 恢复外层上下文（嵌套调用时不能清成 undefined）
-          setCurrentCtx(prev === undefined ? undefined : { ip: prev });
         }
       }),
     ),

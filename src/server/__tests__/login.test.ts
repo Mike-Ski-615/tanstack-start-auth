@@ -256,8 +256,11 @@ describe("登录 — 限速", () => {
     created.push(user.id);
     await scopedClearRateLimit(IP, "login");
 
+    // 密码必须合法（min 6）：validator 在入口就会拒掉太短的密码，
+    // 那样 handler 根本不会跑，限速计数也就不会累加 —— 这个用例会
+    // 假装通过（第 6 次成功登录，而不是被限速拦住）。
     for (let i = 0; i < 5; i++) {
-      await doLogin({ email, password: "wrong" }).catch(() => {});
+      await doLogin({ email, password: "wrongpass" }).catch(() => {});
     }
     // 第 6 次：即使密码正确也应被限速拦住
     await expect(doLogin({ email, password: TEST_PASSWORD })).rejects.toThrow();

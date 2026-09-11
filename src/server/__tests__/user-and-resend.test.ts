@@ -59,13 +59,13 @@ afterEach(cleanup);
 // ============================================================
 
 describe("getUserById", () => {
-  it("未登录访问抛错（存根在返回 null 时会崩，用 toThrow 断言被拦下）", async () => {
+  it("未登录返回 null", async () => {
     const target = await createUser({ verified: true });
     created.push(target.user.id);
 
     await expect(
       withRequest({}, () => getUserById({ data: { userId: target.user.id } })),
-    ).rejects.toThrow();
+    ).resolves.toBeNull();
   });
 
   it("已登录可查任意其他用户", async () => {
@@ -73,30 +73,28 @@ describe("getUserById", () => {
     const target = await createUser({ verified: true, name: "被查看者" });
     created.push(target.user.id);
 
-    // 读不到返回值（存根限制），改为断言「不抛错 + DB 里确实存在」
-    await expect(
-      withToken(viewer.token, () => getUserById({ data: { userId: target.user.id } })),
-    ).resolves.toBeUndefined();
+    const profile = await withToken(viewer.token, () =>
+      getUserById({ data: { userId: target.user.id } }),
+    );
 
-    const row = await db.orm.public.User.where({ id: target.user.id }).first();
-    expect(row!.name).toBe("被查看者");
+    expect(profile!.user.id).toBe(target.user.id);
+    expect(profile!.user.name).toBe("被查看者");
+    expect(Object.keys(profile!.user).sort()).toEqual([...PUBLIC_COLUMNS].sort());
   });
 
   it("查自己也可以", async () => {
     const me = await sessionFor();
-    await expect(
-      withToken(me.token, () => getUserById({ data: { userId: me.user.id } })),
-    ).resolves.toBeUndefined();
+    const profile = await withToken(me.token, () => getUserById({ data: { userId: me.user.id } }));
+    expect(profile!.user.id).toBe(me.user.id);
   });
 
-  it("不存在的 id → 服务端返回 null（存根崩溃即为 null 路径）", async () => {
+  it("不存在的 id → 服务端返回 null", async () => {
     const me = await sessionFor();
     const ghost = "00000000-0000-7000-8000-000000000000";
 
-    // 返回 null 时客户端存根会抛错，这正是「查不到」的可观测信号
     await expect(
       withToken(me.token, () => getUserById({ data: { userId: ghost } })),
-    ).rejects.toThrow();
+    ).resolves.toBeNull();
   });
 
   it("空 userId 被 schema 拦下", async () => {
@@ -149,12 +147,11 @@ describe("getUserById", () => {
     const a = await sessionFor();
     const b = await sessionFor();
 
-    await expect(
-      withToken(a.token, () => getUserById({ data: { userId: b.user.id } })),
-    ).resolves.toBeUndefined();
-    await expect(
-      withToken(b.token, () => getUserById({ data: { userId: a.user.id } })),
-    ).resolves.toBeUndefined();
+    const seenByA = await withToken(a.token, () => getUserById({ data: { userId: b.user.id } }));
+    const seenByB = await withToken(b.token, () => getUserById({ data: { userId: a.user.id } }));
+
+    expect(seenByA!.user.id).toBe(b.user.id);
+    expect(seenByB!.user.id).toBe(a.user.id);
   });
 });
 
@@ -163,27 +160,27 @@ describe("getUserById", () => {
 // ============================================================
 
 describe("getUserFn", () => {
-  it("未登录时被拦下（返回 null 路径）", async () => {
-    await expect(withRequest({}, () => getUserFn())).rejects.toThrow();
+  it("未登录时返回 null（会话守卫靠这个 null 发现失效，不能抛）", async () => {
+    await expect(withRequest({}, () => getUserFn())).resolves.toBeNull();
   });
 
-  it("无效 token 被拦下", async () => {
+  it("无效 token 返回 null", async () => {
     await expect(
       withRequest({ cookies: { "session-token": "bogus" } }, () => getUserFn()),
-    ).rejects.toThrow();
+    ).resolves.toBeNull();
   });
 
   it("有效会话返回用户（形状符合 PUBLIC_COLUMNS）", async () => {
     const { user, email, token } = await sessionFor();
 
-    await expect(withToken(token, () => getUserFn())).resolves.toBeUndefined();
+    // 直接断言返回值 —— 这个接口返回的就是 useSessionGuard 真正拿到的东西，
+    // 比绕到 validateSession 去查更贴近契约。
+    const me = await withToken(token, () => getUserFn());
 
-    // 返回值拿不到，改为验证 guard 返回的形状
-    const { validateSession } = await import("#lib/auth/session-manager");
-    const r = await validateSession(token);
-    expect(r!.user.email).toBe(email);
-    expect(r!.user.id).toBe(user.id);
-    expect(Object.keys(r!.user).sort()).toEqual([...PUBLIC_COLUMNS].sort());
+    expect(me!.id).toBe(user.id);
+    expect(me!.email).toBe(email);
+    expect(Object.keys(me!).sort()).toEqual([...PUBLIC_COLUMNS].sort());
+    expect(me).not.toHaveProperty("passwordHash");
   });
 
   it("会话撤销后立即失效，无需等过期", async () => {
@@ -192,7 +189,7 @@ describe("getUserFn", () => {
       revokedAt: new Date().toISOString(),
     });
 
-    await expect(withToken(token, () => getUserFn())).rejects.toThrow();
+    await expect(withToken(token, () => getUserFn())).resolves.toBeNull();
   });
 
   it("登出后 getUserFn 不再返回用户", async () => {
@@ -201,19 +198,15 @@ describe("getUserFn", () => {
 
     await withToken(token, () => logout());
 
-    await expect(withToken(token, () => getUserFn())).rejects.toThrow();
+    await expect(withToken(token, () => getUserFn())).resolves.toBeNull();
   });
 
   it("切换账号后拿到的是新用户（无缓存串号）", async () => {
     const a = await sessionFor();
     const b = await sessionFor();
 
-    await expect(withToken(a.token, () => getUserFn())).resolves.toBeUndefined();
-    await expect(withToken(b.token, () => getUserFn())).resolves.toBeUndefined();
-
-    const { validateSession } = await import("#lib/auth/session-manager");
-    expect((await validateSession(a.token))!.user.id).toBe(a.user.id);
-    expect((await validateSession(b.token))!.user.id).toBe(b.user.id);
+    expect((await withToken(a.token, () => getUserFn()))!.id).toBe(a.user.id);
+    expect((await withToken(b.token, () => getUserFn()))!.id).toBe(b.user.id);
   });
 });
 

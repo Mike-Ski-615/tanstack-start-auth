@@ -47,21 +47,37 @@ const withToken = <T>(token: string, fn: () => Promise<T>) =>
 // ============================================================
 
 describe("listSessionsFn — 可执行性", () => {
-  it("未登录时不抛错（返回全 null 分支）", async () => {
+  it("未登录时返回全 null 分支（不抛错）", async () => {
     // 未登录时函数返回 null 三元组，不抛错 —— 这是安全页在会话失效后的
     // 正常路径，不应该是异常
-    await expect(withRequest({}, () => listSessionsFn())).resolves.toBeUndefined();
+    await expect(withRequest({}, () => listSessionsFn())).resolves.toEqual({
+      device: null,
+      session: null,
+      emailVerifiedAt: null,
+    });
   });
 
-  it("无效 token 时不抛错", async () => {
+  it("无效 token 时返回全 null 分支", async () => {
     await expect(
       withRequest({ cookies: { "session-token": "bogus" } }, () => listSessionsFn()),
-    ).resolves.toBeUndefined();
+    ).resolves.toEqual({ device: null, session: null, emailVerifiedAt: null });
   });
 
-  it("已登录时正常执行", async () => {
+  it("已登录时返回设备与会话（含字段白名单）", async () => {
     const { token } = await loggedIn();
-    await expect(withToken(token, () => listSessionsFn())).resolves.toBeUndefined();
+    const info = await withToken(token, () => listSessionsFn());
+
+    expect(info.device).toBeTruthy();
+    expect(info.session).toBeTruthy();
+    // 这两个 select 就是发给客户端的白名单：凭证字段绝不可出现在里面
+    expect(Object.keys(info.device!).sort()).toEqual(
+      ["id", "name", "platform", "userAgent", "ip", "lastSeenAt", "createdAt"].sort(),
+    );
+    expect(Object.keys(info.session!).sort()).toEqual(
+      ["id", "sessionVersion", "createdAt", "expiresAt"].sort(),
+    );
+    expect(JSON.stringify(info)).not.toContain("tokenHash");
+    expect(JSON.stringify(info)).not.toContain("deviceKey");
   });
 
   it("未验证邮箱的用户也能查（emailVerifiedAt 为 null 是合法状态）", async () => {
@@ -73,7 +89,9 @@ describe("listSessionsFn — 可执行性", () => {
       ip: "192.0.2.10",
     });
 
-    await expect(withToken(token, () => listSessionsFn())).resolves.toBeUndefined();
+    const info = await withToken(token, () => listSessionsFn());
+    expect(info.device).toBeTruthy();
+    expect(info.emailVerifiedAt).toBeNull();
   });
 });
 

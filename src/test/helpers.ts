@@ -14,6 +14,7 @@ import {
   callServerFnResultValidated,
   lastResponseStatus,
   type CallContext,
+  type ExecutableServerFn,
 } from "./request";
 
 let seq = 0;
@@ -133,4 +134,5 @@ export {
   callServerFnResultValidated,
   lastResponseStatus,
   type CallContext,
+  type ExecutableServerFn,
 };

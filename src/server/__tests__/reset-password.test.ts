@@ -91,17 +91,22 @@ describe("请求重置 — 防枚举", () => {
     expect(mails[0].text).toMatch(/^\s{4}\d{6}\s*$/m);
   });
 
-  it("未注册邮箱：不抛错、不发邮件（防枚举）", async () => {
-    await expect(requestReset(uniqueEmail("ghost"))).resolves.toBeUndefined();
+  it("未注册邮箱：返回成功、不发邮件（防枚举）", async () => {
+    await expect(requestReset(uniqueEmail("ghost"))).resolves.toEqual({ success: true });
     expect(mails).toHaveLength(0);
   });
 
-  it("未注册邮箱也返回成功（调用方无法区分）", async () => {
+  it("未注册邮箱的响应与已注册的完全一致（调用方无法区分）", async () => {
+    const { user, email: real } = await createUser({ verified: true });
+    created.push(user.id);
+
     const r1 = await requestReset(uniqueEmail("ghost1"));
-    const r2 = await requestReset(uniqueEmail("ghost2"));
-    // 都是 undefined（无异常）即为通过
-    expect(r1).toBeUndefined();
-    expect(r2).toBeUndefined();
+    const r2 = await requestReset(real);
+
+    // 防枚举的要害：两者的响应形状与内容必须一模一样，否则攻击者
+    // 靠字段存在性就能筛出哪些邮箱有账号
+    expect(r1).toEqual(r2);
+    expect(JSON.stringify(r1)).toEqual(JSON.stringify(r2));
   });
 
   it("未验证邮箱的用户也能请求重置", async () => {
@@ -152,7 +157,7 @@ describe("请求重置 — 防枚举", () => {
     await scopedClearRateLimit(IP, "reset");
 
     for (let i = 0; i < 3; i++) await requestReset(email, "198.51.100.1");
-    await expect(requestReset(email, "198.51.100.2")).resolves.toBeUndefined();
+    await expect(requestReset(email, "198.51.100.2")).resolves.toEqual({ success: true });
   });
 
   it("被限速时不发邮件", async () => {
@@ -261,7 +266,9 @@ describe("执行重置 — 失败", () => {
     const { user, email, otp } = await userWithResetOtp();
     const wrong = otp === "000000" ? "111111" : "000000";
 
-    await doReset({ email, otp: wrong, password: "x" }).catch(() => {});
+    // 密码必须合法（min 6）：validator 在入口就会拒掉非法输入，
+    // 那样 handler 根本不会跑，attempts 自然不会自增 —— 测不到想看的东西
+    await doReset({ email, otp: wrong, password: "brandnew123" }).catch(() => {});
 
     const otps = await getResetOtps(user.id);
     expect(otps[0].attempts).toBe(1);
@@ -301,7 +308,7 @@ describe("执行重置 — 错误次数上限", () => {
     const wrong = otp === "000000" ? "111111" : "000000";
 
     for (let i = 0; i < MAX_OTP_ATTEMPTS; i++) {
-      await doReset({ email, otp: wrong, password: "x" }).catch(() => {});
+      await doReset({ email, otp: wrong, password: "brandnew123" }).catch(() => {});
     }
 
     await expect(doReset({ email, otp, password: "brandnew123" })).rejects.toThrow();
@@ -316,7 +323,7 @@ describe("执行重置 — 错误次数上限", () => {
     const wrong = otp === "000000" ? "111111" : "000000";
 
     for (let i = 0; i < MAX_OTP_ATTEMPTS - 1; i++) {
-      await doReset({ email, otp: wrong, password: "x" }).catch(() => {});
+      await doReset({ email, otp: wrong, password: "brandnew123" }).catch(() => {});
     }
     await doReset({ email, otp, password: "brandnew123" });
 

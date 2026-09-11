@@ -20,7 +20,7 @@ import {
 } from "#schemas/auth";
 import { db } from "#prisma/db";
 import { createUser, deleteUser, callServerFnValidated, callServerFn } from "#test/helpers";
-import type { CallContext } from "#test/request";
+import type { CallContext, ExecutableServerFn } from "#test/request";
 import { createNotification } from "#lib/notifications";
 import { ERROR_MESSAGE } from "#lib/error-messages";
 
@@ -49,8 +49,8 @@ const ctx = (token?: string): CallContext => (token ? { cookies: { "session-toke
  * callServerFn 的签名要求 args 与 handler 的参数类型匹配 —— 无参 handler
  * 的参数是 undefined，传 {} 会被类型拒绝。传 undefined 即可。
  */
-const callNoArgs = <T>(fn: (opts: { data: undefined }) => Promise<T>, c: CallContext = {}) =>
-  callServerFn(fn, undefined, c);
+const callNoArgs = <T>(fn: ExecutableServerFn, c: CallContext = {}) =>
+  callServerFn<undefined, T>(fn, undefined, c);
 
 async function userWithSession(role: "student" | "teacher" | "admin") {
   const { user, email } = await createUser({ verified: true, role });

@@ -78,6 +78,15 @@ export default {
   ignoreExportsUsedInFile: true,
 
   /**
+   * 无法解析的 import —— 它们是构建期才存在的虚拟模块，磁盘上没有文件，
+   * Knip 的解析器看不到（TypeScript 侧由 src/test/virtual-modules.d.ts 声明）。
+   */
+  ignoreUnresolved: [
+    // start 插件生成：functionId → 服务端实现的清单（见 src/test/request.ts）
+    "#tanstack-start-server-fn-resolver",
+  ],
+
+  /**
    * 导出相关降为 warn。
    *
    * 导出的类型别名（如 schemas 的 z.infer 命名）即便当前无人 import，

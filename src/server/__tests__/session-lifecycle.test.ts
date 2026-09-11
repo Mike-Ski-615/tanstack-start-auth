@@ -81,23 +81,25 @@ describe("登出", () => {
   });
 
   it("未登录调用不抛错（幂等空操作）", async () => {
-    await expect(withRequest({}, () => logout())).resolves.toBeUndefined();
+    await expect(withRequest({}, () => logout())).resolves.toEqual({ success: true });
   });
 
   it("无 cookie 不抛错", async () => {
-    await expect(withRequest({ cookies: {} }, () => logout())).resolves.toBeUndefined();
+    await expect(withRequest({ cookies: {} }, () => logout())).resolves.toEqual({
+      success: true,
+    });
   });
 
   it("无效 token 不抛错（查不到记录）", async () => {
     await expect(
       withRequest({ cookies: { "session-token": "deadbeef" } }, () => logout()),
-    ).resolves.toBeUndefined();
+    ).resolves.toEqual({ success: true });
   });
 
   it("重复登出不抛错", async () => {
     const { token } = await sessionFor();
     await withToken(token, () => logout());
-    await expect(withToken(token, () => logout())).resolves.toBeUndefined();
+    await expect(withToken(token, () => logout())).resolves.toEqual({ success: true });
   });
 
   it("只影响自己的会话", async () => {
