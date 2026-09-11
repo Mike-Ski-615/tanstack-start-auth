@@ -36,8 +36,6 @@ export default {
   entry: [
     // 路由文件由 routeTree.gen.ts 动态加载，静态分析看不出引用关系
     "src/routes/**/*.tsx",
-    // 测试由 vitest 按 include 配置加载
-    "src/**/*.test.ts",
     // 测试基础设施：`#test/*` 由 vitest 的 setupFiles 与各测试动态引用
     "src/test/helpers.ts",
     "src/test/mock-server-env.ts",

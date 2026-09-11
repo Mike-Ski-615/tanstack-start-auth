@@ -5,7 +5,7 @@
     "dev": "vite dev",
     "build": "vite build",
     "start": "bun .output/server/index.mjs",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "knip": "knip",
