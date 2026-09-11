@@ -230,7 +230,12 @@ DB 承载：RateLimit 表存 key（类型:标识符）+ count + windowStart + ex
 滑动窗口：1 分钟窗口，登录 5 次/分钟（email+IP），注册 3 次/分钟（IP），
 重置请求 3 次/分钟（IP），重发邮件 3 次/分钟（IP + email 双维度），
 邮箱 OTP 验证 10 次/分钟（email+IP），重置 OTP 验证 10 次/分钟（email+IP）。
-窗口过期时重置计数（upsert 复用行），而非逐条清理。`purgeExpiredRateLimit()` 清理过期行。
+窗口过期时重置计数（upsert 复用行），而非逐条清理。
+
+> **行只增不减**：过期的行会在下次同 key 请求时被复用（计数归零、窗口重开），
+> 但不会被删 —— 所以表会随**不同 key 的数量**单调增长（比如每个新邮箱一行
+> `resend:email=…`）。原先有一个 `purgeExpiredRateLimit()` 用于清理，现已随
+> 「只被测试用过的导出」一并删除；真要控制体积时新建一个清理函数接在调度上即可。
 
 ### Fail-Closed 顺序
 

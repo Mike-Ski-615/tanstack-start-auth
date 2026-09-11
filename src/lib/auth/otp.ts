@@ -28,8 +28,3 @@ export function generateOtp(): string {
 export function hashOtp(otp: string): string {
   return hashToken(otp);
 }
-
-/** 校验用户输入的格式：必须正好 6 位数字。 */
-export function isValidOtpFormat(value: string): boolean {
-  return /^\d{6}$/.test(value);
-}

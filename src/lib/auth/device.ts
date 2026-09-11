@@ -110,13 +110,3 @@ export async function touchLastSeen(deviceId: string): Promise<void> {
     console.error("[Auth] touchLastSeen failed", error);
   }
 }
-
-/** 根据 deviceKey 查找 Device。 */
-export async function findDeviceByKey(deviceKey: string): Promise<Device | null> {
-  return await db.orm.public.Device.where({ deviceKey }).first();
-}
-
-/** 根据 userId 查找 Device。 */
-export async function findDeviceByUserId(userId: string): Promise<Device | null> {
-  return await db.orm.public.Device.where({ userId }).first();
-}

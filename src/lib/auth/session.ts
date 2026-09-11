@@ -42,8 +42,3 @@ export function setDeviceCookie(deviceKey: string): void {
 export function getDeviceKey(): string | undefined {
   return getCookie(DEVICE_COOKIE_NAME);
 }
-
-/** 清除设备 cookie。 */
-export function clearDeviceCookie(): void {
-  deleteCookie(DEVICE_COOKIE_NAME, { path: "/" });
-}

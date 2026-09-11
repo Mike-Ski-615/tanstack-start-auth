@@ -138,10 +138,3 @@ export async function enforceRateLimit(type: LimitKey, subject: RateSubject): Pr
   setResponseHeader("Retry-After", String(Math.ceil((resetAt - Date.now()) / 1000)));
   throw new Error(RATE_LIMITED);
 }
-
-/** 清理过期行（可定时调用或懒删除）。 */
-export async function purgeExpiredRateLimit(): Promise<void> {
-  const now = new Date().toISOString();
-  // DB-side 条件删除
-  await db.orm.public.RateLimit.where((r) => r.expiresAt.lt(now)).deleteAndCount();
-}
