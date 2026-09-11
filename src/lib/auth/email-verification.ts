@@ -87,12 +87,3 @@ export async function verifyEmailOtp(userId: string, otp: string): Promise<OtpRe
     otp,
   );
 }
-
-/**
- * 检查用户邮箱是否已验证（通过 User.emailVerifiedAt）。
- */
-export async function isEmailVerified(userId: string): Promise<boolean> {
-  const user = await db.orm.public.User.where({ id: userId }).select("emailVerifiedAt").first();
-
-  return user?.emailVerifiedAt != null;
-}

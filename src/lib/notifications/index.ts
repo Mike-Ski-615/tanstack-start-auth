@@ -19,10 +19,6 @@ import { ERROR_MESSAGE } from "#lib/error-messages";
 /** 单次发送的收件人上限。防手滑给几万人建行（每人一行）。 */
 export const MAX_RECIPIENTS = 5000;
 
-/** 标题/正文长度上限。与前端表单校验共用同一组数字。 */
-export const NOTIFICATION_TITLE_MAX = 100;
-export const NOTIFICATION_BODY_MAX = 1000;
-
 // ============================================================
 // 收件人解析
 // ============================================================

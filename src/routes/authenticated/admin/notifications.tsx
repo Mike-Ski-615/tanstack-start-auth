@@ -14,7 +14,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "#comp
 import { RoleMultiSelect, UserMultiSelect } from "#components/admin/user-multi-select";
 import { SentNotificationsList } from "#components/admin/sent-notifications";
 import { useSelectableUsers, useSendNotificationMutation } from "#hooks/use-notifications";
-import { sendNotificationSchema } from "#schemas/auth";
+import {
+  NOTIFICATION_BODY_MAX,
+  NOTIFICATION_TITLE_MAX,
+  sendNotificationSchema,
+} from "#schemas/auth";
 import { LoadingPage } from "#components/status/authenticated/admin/notifications/loading";
 import { ErrorPage } from "#components/status/authenticated/admin/notifications/error";
 import { NotFoundPage } from "#components/status/authenticated/admin/notifications/not-found";
@@ -160,7 +164,7 @@ function AdminNotificationsPage() {
                       onChange={(e) => field.handleChange(e.target.value)}
                       onBlur={field.handleBlur}
                       placeholder="例如：本周五停课通知"
-                      maxLength={100}
+                      maxLength={NOTIFICATION_TITLE_MAX}
                     />
                     <FieldError errors={field.state.meta.errors} />
                   </Field>
@@ -177,7 +181,7 @@ function AdminNotificationsPage() {
                       onChange={(e) => field.handleChange(e.target.value)}
                       onBlur={field.handleBlur}
                       placeholder="写下要通知的内容…"
-                      maxLength={1000}
+                      maxLength={NOTIFICATION_BODY_MAX}
                       rows={5}
                     />
                     <FieldError errors={field.state.meta.errors} />

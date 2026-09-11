@@ -76,8 +76,6 @@ export type EmailOnlyValues = z.infer<typeof emailOnlySchema>;
 type UpdateProfileValues = z.infer<typeof updateProfileSchema>;
 type ChangePasswordValues = z.infer<typeof changePasswordSchema>;
 export { type UpdateProfileValues, type ChangePasswordValues };
-export type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
-export type VerifyEmailOtpValues = z.infer<typeof verifyEmailOtpSchema>;
 export type UserIdValues = z.infer<typeof userIdSchema>;
 export type AdminSetRoleValues = z.infer<typeof adminSetRoleSchema>;
 export type AdminResetPasswordValues = z.infer<typeof adminResetPasswordSchema>;
@@ -102,9 +100,31 @@ const internalLinkField = z
     message: "链接必须是站内路径（以 / 开头）",
   });
 
+/**
+ * 通知标题/正文的长度上限。
+ *
+ * 定义在这里（而不是 lib/notifications）是因为三处都要用它们：
+ *   1. 本文件的 schema 校验（服务端也走它）；
+ *   2. 发送表单的 maxLength（客户端）—— 客户端只能 import client-safe 模块，
+ *      而 lib/notifications 会拉进 db 等 server-only 依赖，不能引。
+ *
+ * 之前三个地方各写一个字面量（100 / 1000），改一处漏两处就会出现
+ * 前端放行、服务端拒绝。
+ */
+export const NOTIFICATION_TITLE_MAX = 100;
+export const NOTIFICATION_BODY_MAX = 1000;
+
 export const sendNotificationSchema = z.object({
-  title: z.string().trim().min(1, "请输入标题").max(100, "标题最多 100 个字符"),
-  body: z.string().trim().min(1, "请输入内容").max(1000, "内容最多 1000 个字符"),
+  title: z
+    .string()
+    .trim()
+    .min(1, "请输入标题")
+    .max(NOTIFICATION_TITLE_MAX, `标题最多 ${NOTIFICATION_TITLE_MAX} 个字符`),
+  body: z
+    .string()
+    .trim()
+    .min(1, "请输入内容")
+    .max(NOTIFICATION_BODY_MAX, `内容最多 ${NOTIFICATION_BODY_MAX} 个字符`),
   link: internalLinkField.optional(),
   /** 发给全部师生。与 roles/userIds 互斥（前端会禁用，这里也兜一道）。 */
   all: z.boolean().optional(),
@@ -126,5 +146,3 @@ export type SendNotificationValues = z.infer<typeof sendNotificationSchema>;
 export const notificationPrefsSchema = z.object({
   notifyOnNewMessage: z.boolean(),
 });
-
-export type NotificationPrefsValues = z.infer<typeof notificationPrefsSchema>;

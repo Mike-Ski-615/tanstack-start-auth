@@ -1,8 +1,22 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Notification01Icon } from "@hugeicons/core-free-icons";
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { currentUserQueryOptions } from "#lib/queries/current-user";
+import { queryOptions, useQuery } from "@tanstack/react-query";
+import { queryKeys } from "#lib/query-keys";
+import { getUserFn } from "#server/user.functions";
+
+/**
+ * 当前登录用户的查询定义。
+ *
+ * 注意：queryKey 必须与 useAuthCacheSync 里失效的那个完全一致
+ * （两者都走 queryKeys.currentUser）。不一致则登录后缓存没重建，
+ * 用户会被 beforeLoad 弹回登录页。
+ */
+const currentUserQueryOptions = queryOptions({
+  queryKey: queryKeys.currentUser,
+  queryFn: () => getUserFn(),
+  retry: false,
+});
 
 import { Switch } from "#components/ui/switch";
 import { LoadingPage } from "#components/status/authenticated/settings/bell/loading";
@@ -29,8 +43,8 @@ function SettingsBellPage() {
    * 数据库、失效了 query 缓存，context 也不会变 —— 表现为「开关点了没反应，
    * 实际已经改了」。
    *
-   * 这里与 beforeLoad 共用同一个 queryOptions，所以进页面时不会多一次请求
-   * （ensureQueryData 已把数据放进同一份缓存）。
+   * 这里与 beforeLoad 读同一个 queryKey（queryKeys.currentUser），所以进页面
+   * 时不会多一次请求（ensureQueryData 已把数据放进同一份缓存）。
    */
   const { data: user, isPending, error, refetch } = useQuery(currentUserQueryOptions);
 

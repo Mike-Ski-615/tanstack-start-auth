@@ -24,15 +24,6 @@ export function clearMails(): void {
   mails.length = 0;
 }
 
-/** 最近一封邮件正文里的 6 位验证码。 */
-export function lastOtp(): string | undefined {
-  for (let i = mails.length - 1; i >= 0; i--) {
-    const m = mails[i].text.match(/^\s{4}(\d{6})\s*$/m);
-    if (m) return m[1];
-  }
-  return undefined;
-}
-
 vi.mock("@tanstack/react-start/server", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@tanstack/react-start/server")>();
   return {

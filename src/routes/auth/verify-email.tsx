@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Button } from "#components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "#components/ui/input-otp";
 import { verifyEmailFn, resendVerificationEmailFn } from "#server/email-verification.functions";
-import { useAuthCacheSync } from "#lib/queries/auth-sync";
+import { useAuthCacheSync } from "#hooks/use-auth-mutations";
 import { LoadingPage } from "#components/status/auth/verify-email/loading";
 import { ErrorPage } from "#components/status/auth/verify-email/error";
 import { NotFoundPage } from "#components/status/auth/verify-email/not-found";
@@ -34,7 +34,7 @@ function VerifyEmailPage() {
   const verifyMutation = useMutation({
     mutationFn: (code: string) => verifyEmailFn({ data: { email, otp: code } }),
     onSuccess: async () => {
-      // 验证成功即建立会话，同步缓存后跳转（细节见 auth-sync）
+      // 验证成功即建立会话，同步缓存后跳转（细节见 useAuthCacheSync）
       await authSync.onSignedIn();
       setTimeout(() => router.navigate({ to: "/authenticated" }), 1500);
     },

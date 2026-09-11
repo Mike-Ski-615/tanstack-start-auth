@@ -10,8 +10,15 @@ import {
   IdIcon,
 } from "@hugeicons/core-free-icons";
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { securityInfoQueryOptions } from "#lib/queries/security-info";
+import { queryOptions, useQuery } from "@tanstack/react-query";
+import { queryKeys } from "#lib/query-keys";
+import { listSessionsFn } from "#server/sessions.functions";
+
+/** 会话 / 设备信息（与隐私与安全页各自定义一份，两者 key 相同）。 */
+const securityInfoQueryOptions = queryOptions({
+  queryKey: queryKeys.securityInfo,
+  queryFn: () => listSessionsFn(),
+});
 import { LoadingPage } from "#components/status/authenticated/settings/account/loading";
 import { ErrorPage } from "#components/status/authenticated/settings/account/error";
 import { NotFoundPage } from "#components/status/authenticated/settings/account/not-found";

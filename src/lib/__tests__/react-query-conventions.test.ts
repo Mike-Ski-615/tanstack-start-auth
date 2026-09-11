@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { ERROR_MESSAGE } from "#lib/error-messages";
 
@@ -305,30 +305,57 @@ describe("queryKey 集中定义（防重复请求）", () => {
   });
 });
 
-describe("同一份数据只有一个 useQuery 定义", () => {
+describe("查询定义内联在各消费方（不建共享模块）", () => {
   /*
-   * securityInfo 原先在 account.tsx 与 privacy-security.tsx 各写一遍
-   * （同 key 同 fn）—— 看起来一样但是「碰巧一致」：任何一处加了
-   * staleTime / select / 不同的 retry，两个页面读到的就是行为分叉的数据。
-   * 现在统一走 securityInfoQueryOptions。
+   * 这些查询定义（currentUser / securityInfo / userById / authCacheSync）
+   * 是内联的，没有 lib/queries/ 目录。
+   *
+   * 这种写法下唯一不能漂移的是 **queryKey** —— 所以下面断言都盯它：
+   * key 不一致时不会报错，只会静默命中不同缓存。
    */
-  it("securityInfo 只在 security-info.ts 里定义一次", () => {
-    const defs = sourceFiles.filter((f) => {
-      const src = stripComments(read(f));
-      return /listSessionsFn\(\)/.test(src) && /queryFn:/.test(src);
-    });
-    expect(defs, `多处定义了同一个查询：${defs.join(", ")}`).toEqual([
-      "src/lib/queries/security-info.ts",
-    ]);
+  it("不存在 lib/queries/ 目录", () => {
+    expect(existsSync("src/lib/queries"), "已内联，不应再有这个目录").toBe(false);
   });
 
-  it("两个消费方都走同一个 queryOptions", () => {
+  it("没有任何文件还在 import lib/queries", () => {
+    for (const f of sourceFiles) {
+      expect(read(f), `${f} 仍在引用已删除的 lib/queries`).not.toMatch(/#lib\/queries/);
+    }
+  });
+
+  it("securityInfo 的两个消费方用同一个 key", () => {
     for (const f of [
       "src/routes/authenticated/settings/account.tsx",
       "src/routes/authenticated/settings/privacy-security.tsx",
     ]) {
-      expect(read(f), `${f} 没复用 securityInfoQueryOptions`).toContain("securityInfoQueryOptions");
+      const src = stripComments(read(f));
+      expect(src, `${f} 没走 queryKeys.securityInfo`).toMatch(
+        /queryKey:\s*queryKeys\.securityInfo/,
+      );
     }
+  });
+
+  it("currentUser 的每个消费方都走 queryKeys.currentUser", () => {
+    // 这个 key 最关键：auth-sync 用它失效缓存、beforeLoad 用它读取，
+    // 任一处写错字符串就会出现「登录后被弹回登录页」
+    const consumers = [
+      "src/routes/auth.tsx",
+      "src/routes/authenticated.tsx",
+      "src/routes/authenticated/settings/bell.tsx",
+      "src/hooks/use-session-guard.ts",
+      "src/hooks/use-auth-mutations.ts",
+    ];
+    for (const f of consumers) {
+      const src = stripComments(read(f));
+      expect(src, `${f} 没走 queryKeys.currentUser`).toMatch(/queryKeys\.currentUser/);
+      // 不得自己另写字符串 key
+      expect(src, `${f} 裸写了 current-user 字符串`).not.toMatch(/["']current-user["']/);
+    }
+  });
+
+  it("userById 走 queryKeys.userById（不裸写数组）", () => {
+    const src = stripComments(read("src/routes/authenticated/users/$userId.tsx"));
+    expect(src).toMatch(/queryKeys\.userById\(userId\)/);
   });
 });
 

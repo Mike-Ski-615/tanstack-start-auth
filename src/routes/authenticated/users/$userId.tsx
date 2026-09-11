@@ -1,10 +1,20 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
+import { queryOptions } from "@tanstack/react-query";
 import { LoadingPage } from "#components/status/authenticated/$userId/loading";
 import { ErrorPage } from "#components/status/authenticated/$userId/error";
 import { NotFoundPage } from "#components/status/authenticated/$userId/not-found";
 
 import { UserView } from "#components/user/user-view";
-import { userByIdQueryOptions } from "#lib/queries/user-by-id";
+import { getUserById } from "#server/user.functions";
+import { queryKeys } from "#lib/query-keys";
+
+/** 按 id 查用户资料（未登录或不存在均返回 null）。 */
+function userByIdQueryOptions(userId: string) {
+  return queryOptions({
+    queryKey: queryKeys.userById(userId),
+    queryFn: () => getUserById({ data: { userId } }),
+  });
+}
 
 export const Route = createFileRoute("/authenticated/users/$userId")({
   pendingComponent: LoadingPage,

@@ -1,7 +1,5 @@
 import { CheckCircle, CircleIcon, UserIcon, UserGroupIcon } from "@hugeicons/core-free-icons";
 
-import type { IconSvgElement } from "@hugeicons/react";
-
 /**
  * 表格里的可选项定义（对应官方 tasks/data/data.tsx 的 labels/statuses/priorities）。
  *
@@ -38,9 +36,3 @@ export const verificationStates = [
     icon: CircleIcon,
   },
 ] as const;
-
-export type FacetOption = {
-  value: string;
-  label: string;
-  icon?: IconSvgElement;
-};

@@ -10,9 +10,15 @@ import {
   Calendar01Icon,
 } from "@hugeicons/core-free-icons";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "#lib/query-keys";
-import { securityInfoQueryOptions } from "#lib/queries/security-info";
+import { listSessionsFn } from "#server/sessions.functions";
+
+/** 会话 / 设备信息（与账号页各自定义一份，两者 key 相同）。 */
+const securityInfoQueryOptions = queryOptions({
+  queryKey: queryKeys.securityInfo,
+  queryFn: () => listSessionsFn(),
+});
 import { Button } from "#components/ui/button";
 import {
   AlertDialog,

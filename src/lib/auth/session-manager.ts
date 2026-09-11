@@ -197,15 +197,3 @@ export async function revokeSession(rawToken: string): Promise<void> {
     revokedAt: new Date().toISOString(),
   });
 }
-
-// ============================================================
-// 清理
-// ============================================================
-
-/** 清理过期会话（定时任务或手动调用）。 */
-export async function purgeExpiredSessions(): Promise<number> {
-  const now = new Date().toISOString();
-  // DB-side 条件删除，避免 O(N) 读取 + JS 过滤
-  const deleted = await db.orm.public.Session.where((s) => s.expiresAt.lt(now)).deleteAndCount();
-  return deleted;
-}
