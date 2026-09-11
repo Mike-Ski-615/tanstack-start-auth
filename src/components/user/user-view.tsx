@@ -36,7 +36,7 @@ export function UserView({ user, calendar, stats }: UserProfile) {
           </div>
         </header>
 
-        <dl className=" grid w-full grid-cols-3 items-center gap-x-2 gap-y-4 rounded-2xl bg-card px-4 py-5 lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] lg:gap-x-0 lg:py-4">
+        <dl className=" grid w-full grid-cols-3 items-center gap-x-2 gap-y-4 rounded-2xl bg-card px-4 py-5 lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr_auto_1fr] lg:gap-x-0 lg:py-4">
           <div className="flex flex-col items-center justify-center gap-1">
             <dd className="text-xl font-semibold tracking-tight tabular-nums">
               {daysSince(user.createdAt)}天
