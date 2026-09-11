@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { ROLE_HOME } from "#lib/auth/current-user";
-import { useContentWidth, CONTENT_WIDTH_CLASS } from "#provider/content-width-provider";
+import { CONTENT_WIDTH_CLASS, SIDEBAR_GUTTER_CLASS } from "#provider/content-width-provider";
 import { LoadingPage } from "#components/status/authenticated/teacher/loading";
 import { ErrorPage } from "#components/status/authenticated/teacher/error";
 import { NotFoundPage } from "#components/status/authenticated/teacher/not-found";
@@ -22,11 +22,9 @@ export const Route = createFileRoute("/authenticated/teacher")({
 
 function TeacherPage() {
   const { user } = Route.useRouteContext();
-  // 宽度由 header 上的切换按钮控制（见 ContentWidthProvider）
-  const { width } = useContentWidth();
 
   return (
-    <section className={`p-4 ${CONTENT_WIDTH_CLASS[width]}`}>
+    <section className={`p-4 ${SIDEBAR_GUTTER_CLASS} ${CONTENT_WIDTH_CLASS}`}>
       <h1 className="text-2xl font-bold">教师</h1>
       <p className="mt-2">欢迎，{user.name}</p>
       <p className="text-sm text-muted-foreground">{user.email}</p>

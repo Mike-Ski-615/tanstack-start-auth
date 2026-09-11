@@ -150,4 +150,29 @@
     --typeset-leading: 1.75;
     --typeset-flow: 1em;
   }
+
+  /*
+   * 内容区宽度。
+   *
+   * 由 <html data-content-width> 决定，而不是 React 直接给类名 —— 这样
+   * 首屏脚本能在绘制前把偏好写到 <html> 上，SSR 出的 HTML 就已经是正确
+   * 宽度，水合不再引起回流（详见 content-width-provider 的注释）。
+   *
+   * 三个值对应原来的 max-w-3xl / max-w-5xl / w-full：
+   *   narrow 48rem(768px) / wide 64rem(1024px) / full 不限
+   * Tailwind 默认 max-w-5xl 是 64rem、max-w-3xl 是 48rem。
+   */
+  .content-region {
+    width: 100%;
+  }
+
+  [data-content-width="wide"] .content-region {
+    margin-inline: auto;
+    max-width: 64rem;
+  }
+
+  [data-content-width="narrow"] .content-region {
+    margin-inline: auto;
+    max-width: 48rem;
+  }
 }

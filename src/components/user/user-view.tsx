@@ -4,17 +4,15 @@ import { Separator } from "#components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "#components/ui/avatar";
 import type { UserProfile } from "#server/user.functions";
 import { daysSince } from "#lib/format";
-import { useContentWidth, CONTENT_WIDTH_CLASS } from "#provider/content-width-provider";
+import { CONTENT_WIDTH_CLASS } from "#provider/content-width-provider";
 
 export function UserView({ user, calendar, stats }: UserProfile) {
-  // 跟随 header 里的内容宽度设置。此前硬编码 max-w-7xl，三档设置在这一页
-  // 全是同一个宽度（实测 1184px），与 admin/student/teacher 的行为不一致。
-  const { width } = useContentWidth();
-
+  // 宽度跟随 header 里的设置 —— 具体值由 CSS 从 <html data-content-width> 算，
+  // 所以这里不再读 context（首屏水合前也就能是对的了）。
   return (
     <main className="min-h-full min-w-0">
       <div
-        className={`flex min-w-0 flex-col gap-4 p-4 sm:gap-5 sm:p-6 lg:gap-6 lg:p-8 ${CONTENT_WIDTH_CLASS[width]}`}
+        className={`flex min-w-0 flex-col gap-4 p-4 sm:gap-5 sm:p-6 lg:gap-6 lg:p-8 ${CONTENT_WIDTH_CLASS}`}
       >
         <header className=" flex min-w-0 items-center gap-4 rounded-2xl bg-card p-5 lg:flex-col lg:gap-3 lg:bg-transparent lg:py-4">
           <div className="relative shrink-0">
