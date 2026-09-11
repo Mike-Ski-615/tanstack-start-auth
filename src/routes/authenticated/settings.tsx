@@ -1,7 +1,9 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { Link, Outlet, useNavigate, createFileRoute, useRouter } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { SETTINGS_NAV } from "#data/nav";
+import { currentUserQueryOptions } from "#lib/queries/user";
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "#components/ui/dialog";
 import {
@@ -30,7 +32,9 @@ export const Route = createFileRoute("/authenticated/settings")({
 function SettingsLayout() {
   const navigate = useNavigate();
   const router = useRouter();
-  const { user } = Route.useRouteContext();
+  const { data: user } = useQuery(currentUserQueryOptions);
+
+  if (!user) return null;
 
   return (
     <Dialog

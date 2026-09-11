@@ -3,8 +3,7 @@ import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { queryKeys } from "#lib/query-keys";
-import { getUserFn } from "#server/user.functions";
+import { currentUserQueryOptions } from "#lib/queries/user";
 
 /** 轮询间隔（毫秒）。被踢后最迟这么久跳登录页。 */
 const SESSION_POLL_INTERVAL_MS = 30_000;
@@ -18,7 +17,7 @@ const SESSION_POLL_INTERVAL_MS = 30_000;
  * 用轮询 + 窗口聚焦检查，不做长连接：单设备模型下会话失效是低频事件，
  * 30s 的延迟可接受，省掉 WS 的注册表、心跳与重连逻辑。
  *
- * 与 beforeLoad 的 ensureQueryData 共用 queryKeys.currentUser，进页时的那次
+ * 与 beforeLoad 共用同一份 currentUserQueryOptions，进页时的那次
  * 查询直接命中缓存，不会重复请求。
  *
  * 四种状态各有处理（这是守卫的全部意义）：
@@ -42,10 +41,9 @@ export function useSessionGuard() {
   const navigate = useNavigate();
 
   const { data, error } = useQuery({
-    // 与 beforeLoad / useAuthCacheSync 共用同一个 key（queryKeys.currentUser）——
-    // 写错字符串就命不中同一份缓存，登出/换设备后守卫会失灵。
-    queryKey: queryKeys.currentUser,
-    queryFn: () => getUserFn(),
+    // 与 beforeLoad / useAuthCacheSync 共用同一份 currentUserQueryOptions ——
+    // key 一旦漂移就命不中同一份缓存，登出/换设备后守卫会失灵。
+    ...currentUserQueryOptions,
     refetchInterval: SESSION_POLL_INTERVAL_MS,
     // refetchOnWindowFocus 走全局默认（见 router.tsx）。
     //

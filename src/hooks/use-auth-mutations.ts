@@ -1,8 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { queryKeys } from "#lib/query-keys";
-import { getUserFn } from "#server/user.functions";
+import { currentUserQueryOptions } from "#lib/queries/user";
 import type { EmailOnlyValues, LoginValues, RegisterValues } from "#schemas/auth";
 import { login } from "#server/login.functions";
 import { register } from "#server/register.functions";
@@ -30,20 +29,16 @@ export function useAuthCacheSync() {
     /**
      * 会话已建立（login / resetPassword / verifyEmail）。
      *
-     * 先 removeQueries 再 ensureQueryData，两步都不能少：
+     * 先 removeQueries 再 query（staleTime: "static"），两步都不能少：
      * - 不 remove：登录前未认证页面的 beforeLoad 已缓存了 null，会被后续的
      *   beforeLoad 命中，把刚登录的用户弹回登录页。
-     * - 只 remove 不 ensure：Query 缓存被清空后，下一次 ensureQueryData 要等
+     * - 只 remove 不 query：Query 缓存被清空后，下一次 query 要等
      *   导航过去才发请求，白白多一次往返；而 invalidateQueries 在此处无效 ——
      *   它默认只重查 active 的 query，登录页上 current-user 没有活跃订阅。
      */
     async onSignedIn() {
-      queryClient.removeQueries({ queryKey: queryKeys.currentUser });
-      await queryClient.ensureQueryData({
-        queryKey: queryKeys.currentUser,
-        queryFn: () => getUserFn(),
-        retry: false,
-      });
+      queryClient.removeQueries({ queryKey: currentUserQueryOptions.queryKey });
+      await queryClient.query({ ...currentUserQueryOptions, staleTime: "static" });
     },
 
     /**
@@ -53,7 +48,7 @@ export function useAuthCacheSync() {
      * 没有活跃订阅会去重查，写值是最省事且确定的。
      */
     onSignedOut() {
-      queryClient.setQueryData(queryKeys.currentUser, null);
+      queryClient.setQueryData(currentUserQueryOptions.queryKey, null);
     },
   };
 }

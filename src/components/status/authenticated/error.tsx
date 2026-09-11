@@ -1,7 +1,9 @@
 import type { ErrorComponentProps } from "@tanstack/react-router";
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "#components/ui/button";
 import { ROLE_HOME } from "#lib/auth/current-user";
+import { currentUserQueryOptions } from "#lib/queries/user";
 
 /**
  * 已登录区错误（/authenticated）。
@@ -15,21 +17,13 @@ import { ROLE_HOME } from "#lib/auth/current-user";
  * 退路按**角色**给：`ROLE_HOME[user.role]` 是这个人自己的落地页。
  * 原来的实现一律指 `/`，在校验过的区域里点下去会被重定向回来 —— 死胡同。
  *
- * 角色从 router state 的 /authenticated 匹配项上读，**不能** import
- * `#routes/authenticated` —— 那个路由文件本身 import 了本文件
- * （挂 pendingComponent/errorComponent），反向 import 会形成循环依赖。
- *
- * 用 router state 而非 useRouteContext，是因为后者的返回类型在
- * 「可能未挂载」时退化为 undefined，无法给出可用的 to 值。
- *
- * context 可能尚未就绪，所以做了兜底：拿不到就退回首页，而不是崩掉。
+ * 角色从 currentUser 查询缓存读（父布局 beforeLoad 已 prefetch 过同一份）。
+ * 缓存尚未就绪时兜底退回 `/`，而不是崩掉。
  */
 export function ErrorPage({ reset }: ErrorComponentProps) {
-  const role = useRouterState({
-    select: (s) => s.matches.find((m) => m.routeId === "/authenticated")?.context?.user?.role,
-  });
+  const { data: user } = useQuery(currentUserQueryOptions);
 
-  const fallback: string = role ? ROLE_HOME[role] : "/";
+  const fallback: string = user ? ROLE_HOME[user.role] : "/";
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-4 bg-background p-4 text-center sm:p-6 lg:ps-7">

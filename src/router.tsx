@@ -87,6 +87,9 @@ export function getRouter() {
     defaultErrorComponent: () => <div>Internal Server Error</div>,
     defaultNotFoundComponent: () => <div>Not Found</div>,
     scrollRestoration: true,
+    // hover/focus 即预取目标路由的 loader/beforeLoad —— 数据提前进 Query 缓存。
+    defaultPreload: "intent",
+    defaultPreloadStaleTime: 30_000,
   });
 
   setupRouterSsrQueryIntegration({

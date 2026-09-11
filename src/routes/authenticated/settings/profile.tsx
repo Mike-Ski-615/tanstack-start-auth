@@ -2,9 +2,9 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { UserIcon } from "@hugeicons/core-free-icons";
 import { createFileRoute } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { queryKeys } from "#lib/query-keys";
+import { currentUserQueryOptions } from "#lib/queries/user";
 import { Button } from "#components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "#components/ui/field";
 import { Input } from "#components/ui/input";
@@ -23,7 +23,7 @@ export const Route = createFileRoute("/authenticated/settings/profile")({
 });
 
 function SettingsProfilePage() {
-  const { user } = Route.useRouteContext();
+  const { data: user } = useQuery(currentUserQueryOptions);
   const queryClient = useQueryClient();
 
   const infoMutation = useMutation({
@@ -32,12 +32,12 @@ function SettingsProfilePage() {
       toast.success("资料已保存");
       // 只失效当前用户：改名前 router.invalidate() 会重跑整棵路由树
       // （含 beforeLoad 里的 getUser 查询），为了刷新侧边栏用户名太重。
-      queryClient.invalidateQueries({ queryKey: queryKeys.currentUser });
+      queryClient.invalidateQueries({ queryKey: currentUserQueryOptions.queryKey });
     },
   });
 
   const infoForm = useForm({
-    defaultValues: { name: user.name, bio: user.bio },
+    defaultValues: { name: user?.name ?? "", bio: user?.bio ?? "" },
     validators: { onSubmit: updateProfileSchema },
     onSubmit: ({ value }) => infoMutation.mutate(value),
   });

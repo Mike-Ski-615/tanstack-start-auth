@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { queryKeys } from "#lib/query-keys";
 import {
-  listNotificationsFn,
-  unreadCountFn,
+  notificationsListQueryOptions,
+  notificationsUnreadQueryOptions,
+  sentNotificationsQueryOptions,
+  selectableUsersQueryOptions,
+  notificationsQueryKey,
+} from "#lib/queries/notifications";
+import { currentUserQueryOptions } from "#lib/queries/user";
+import {
   markNotificationReadFn,
   markAllNotificationsReadFn,
   deleteNotificationFn,
   sendNotificationFn,
-  listSentNotificationsFn,
   deleteNotificationBatchFn,
-  listSelectableUsersFn,
   updateNotificationPrefsFn,
 } from "#server/notifications.functions";
 import type { SendNotificationValues } from "#schemas/auth";
@@ -35,8 +38,7 @@ const NOTIFICATION_POLL_INTERVAL_MS = 30_000;
 /** 未读数（铃铛徽章）。轮询 + 窗口聚焦时立即刷新。 */
 export function useUnreadCount() {
   return useQuery({
-    queryKey: queryKeys.notificationsUnread,
-    queryFn: () => unreadCountFn(),
+    ...notificationsUnreadQueryOptions,
     // 轮询以主动感知别人（管理员）产生的通知 —— 本客户端无从得知何时变化。
     // refetchOnWindowFocus 与 retry 走全局默认（见 router.tsx），不再重复写。
     refetchInterval: NOTIFICATION_POLL_INTERVAL_MS,
@@ -46,8 +48,7 @@ export function useUnreadCount() {
 /** 通知列表。只在铃铛打开时启用（enabled 由调用方控制）。 */
 export function useNotifications(enabled: boolean) {
   return useQuery({
-    queryKey: queryKeys.notificationsList,
-    queryFn: () => listNotificationsFn(),
+    ...notificationsListQueryOptions,
     enabled,
     staleTime: 10_000,
   });
@@ -56,11 +57,7 @@ export function useNotifications(enabled: boolean) {
 /** 让列表与未读数一起失效（任一操作后都要）。 */
 function useInvalidateNotifications() {
   const qc = useQueryClient();
-  return () =>
-    Promise.all([
-      qc.invalidateQueries({ queryKey: queryKeys.notificationsList }),
-      qc.invalidateQueries({ queryKey: queryKeys.notificationsUnread }),
-    ]);
+  return () => qc.invalidateQueries({ queryKey: notificationsQueryKey });
 }
 
 export function useMarkReadMutation() {
@@ -99,8 +96,7 @@ export function useDeleteNotificationMutation() {
 /** 已发出的通知（含收件数 / 已读数）。 */
 export function useSentNotifications() {
   return useQuery({
-    queryKey: queryKeys.sentNotifications,
-    queryFn: () => listSentNotificationsFn(),
+    ...sentNotificationsQueryOptions,
     staleTime: 10_000,
   });
 }
@@ -108,8 +104,7 @@ export function useSentNotifications() {
 /** 发通知时可选的师生名单。 */
 export function useSelectableUsers() {
   return useQuery({
-    queryKey: queryKeys.selectableUsers,
-    queryFn: () => listSelectableUsersFn(),
+    ...selectableUsersQueryOptions,
     staleTime: 60_000,
   });
 }
@@ -119,23 +114,46 @@ export function useSendNotificationMutation() {
   return useMutation({
     mutationFn: (data: SendNotificationValues) => sendNotificationFn({ data }),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: queryKeys.sentNotifications });
-      void qc.invalidateQueries({ queryKey: queryKeys.notifications });
+      void qc.invalidateQueries({ queryKey: sentNotificationsQueryOptions.queryKey });
+      void qc.invalidateQueries({ queryKey: notificationsQueryKey });
       toast.success("通知已发送");
     },
   });
 }
 
-/** 更新通知偏好（弹不弹 toast）。 */
+/** 更新通知偏好（弹不弹 toast）。乐观更新：开关立即翻转，失败回滚。 */
 export function useUpdateNotificationPrefsMutation() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (notifyOnNewMessage: boolean) =>
       updateNotificationPrefsFn({ data: { notifyOnNewMessage } }),
+    onMutate: async (notifyOnNewMessage) => {
+      // 取消进行中的 currentUser 查询，避免旧数据覆盖乐观值
+      await qc.cancelQueries({ queryKey: currentUserQueryOptions.queryKey });
+
+      const previous = qc.getQueryData(currentUserQueryOptions.queryKey);
+
+      // 乐观写入：先翻转，服务端确认前就回显
+      qc.setQueryData(currentUserQueryOptions.queryKey, (old) =>
+        old ? { ...old, notifyOnNewMessage } : old,
+      );
+
+      return { previous };
+    },
+    onError: (error: Error, _vars, context) => {
+      // 失败：回滚到乐观写之前的值
+      if (context?.previous) {
+        qc.setQueryData(currentUserQueryOptions.queryKey, context.previous);
+      }
+      // 局部 onError 会替代全局默认（见 router.tsx），所以这里要自己 toast
+      toast.error(error.message);
+    },
     onSuccess: () => {
-      // currentUser 里带着这个字段，改完要让 beforeLoad 与守卫重新取
-      void qc.invalidateQueries({ queryKey: queryKeys.currentUser });
       toast.success("设置已保存");
+    },
+    onSettled: () => {
+      // 无论成败：以服务端真值为准（currentUser 里带着这个字段）
+      void qc.invalidateQueries({ queryKey: currentUserQueryOptions.queryKey });
     },
   });
 }
@@ -145,8 +163,8 @@ export function useDeleteNotificationBatchMutation() {
   return useMutation({
     mutationFn: (notificationId: string) => deleteNotificationBatchFn({ data: { notificationId } }),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: queryKeys.sentNotifications });
-      void qc.invalidateQueries({ queryKey: queryKeys.notifications });
+      void qc.invalidateQueries({ queryKey: sentNotificationsQueryOptions.queryKey });
+      void qc.invalidateQueries({ queryKey: notificationsQueryKey });
       toast.success("已撤回");
     },
   });

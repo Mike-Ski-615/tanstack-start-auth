@@ -4,16 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { columns } from "#components/admin/columns";
 import { DataTable } from "#components/admin/data-table";
 import { verificationStates } from "#components/admin/data";
-import { listUsersByRoleFn } from "#server/admin.functions";
-import { queryKeys } from "#lib/query-keys";
+import { adminUsersQueryOptions } from "#lib/queries/admin";
 import { LoadingPage } from "#components/status/authenticated/admin/students/loading";
 import { ErrorPage } from "#components/status/authenticated/admin/students/error";
 import { NotFoundPage } from "#components/status/authenticated/admin/students/not-found";
-
-const adminUsersQueryOptions = (role: "student" | "teacher") => ({
-  queryKey: queryKeys.adminUsersList(role),
-  queryFn: () => listUsersByRoleFn({ data: { role } }),
-});
 
 export const Route = createFileRoute("/authenticated/admin/students")({
   pendingComponent: LoadingPage,
@@ -22,7 +16,7 @@ export const Route = createFileRoute("/authenticated/admin/students")({
   component: AdminStudentsPage,
   // SSR 预取：不等客户端 useQuery，管理页首屏就有数据。
   beforeLoad: async ({ context }) => {
-    await context.queryClient.ensureQueryData(adminUsersQueryOptions("student"));
+    await context.queryClient.query({ ...adminUsersQueryOptions("student"), staleTime: "static" });
   },
 });
 

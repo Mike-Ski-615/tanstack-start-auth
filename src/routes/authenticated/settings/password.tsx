@@ -2,7 +2,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Key02Icon } from "@hugeicons/core-free-icons";
 import { createFileRoute } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ShieldCheckIcon } from "@hugeicons/core-free-icons";
 import { Button } from "#components/ui/button";
@@ -10,6 +10,7 @@ import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "#co
 import { Input } from "#components/ui/input";
 import { changePasswordSchema, type ChangePasswordValues } from "#schemas/auth";
 import { changePasswordFn } from "#server/profile.functions";
+import { currentUserQueryOptions } from "#lib/queries/user";
 import { LoadingPage } from "#components/status/authenticated/settings/password/loading";
 import { ErrorPage } from "#components/status/authenticated/settings/password/error";
 import { NotFoundPage } from "#components/status/authenticated/settings/password/not-found";
@@ -22,7 +23,7 @@ export const Route = createFileRoute("/authenticated/settings/password")({
 });
 
 function SettingsPasswordPage() {
-  const { user } = Route.useRouteContext();
+  const { data: user } = useQuery(currentUserQueryOptions);
   const pwdMutation = useMutation({
     mutationFn: (v: ChangePasswordValues) => changePasswordFn({ data: v }),
     onSuccess: () => {
@@ -49,7 +50,7 @@ function SettingsPasswordPage() {
         type="text"
         name="username"
         autoComplete="username"
-        value={user.name}
+        value={user?.name ?? ""}
         readOnly
         className="sr-only"
         aria-hidden="true"

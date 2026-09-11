@@ -15,6 +15,10 @@ import { RoleMultiSelect, UserMultiSelect } from "#components/admin/user-multi-s
 import { SentNotificationsList } from "#components/admin/sent-notifications";
 import { useSelectableUsers, useSendNotificationMutation } from "#hooks/use-notifications";
 import {
+  selectableUsersQueryOptions,
+  sentNotificationsQueryOptions,
+} from "#lib/queries/notifications";
+import {
   NOTIFICATION_BODY_MAX,
   NOTIFICATION_TITLE_MAX,
   sendNotificationSchema,
@@ -28,6 +32,11 @@ export const Route = createFileRoute("/authenticated/admin/notifications")({
   errorComponent: ErrorPage,
   notFoundComponent: NotFoundPage,
   component: AdminNotificationsPage,
+  // SSR 预取：可选名单与已发列表首屏就带出，不等客户端渲染期再取。
+  beforeLoad: async ({ context }) => {
+    await context.queryClient.query({ ...selectableUsersQueryOptions, staleTime: "static" });
+    await context.queryClient.query({ ...sentNotificationsQueryOptions, staleTime: "static" });
+  },
 });
 
 /**

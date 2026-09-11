@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { ROLE_HOME } from "#lib/auth/current-user";
+import { getCachedCurrentUser } from "#lib/queries/user";
 import { CONTENT_WIDTH_CLASS, SIDEBAR_GUTTER_CLASS } from "#provider/content-width-provider";
 import { LoadingPage } from "#components/status/authenticated/admin/loading";
 import { ErrorPage } from "#components/status/authenticated/admin/error";
@@ -21,8 +22,11 @@ export const Route = createFileRoute("/authenticated/admin")({
   notFoundComponent: NotFoundPage,
   component: AdminLayout,
   beforeLoad: ({ context, location }) => {
-    if (context.user.role !== "admin") {
-      throw redirect({ to: ROLE_HOME[context.user.role] });
+    // 父布局已把 currentUser 放进缓存，这里同步读同一份（不发请求）。
+    const user = getCachedCurrentUser(context.queryClient);
+    if (!user) throw redirect({ to: "/auth/login" });
+    if (user.role !== "admin") {
+      throw redirect({ to: ROLE_HOME[user.role] });
     }
 
     // 管理区首页：默认进教师管理

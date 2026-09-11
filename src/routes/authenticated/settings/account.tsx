@@ -10,15 +10,9 @@ import {
   IdIcon,
 } from "@hugeicons/core-free-icons";
 import { createFileRoute } from "@tanstack/react-router";
-import { queryOptions, useQuery } from "@tanstack/react-query";
-import { queryKeys } from "#lib/query-keys";
-import { listSessionsFn } from "#server/sessions.functions";
-
-/** 会话 / 设备信息（与隐私与安全页各自定义一份，两者 key 相同）。 */
-const securityInfoQueryOptions = queryOptions({
-  queryKey: queryKeys.securityInfo,
-  queryFn: () => listSessionsFn(),
-});
+import { useQuery } from "@tanstack/react-query";
+import { securityInfoQueryOptions } from "#lib/queries/sessions";
+import { currentUserQueryOptions } from "#lib/queries/user";
 import { LoadingPage } from "#components/status/authenticated/settings/account/loading";
 import { ErrorPage } from "#components/status/authenticated/settings/account/error";
 import { NotFoundPage } from "#components/status/authenticated/settings/account/not-found";
@@ -26,6 +20,10 @@ export const Route = createFileRoute("/authenticated/settings/account")({
   pendingComponent: LoadingPage,
   errorComponent: ErrorPage,
   notFoundComponent: NotFoundPage,
+  // SSR 预取：首屏 HTML 直接带内容，不等客户端渲染期再取。
+  beforeLoad: async ({ context }) => {
+    await context.queryClient.query({ ...securityInfoQueryOptions, staleTime: "static" });
+  },
   component: SettingsAccountPage,
 });
 
@@ -36,7 +34,7 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 function SettingsAccountPage() {
-  const { user } = Route.useRouteContext();
+  const { data: user } = useQuery(currentUserQueryOptions);
 
   const { data, isPending, error, refetch } = useQuery(securityInfoQueryOptions);
 
@@ -47,6 +45,8 @@ function SettingsAccountPage() {
    */
   if (isPending) return <LoadingPage />;
   if (error) return <ErrorPage reset={() => void refetch()} />;
+  // 父布局已 prefetch，理论不为空；会话失效时守卫会跳登录，这里兑底。
+  if (!user) return null;
 
   const emailVerifiedAt: string | null = data?.emailVerifiedAt ?? null;
   const hasDevice = !!data?.device;

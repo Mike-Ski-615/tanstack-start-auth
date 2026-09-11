@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { ERROR_MESSAGE } from "#lib/error-messages";
 
 /**
- * react-query 使用约定（对照 .agents/skills/react-query）。
+ * react-query 使用约定（对照 .agents/skills/tanstack-query）。
  *
  * 这组测试钉住三条容易被改回去的约定：
  *
@@ -282,80 +282,69 @@ describe("会话守卫覆盖查询失败（安全路径）", () => {
   });
 });
 
-describe("queryKey 集中定义（防重复请求）", () => {
+describe("查询定义集中在 lib/queries（key 与 fn 绑定）", () => {
   /*
-   * query-keys.ts 的注释写明：「散在各处写字符串 key 是重复请求的常见来源
-   * —— beforeLoad 写成 ["current-user"]、hook 里写成 ["session-guard"]，
-   * 两处就永远命不中同一份缓存。」
-   *
-   * 所以除 query-keys.ts 自身外，不该有人裸写 key 数组。
+   * A 方案：queryOptions() 把 key、fn、类型绑在一个模块里，消费方 import 它。
+   * 于是「散在各处写字符串 key」的风险被结构性消除 —— key 只能出现在
+   * lib/queries 下，别处裸写 key 数组就是违规。
    */
-  it("没有裸写的 queryKey 数组", () => {
+  it("没有裸写的 queryKey 数组（lib/queries 之外）", () => {
     const bare = /queryKey:\s*\[/;
     for (const f of sourceFiles) {
-      if (f.endsWith("src/lib/query-keys.ts")) continue;
+      if (f.startsWith("src/lib/queries/")) continue;
       const m = bare.exec(stripComments(read(f)));
-      expect(m, `${f} 裸写了 queryKey，应改用 queryKeys.*`).toBeNull();
+      expect(m, `${f} 裸写了 queryKey，应改用 lib/queries 的查询模块`).toBeNull();
     }
   });
 
-  it("queryKeys 导出了 userById（原来裸写的那处）", () => {
-    const keys = read("src/lib/query-keys.ts");
-    expect(keys).toMatch(/userById:\s*\(userId: string\)/);
-  });
-});
-
-describe("查询定义内联在各消费方（不建共享模块）", () => {
-  /*
-   * 这些查询定义（currentUser / securityInfo / userById / authCacheSync）
-   * 是内联的，没有 lib/queries/ 目录。
-   *
-   * 这种写法下唯一不能漂移的是 **queryKey** —— 所以下面断言都盯它：
-   * key 不一致时不会报错，只会静默命中不同缓存。
-   */
-  it("不存在 lib/queries/ 目录", () => {
-    expect(existsSync("src/lib/queries"), "已内联，不应再有这个目录").toBe(false);
-  });
-
-  it("没有任何文件还在 import lib/queries", () => {
-    for (const f of sourceFiles) {
-      expect(read(f), `${f} 仍在引用已删除的 lib/queries`).not.toMatch(/#lib\/queries/);
-    }
-  });
-
-  it("securityInfo 的两个消费方用同一个 key", () => {
-    for (const f of [
-      "src/routes/authenticated/settings/account.tsx",
-      "src/routes/authenticated/settings/privacy-security.tsx",
-    ]) {
-      const src = stripComments(read(f));
-      expect(src, `${f} 没走 queryKeys.securityInfo`).toMatch(
-        /queryKey:\s*queryKeys\.securityInfo/,
-      );
-    }
-  });
-
-  it("currentUser 的每个消费方都走 queryKeys.currentUser", () => {
-    // 这个 key 最关键：auth-sync 用它失效缓存、beforeLoad 用它读取，
-    // 任一处写错字符串就会出现「登录后被弹回登录页」
-    const consumers = [
-      "src/routes/auth.tsx",
-      "src/routes/authenticated.tsx",
-      "src/routes/authenticated/settings/bell.tsx",
-      "src/hooks/use-session-guard.ts",
-      "src/hooks/use-auth-mutations.ts",
+  it("特有的 key 字符串只出现在 lib/queries（消费方不得重写）", () => {
+    const keys = [
+      "current-user",
+      "security-info",
+      "admin-users",
+      "sent-notifications",
+      "selectable-users",
     ];
-    for (const f of consumers) {
-      const src = stripComments(read(f));
-      expect(src, `${f} 没走 queryKeys.currentUser`).toMatch(/queryKeys\.currentUser/);
-      // 不得自己另写字符串 key
-      expect(src, `${f} 裸写了 current-user 字符串`).not.toMatch(/["']current-user["']/);
+    for (const f of sourceFiles) {
+      if (f.startsWith("src/lib/queries/")) continue;
+      const src = read(f);
+      for (const k of keys) {
+        expect(src.includes(`"${k}"`), `${f} 重写了 key 字符串 "${k}"`).toBe(false);
+      }
     }
   });
 
-  it("userById 走 queryKeys.userById（不裸写数组）", () => {
-    const src = stripComments(read("src/routes/authenticated/users/$userId.tsx"));
-    expect(src).toMatch(/queryKeys\.userById\(userId\)/);
+  it("每个查询模块都绑定了 queryKey 与 queryFn", () => {
+    for (const f of [
+      "src/lib/queries/user.ts",
+      "src/lib/queries/sessions.ts",
+      "src/lib/queries/admin.ts",
+      "src/lib/queries/notifications.ts",
+    ]) {
+      const src = read(f);
+      expect(src, `${f} 应定义 queryKey`).toMatch(/queryKey:/);
+      expect(src, `${f} 应定义 queryFn`).toMatch(/queryFn:/);
+    }
+  });
+
+  it("消费方统一走查询模块（不再内联 queryOptions）", () => {
+    const consumers: Record<string, string> = {
+      "src/routes/auth.tsx": "currentUserQueryOptions",
+      "src/routes/authenticated.tsx": "currentUserQueryOptions",
+      "src/routes/authenticated/settings/bell.tsx": "currentUserQueryOptions",
+      "src/hooks/use-session-guard.ts": "currentUserQueryOptions",
+      "src/hooks/use-auth-mutations.ts": "currentUserQueryOptions",
+      "src/hooks/use-notifications.ts": "currentUserQueryOptions",
+      "src/routes/authenticated/settings/profile.tsx": "currentUserQueryOptions",
+      "src/routes/authenticated/settings/account.tsx": "securityInfoQueryOptions",
+      "src/routes/authenticated/settings/privacy-security.tsx": "securityInfoQueryOptions",
+      "src/routes/authenticated/users/$userId.tsx": "userByIdQueryOptions",
+      "src/routes/authenticated/admin/students.tsx": "adminUsersQueryOptions",
+      "src/routes/authenticated/admin/teachers.tsx": "adminUsersQueryOptions",
+    };
+    for (const [f, name] of Object.entries(consumers)) {
+      expect(read(f), `${f} 没走 ${name}`).toMatch(new RegExp(name));
+    }
   });
 });
 

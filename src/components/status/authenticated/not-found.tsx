@@ -1,5 +1,7 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { ROLE_HOME } from "#lib/auth/current-user";
+import { currentUserQueryOptions } from "#lib/queries/user";
 
 /**
  * 已登录区未找到（/authenticated）。
@@ -17,15 +19,13 @@ import { ROLE_HOME } from "#lib/auth/current-user";
  * 未登录会被打回登录页；而 404 指向 `/` 时用户点下去像是"回了家"，
  * 实际又被重定向回工作台 —— 绕一圈什么都没解决。
  *
- * 所以按角色给本人工作台（ROLE_HOME）。角色从 router state 读，不 import
- * `#routes/authenticated`（那会形成循环依赖 —— 它 import 了本文件）。
+ * 所以按角色给本人工作台（ROLE_HOME）。角色从 currentUser 查询缓存读
+ * （父布局 beforeLoad 已 prefetch 过同一份），缓存未就绪时兜底退回 `/`。
  */
 export function NotFoundPage() {
-  const role = useRouterState({
-    select: (s) => s.matches.find((m) => m.routeId === "/authenticated")?.context?.user?.role,
-  });
+  const { data: user } = useQuery(currentUserQueryOptions);
 
-  const fallback: string = role ? ROLE_HOME[role] : "/";
+  const fallback: string = user ? ROLE_HOME[user.role] : "/";
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-4 bg-background p-4 text-center sm:p-6 lg:ps-7">

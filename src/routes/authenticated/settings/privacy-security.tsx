@@ -10,15 +10,8 @@ import {
   Calendar01Icon,
 } from "@hugeicons/core-free-icons";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { queryKeys } from "#lib/query-keys";
-import { listSessionsFn } from "#server/sessions.functions";
-
-/** 会话 / 设备信息（与账号页各自定义一份，两者 key 相同）。 */
-const securityInfoQueryOptions = queryOptions({
-  queryKey: queryKeys.securityInfo,
-  queryFn: () => listSessionsFn(),
-});
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { securityInfoQueryOptions } from "#lib/queries/sessions";
 import { Button } from "#components/ui/button";
 import {
   AlertDialog,
@@ -40,6 +33,10 @@ export const Route = createFileRoute("/authenticated/settings/privacy-security")
   pendingComponent: LoadingPage,
   errorComponent: ErrorPage,
   notFoundComponent: NotFoundPage,
+  // SSR 预取：首屏 HTML 直接带内容，不等客户端渲染期再取。
+  beforeLoad: async ({ context }) => {
+    await context.queryClient.query({ ...securityInfoQueryOptions, staleTime: "static" });
+  },
   component: SettingsPrivacySecurityPage,
 });
 
@@ -69,7 +66,7 @@ function SettingsPrivacySecurityPage() {
   const revokeAllMutation = useMutation({
     mutationFn: () => revokeAllSessionsFn(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.securityInfo });
+      queryClient.invalidateQueries({ queryKey: securityInfoQueryOptions.queryKey });
       // 撤销全部 → 当前会话也失效 → 跳转首页
       router.navigate({ to: "/" });
     },
