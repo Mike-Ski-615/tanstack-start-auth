@@ -161,11 +161,16 @@ export async function listNotificationsForUser(
 
   if (rows.length === 0) return [];
 
+  // 一次取回所有关联批次，再按 id 建索引 —— 避免逐行查批次的 N+1。
+  const notifications = await db.orm.public.Notification.where((n) =>
+    n.id.in(rows.map((r) => r.notificationId)),
+  ).all();
+
+  const byId = new Map(notifications.map((n) => [n.id, n] as const));
+
   const items: NotificationItem[] = [];
   for (const r of rows) {
-    const n = await db.orm.public.Notification.where({
-      id: r.notificationId,
-    }).first();
+    const n = byId.get(r.notificationId);
     // 批次被管理员撤回（cascade 删掉了收件行）时不会走到这里，
     // 但防御一下：跳过孤儿行而不是抛错。
     if (!n) continue;
@@ -267,22 +272,32 @@ export type SentNotification = {
 export async function listSentNotifications(): Promise<SentNotification[]> {
   const batches = await db.orm.public.Notification.orderBy((n) => n.createdAt.desc()).all();
 
-  const out: SentNotification[] = [];
-  for (const n of batches) {
-    const rows = await db.orm.public.NotificationRecipient.where((r) =>
-      r.notificationId.eq(n.id),
-    ).all();
-    out.push({
+  if (batches.length === 0) return [];
+
+  // 一次取回所有批次的收件行，再按批次分组 —— 避免「每批次一次查询」的 N+1。
+  const rows = await db.orm.public.NotificationRecipient.where((r) =>
+    r.notificationId.in(batches.map((n) => n.id)),
+  ).all();
+
+  const byBatch = new Map<string, typeof rows>();
+  for (const r of rows) {
+    const list = byBatch.get(r.notificationId) ?? [];
+    list.push(r);
+    byBatch.set(r.notificationId, list);
+  }
+
+  return batches.map((n) => {
+    const rs = byBatch.get(n.id) ?? [];
+    return {
       id: n.id,
       title: n.title,
       body: n.body,
       link: n.link ?? null,
       createdAt: n.createdAt,
-      recipientCount: rows.length,
-      readCount: rows.filter((r) => r.readAt != null).length,
-    });
-  }
-  return out;
+      recipientCount: rs.length,
+      readCount: rs.filter((r) => r.readAt != null).length,
+    };
+  });
 }
 
 /**

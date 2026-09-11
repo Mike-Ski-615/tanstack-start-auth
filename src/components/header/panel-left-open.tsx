@@ -28,7 +28,7 @@ export function PanelLeftOpen() {
           className={cn("lg:hidden", !expanded && "lg:flex")}
           onClick={toggleSidebar}
         >
-          <HugeiconsIcon icon={expanded ? PanelLeftCloseIcon : PanelLeftOpenIcon} />
+          <HugeiconsIcon icon={expanded ? PanelLeftOpenIcon : PanelLeftCloseIcon} />
           <span className="sr-only">{expanded ? "收起侧边栏" : "展开侧边栏"}</span>
         </Button>
       </TooltipTrigger>

@@ -33,10 +33,12 @@ export const Route = createFileRoute("/authenticated/admin/notifications")({
   notFoundComponent: NotFoundPage,
   component: AdminNotificationsPage,
   // SSR 预取：可选名单与已发列表首屏就带出，不等客户端渲染期再取。
-  beforeLoad: async ({ context }) => {
-    await context.queryClient.query({ ...selectableUsersQueryOptions, staleTime: "static" });
-    await context.queryClient.query({ ...sentNotificationsQueryOptions, staleTime: "static" });
-  },
+  // 两个查询互不依赖，并行取而非串行 await —— 服务端总耗时取两者较大值。
+  beforeLoad: ({ context }) =>
+    Promise.all([
+      context.queryClient.query({ ...selectableUsersQueryOptions, staleTime: "static" }),
+      context.queryClient.query({ ...sentNotificationsQueryOptions, staleTime: "static" }),
+    ]).then(() => undefined),
 });
 
 /**

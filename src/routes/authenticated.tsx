@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { currentUserQueryOptions } from "#lib/queries/user";
+import { notificationsUnreadQueryOptions } from "#lib/queries/notifications";
 import { ROLE_HOME } from "#lib/auth/current-user";
 import { useLogoutMutation } from "#hooks/use-auth-mutations";
 import { useSessionGuard } from "#hooks/use-session-guard";
@@ -29,6 +30,12 @@ export const Route = createFileRoute("/authenticated")({
     if (!user) {
       throw redirect({ to: "/auth/login" });
     }
+
+    // 铃铛未读数一并预取：首屏徽章直接正确，不等客户端补拉。
+    // 失败不拖垮页面（badge 客户端有兑底），所以吞掉错误。
+    await context.queryClient
+      .query({ ...notificationsUnreadQueryOptions, staleTime: "static" })
+      .catch(() => {});
 
     if (location.pathname === "/authenticated") {
       throw redirect({ to: ROLE_HOME[user.role] });

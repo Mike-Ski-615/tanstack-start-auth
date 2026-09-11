@@ -46,3 +46,6 @@ Thumbs.db
 
 # 测试环境变量含本机数据库密码，不入库；模板见 .env.test.example
 .env.test
+
+# 性能录制（Chrome DevTools trace）
+Trace-*.json
