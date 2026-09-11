@@ -11,7 +11,6 @@ import { QueryClient } from "@tanstack/react-query";
 import { Toaster } from "#components/ui/sonner";
 import { LoadingPage } from "#components/status/__root/loading";
 import { ErrorPage } from "#components/status/__root/error";
-import { QueryErrorBoundary } from "#components/query-error-boundary";
 import { NotFoundPage } from "#components/status/__root/not-found";
 import { ThemeProvider } from "#provider/theme-provider";
 import { ContentWidthProvider } from "#provider/content-width-provider";
@@ -70,16 +69,17 @@ function RootComponent() {
             <Toaster richColors position="top-center" />
             <TooltipProvider>
               {/*
-                查询错误的边界。
+                不需要在这里包查询错误边界：框架给**每个 match** 都套了一层
+                CatchBoundary（渲染 route.options.errorComponent，退回
+                defaultErrorComponent），而那层比这里更近 —— 页面组件抛错先被它
+                接住，这里包了也看不到任何东西。原 QueryErrorBoundary 因此删除。
 
-                路由的 errorComponent 只接 loader 的错误，组件内 useQuery 在
-                渲染期间抛出的错误（throwOnError / 数据访问抛错）此前没有兜底，
-                直接白屏。放在这里能盖住所有页面，且配合 QueryErrorResetBoundary
-                的 reset 能让「重试」真的重查（详见该组件的说明）。
+                将来真要用 throwOnError / useSuspenseQuery：路由级 ErrorPage 的
+                「重试」只重置路由边界，**不会**复位 react-query 的查询，
+                查询还停在 error 态就会立刻再抛一次 —— 那时候让那一处的
+                ErrorPage 调 `queryClient.resetQueries()`，别再往外加边界。
               */}
-              <QueryErrorBoundary>
-                <Outlet />
-              </QueryErrorBoundary>
+              <Outlet />
             </TooltipProvider>
           </ContentWidthProvider>
           <Scripts />
