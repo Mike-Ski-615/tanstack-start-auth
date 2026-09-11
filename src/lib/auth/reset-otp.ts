@@ -10,8 +10,8 @@
  */
 
 import { db } from "#prisma/db";
-import { generateOtp, hashOtp } from "./otp";
-import { consumeOtp, type OtpResult } from "./otp-store";
+import { generateOtp, hashOtp } from "#lib/auth/otp";
+import { consumeOtp, type OtpResult } from "#lib/auth/otp-store";
 
 const RESET_TOKEN_TTL_MS = 15 * 60 * 1000; // 15 分钟
 

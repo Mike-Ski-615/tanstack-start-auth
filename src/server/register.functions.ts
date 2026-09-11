@@ -4,9 +4,9 @@ import { db } from "#prisma/db";
 
 import { registerSchema } from "#schemas/auth";
 
-import { hashPassword } from "../lib/auth/password";
+import { hashPassword } from "#lib/auth/password";
 import { createVerificationOtp } from "#lib/auth/email-verification";
-import { sendMail } from "../lib/auth/mail";
+import { sendMail } from "#lib/auth/mail";
 import { enforceRateLimit } from "#lib/auth/rate-limiter";
 
 /** 注册表单不含头像/简介，给新用户初始值。 */

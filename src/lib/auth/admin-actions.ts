@@ -14,9 +14,9 @@
  */
 
 import { db } from "#prisma/db";
-import { PUBLIC_COLUMNS, type ManagedRole, type User } from "./current-user";
-import { hashPassword } from "./password";
-import { invalidateAllSessions } from "./session-manager";
+import { PUBLIC_COLUMNS, type ManagedRole, type User } from "#lib/auth/current-user";
+import { hashPassword } from "#lib/auth/password";
+import { invalidateAllSessions } from "#lib/auth/session-manager";
 
 /**
  * 列出某个可管理角色的全部用户（按注册时间倒序）。

@@ -14,7 +14,7 @@
  * 「什么时候作废验证码」上，是要靠审计才发现的。
  */
 
-import { hashOtp, MAX_OTP_ATTEMPTS } from "./otp";
+import { hashOtp, MAX_OTP_ATTEMPTS } from "#lib/auth/otp";
 
 /** 一条 OTP 记录中，本规则需要读到的字段。 */
 export interface OtpRecord {

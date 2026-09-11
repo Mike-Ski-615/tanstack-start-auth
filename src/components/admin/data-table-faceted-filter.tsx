@@ -18,7 +18,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "#components/ui/popover";
 import { Separator } from "#components/ui/separator";
 
-import { type UsersTableFeatures } from "./data-table-features";
+import { type UsersTableFeatures } from "#components/admin/data-table-features";
 
 interface DataTableFacetedFilterProps<TData extends RowData, TValue> {
   column?: Column<UsersTableFeatures, TData, TValue>;

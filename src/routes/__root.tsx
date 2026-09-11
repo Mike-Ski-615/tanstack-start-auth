@@ -6,7 +6,7 @@ import {
   createRootRouteWithContext,
   useRouter,
 } from "@tanstack/react-router";
-import appCss from "../styles/app.css?url";
+import appCss from "#styles/app.css?url";
 import { QueryClient } from "@tanstack/react-query";
 import { Toaster } from "#components/ui/sonner";
 import { LoadingPage } from "#components/status/__root/loading";

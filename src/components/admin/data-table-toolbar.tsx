@@ -5,9 +5,9 @@ import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "#components/ui/button";
 import { Input } from "#components/ui/input";
 
-import { DataTableViewOptions } from "./data-table-view-options";
-import { DataTableFacetedFilter } from "./data-table-faceted-filter";
-import { type UsersTableFeatures } from "./data-table-features";
+import { DataTableViewOptions } from "#components/admin/data-table-view-options";
+import { DataTableFacetedFilter } from "#components/admin/data-table-faceted-filter";
+import { type UsersTableFeatures } from "#components/admin/data-table-features";
 
 interface DataTableToolbarProps<TData extends RowData> {
   table: ReactTable<UsersTableFeatures, TData>;

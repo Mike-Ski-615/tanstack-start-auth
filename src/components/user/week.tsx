@@ -1,5 +1,5 @@
 import { useTheme } from "#provider/theme-provider";
-import { levelPalette } from "./colors";
+import { levelPalette } from "#components/user/colors";
 
 const DAY_MS = 86_400_000;
 const DAY_LABELS = ["日", "一", "二", "三", "四", "五", "六"];

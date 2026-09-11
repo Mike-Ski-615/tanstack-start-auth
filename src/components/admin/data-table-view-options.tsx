@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "#components/ui/dropdown-menu";
 
-import { type UsersTableFeatures } from "./data-table-features";
+import { type UsersTableFeatures } from "#components/admin/data-table-features";
 
 export function DataTableViewOptions<TData extends RowData>({
   table,

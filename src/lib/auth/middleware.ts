@@ -54,7 +54,7 @@
 
 import { createMiddleware } from "@tanstack/react-start";
 import { ERROR_MESSAGE } from "#lib/error-messages";
-import { getCurrentUser } from "./guard";
+import { getCurrentUser } from "#lib/auth/guard";
 
 /**
  * 取会话里的用户（可能为 null）放进 context。

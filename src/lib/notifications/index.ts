@@ -15,7 +15,11 @@
 import { db } from "#prisma/db";
 import { MANAGED_ROLES } from "#lib/auth/current-user";
 import { ERROR_MESSAGE } from "#lib/error-messages";
-import { resolveAudience, type AudienceCandidate, type NotificationTarget } from "./audience";
+import {
+  resolveAudience,
+  type AudienceCandidate,
+  type NotificationTarget,
+} from "#lib/notifications/audience";
 
 // ============================================================
 // 收件人解析

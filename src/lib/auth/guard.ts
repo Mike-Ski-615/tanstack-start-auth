@@ -1,7 +1,7 @@
-import type { User } from "./current-user";
-import { getSessionToken, clearSessionCookie } from "./session";
-import { validateSession } from "./session-manager";
-import { touchLastSeen } from "./device";
+import type { User } from "#lib/auth/current-user";
+import { getSessionToken, clearSessionCookie } from "#lib/auth/session";
+import { validateSession } from "#lib/auth/session-manager";
+import { touchLastSeen } from "#lib/auth/device";
 
 /**
  * 请求守卫：校验会话 → 返回当前用户。

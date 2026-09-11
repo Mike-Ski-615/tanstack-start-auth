@@ -45,7 +45,7 @@ import {
   useAdminDeleteUserMutation,
 } from "#hooks/use-admin-mutations";
 import type { Row } from "@tanstack/react-table";
-import type { UsersTableFeatures } from "./data-table-features";
+import type { UsersTableFeatures } from "#components/admin/data-table-features";
 import type { User } from "#lib/auth/current-user";
 import { adminResetPasswordSchema, adminUpdateProfileSchema } from "#schemas/auth";
 

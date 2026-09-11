@@ -17,9 +17,9 @@ import {
   TableRow,
 } from "#components/ui/table";
 
-import { features, type UsersTableFeatures } from "./data-table-features";
-import { DataTablePagination } from "./data-table-pagination";
-import { DataTableToolbar } from "./data-table-toolbar";
+import { features, type UsersTableFeatures } from "#components/admin/data-table-features";
+import { DataTablePagination } from "#components/admin/data-table-pagination";
+import { DataTableToolbar } from "#components/admin/data-table-toolbar";
 
 /**
  * 表格外框 —— 真表格与骨架共用。

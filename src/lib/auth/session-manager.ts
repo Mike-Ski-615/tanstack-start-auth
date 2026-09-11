@@ -13,10 +13,10 @@
 
 import { db } from "#prisma/db";
 import { getRequestHeader, getRequestIP } from "@tanstack/react-start/server";
-import { PUBLIC_COLUMNS, type User } from "./current-user";
-import { generateToken, hashToken } from "./token";
-import { ensureDevice } from "./device";
-import { setSessionCookie, setDeviceCookie, getDeviceKey } from "./session";
+import { PUBLIC_COLUMNS, type User } from "#lib/auth/current-user";
+import { generateToken, hashToken } from "#lib/auth/token";
+import { ensureDevice } from "#lib/auth/device";
+import { setSessionCookie, setDeviceCookie, getDeviceKey } from "#lib/auth/session";
 import { recordLogin } from "#lib/activity";
 
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 天

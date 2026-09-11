@@ -6,8 +6,8 @@
  */
 
 import { db } from "#prisma/db";
-import { generateOtp, hashOtp } from "./otp";
-import { consumeOtp, type OtpResult } from "./otp-store";
+import { generateOtp, hashOtp } from "#lib/auth/otp";
+import { consumeOtp, type OtpResult } from "#lib/auth/otp-store";
 
 /** OTP 有效期：6 位数字空间有限，不宜长时间暴露。 */
 const VERIFICATION_OTP_TTL_MS = 15 * 60 * 1000; // 15 分钟

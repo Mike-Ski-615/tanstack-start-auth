@@ -20,7 +20,8 @@
     "#server/*": "./src/server/*",
     "#schemas/*": "./src/schemas/*",
     "#provider/*": "./src/provider/*",
-    "#components/*": "./src/components/*"
+    "#components/*": "./src/components/*",
+    "#styles/*": "./src/styles/*"
   },
   "devDependencies": {
     "@prisma/cli-engine": "0.2.3",

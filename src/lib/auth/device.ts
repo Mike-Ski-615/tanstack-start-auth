@@ -9,8 +9,8 @@
  */
 
 import { db } from "#prisma/db";
-import { generateDeviceKey } from "./token";
-import { formatDeviceName, inferPlatform } from "./device-name";
+import { generateDeviceKey } from "#lib/auth/token";
+import { formatDeviceName, inferPlatform } from "#lib/auth/device-name";
 
 /** lastSeenAt 节流间隔：5 分钟。 */
 const LAST_SEEN_THROTTLE_MS = 5 * 60 * 1000;

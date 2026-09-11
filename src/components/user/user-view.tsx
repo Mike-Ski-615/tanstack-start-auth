@@ -1,5 +1,5 @@
-import Heatmap from "./heatmap";
-import ThisWeek from "./week";
+import Heatmap from "#components/user/heatmap";
+import ThisWeek from "#components/user/week";
 import { Separator } from "#components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "#components/ui/avatar";
 import type { UserProfile } from "#server/user.functions";

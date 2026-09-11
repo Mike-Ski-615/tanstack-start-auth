@@ -3,7 +3,7 @@ import { ActivityCalendar } from "react-activity-calendar";
 import "react-activity-calendar/tooltips.css";
 
 import { useTheme } from "#provider/theme-provider";
-import { CALENDAR_COLORS } from "./colors";
+import { CALENDAR_COLORS } from "#components/user/colors";
 import type { ActivityDay } from "#lib/activity";
 
 /** 每天一列。blockSize + blockMargin，与下面的 props 保持一致。 */

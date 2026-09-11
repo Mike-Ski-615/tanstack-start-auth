@@ -5,11 +5,11 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Badge } from "#components/ui/badge";
 import { Checkbox } from "#components/ui/checkbox";
 
-import { roles, verificationStates } from "./data";
+import { roles, verificationStates } from "#components/admin/data";
 import { type User } from "#lib/auth/current-user";
-import { DataTableColumnHeader } from "./data-table-column-header";
-import { type UsersTableFeatures } from "./data-table-features";
-import { DataTableRowActions } from "./data-table-row-actions";
+import { DataTableColumnHeader } from "#components/admin/data-table-column-header";
+import { type UsersTableFeatures } from "#components/admin/data-table-features";
+import { DataTableRowActions } from "#components/admin/data-table-row-actions";
 
 // Use `accessor` for data columns and `display` for columns without one.
 const columnHelper = createColumnHelper<UsersTableFeatures, User>();

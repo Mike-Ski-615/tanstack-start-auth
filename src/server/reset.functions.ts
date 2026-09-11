@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequestIP } from "@tanstack/react-start/server";
 import { db } from "#prisma/db";
 import { emailOnlySchema, resetPasswordSchema } from "#schemas/auth";
-import { sendMail } from "../lib/auth/mail";
+import { sendMail } from "#lib/auth/mail";
 import { createResetOtp, verifyResetOtp } from "#lib/auth/reset-otp";
 import { rotatePassword } from "#lib/auth/password-rotation";
 import { enforceRateLimit } from "#lib/auth/rate-limiter";

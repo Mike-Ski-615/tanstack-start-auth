@@ -11,8 +11,8 @@
  */
 
 import { db } from "#prisma/db";
-import { hashPassword } from "./password";
-import { invalidateAllSessions, signIn } from "./session-manager";
+import { hashPassword } from "#lib/auth/password";
+import { invalidateAllSessions, signIn } from "#lib/auth/session-manager";
 
 /**
  * 把用户的密码换成新密码，并重建会话（自动登录）。

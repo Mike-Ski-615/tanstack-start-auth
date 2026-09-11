@@ -1,6 +1,6 @@
 // src/lib/auth/otp.ts
 import { randomInt } from "node:crypto";
-import { hashToken } from "./token";
+import { hashToken } from "#lib/auth/token";
 
 /** OTP 位数。6 位 = 100 万种，必须配合尝试次数限制（见 MAX_OTP_ATTEMPTS）。 */
 const OTP_DIGITS = 6;

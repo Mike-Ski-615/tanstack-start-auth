@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "#components/ui/select";
 
-import { type UsersTableFeatures } from "./data-table-features";
+import { type UsersTableFeatures } from "#components/admin/data-table-features";
 
 interface DataTablePaginationProps<TData extends RowData> {
   table: ReactTable<UsersTableFeatures, TData>;

@@ -17,7 +17,7 @@ import {
 } from "#components/ui/dropdown-menu";
 import { cn } from "#lib/utils";
 
-import { type UsersTableFeatures } from "./data-table-features";
+import { type UsersTableFeatures } from "#components/admin/data-table-features";
 
 interface DataTableColumnHeaderProps<
   TData extends RowData,
