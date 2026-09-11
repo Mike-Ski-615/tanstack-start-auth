@@ -147,3 +147,36 @@ describe("admin 用户的认证链路", () => {
     expect(ROLE_HOME[me!.role]).toBe("/authenticated/admin/teachers");
   });
 });
+
+/**
+ * isManagedRole —— 通知收件人过滤的闸门。
+ *
+ * 它决定「谁可以被设为通知收件人」，admin 必须被排除：
+ * 允许给管理员群发通知是个权限被绕过的口子。
+ *
+ * 这个守卫是为了消掉调用点上的 `u.role as ManagedRole` 才引入的，
+ * 所以顺手把闸门本身钉住。
+ */
+describe("isManagedRole", () => {
+  it("只认 student / teacher，admin 一律排除", async () => {
+    const { isManagedRole } = await import("#lib/auth/admin-actions");
+
+    expect(isManagedRole("student")).toBe(true);
+    expect(isManagedRole("teacher")).toBe(true);
+    // 关键：admin 不能因为"是个合法角色"就被放进来
+    expect(isManagedRole("admin")).toBe(false);
+  });
+
+  it("对非角色值一律返回 false（不抛错）", async () => {
+    const { isManagedRole } = await import("#lib/auth/admin-actions");
+
+    for (const v of ["", "x", "STUDENT", "Admin"]) {
+      expect(isManagedRole(v), `${v} 不该被认作受管角色`).toBe(false);
+    }
+  });
+
+  it("与 ROLES 的关系：受管角色是 ROLES 去掉 admin", async () => {
+    const { MANAGED_ROLES } = await import("#lib/auth/admin-actions");
+    expect([...MANAGED_ROLES].sort()).toEqual(ROLES.filter((r) => r !== "admin").sort());
+  });
+});

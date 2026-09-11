@@ -149,7 +149,8 @@ export function RoleMultiSelect({
     const next = new Set(selected);
     if (next.has(role)) next.delete(role);
     else next.add(role);
-    onChange([...next] as ("student" | "teacher")[]);
+    // 展开 Set<"student" | "teacher"> 已经是那个联合类型的数组，无需断言。
+    onChange([...next]);
   };
 
   return (

@@ -7,7 +7,7 @@
 
 import { db } from "#prisma/db";
 import { generateOtp, hashOtp } from "./otp";
-import { consumeOtp, type OtpRecord, type OtpResult } from "./otp-store";
+import { consumeOtp, type OtpResult } from "./otp-store";
 
 /** OTP 有效期：6 位数字空间有限，不宜长时间暴露。 */
 const VERIFICATION_OTP_TTL_MS = 15 * 60 * 1000; // 15 分钟
@@ -58,7 +58,7 @@ export async function verifyEmailOtp(userId: string, otp: string): Promise<OtpRe
       findLive: (uid) =>
         db.orm.public.EmailVerificationToken.where((t) => t.userId.eq(uid))
           .where((t) => t.verifiedAt.isNull())
-          .first() as Promise<OtpRecord | null>,
+          .first(),
 
       invalidate: async (id) => {
         await db.orm.public.EmailVerificationToken.where({ id }).update({

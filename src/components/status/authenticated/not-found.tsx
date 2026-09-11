@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ROLE_HOME, type Role } from "#lib/auth/current-user";
+import { ROLE_HOME } from "#lib/auth/current-user";
 
 /**
  * 已登录区未找到（/authenticated）。
@@ -22,11 +22,7 @@ import { ROLE_HOME, type Role } from "#lib/auth/current-user";
  */
 export function NotFoundPage() {
   const role = useRouterState({
-    select: (s) =>
-      (
-        s.matches.find((m) => m.routeId === "/authenticated")?.context as
-          { user?: { role?: Role } } | undefined
-      )?.user?.role,
+    select: (s) => s.matches.find((m) => m.routeId === "/authenticated")?.context?.user?.role,
   });
 
   const fallback: string = role ? ROLE_HOME[role] : "/";

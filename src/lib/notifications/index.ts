@@ -13,7 +13,7 @@
  */
 
 import { db } from "#prisma/db";
-import { MANAGED_ROLES, type ManagedRole } from "#lib/auth/admin-actions";
+import { isManagedRole, MANAGED_ROLES, type ManagedRole } from "#lib/auth/admin-actions";
 
 /** 单次发送的收件人上限。防手滑给几万人建行（每人一行）。 */
 export const MAX_RECIPIENTS = 5000;
@@ -60,7 +60,7 @@ export async function resolveRecipients(
   } else {
     for (const role of target.roles ?? []) {
       // 只接受受管角色 —— 传 "admin" 也不会命中
-      if (!MANAGED_ROLES.includes(role)) continue;
+      if (!isManagedRole(role)) continue;
       const byRole = await db.orm.public.User.where((u) => u.role.eq(role))
         .select("id")
         .all();
@@ -72,7 +72,7 @@ export async function resolveRecipients(
       for (const id of target.userIds) {
         const u = await db.orm.public.User.where({ id }).select("id", "role").first();
         if (!u) continue;
-        if (!MANAGED_ROLES.includes(u.role as ManagedRole)) continue;
+        if (!isManagedRole(u.role)) continue;
         ids.add(u.id);
       }
     }

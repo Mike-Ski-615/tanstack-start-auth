@@ -11,7 +11,7 @@
 
 import { db } from "#prisma/db";
 import { generateOtp, hashOtp } from "./otp";
-import { consumeOtp, type OtpRecord, type OtpResult } from "./otp-store";
+import { consumeOtp, type OtpResult } from "./otp-store";
 
 const RESET_TOKEN_TTL_MS = 15 * 60 * 1000; // 15 分钟
 
@@ -52,7 +52,7 @@ export async function verifyResetOtp(userId: string, otp: string): Promise<OtpRe
       findLive: (uid) =>
         db.orm.public.ResetToken.where((t) => t.userId.eq(uid))
           .where((t) => t.usedAt.isNull())
-          .first() as Promise<OtpRecord | null>,
+          .first(),
 
       invalidate: async (id) => {
         await db.orm.public.ResetToken.where({ id }).update({

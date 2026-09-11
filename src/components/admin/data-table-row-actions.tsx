@@ -44,7 +44,7 @@ import {
   useAdminUpdateProfileMutation,
   useAdminDeleteUserMutation,
 } from "#hooks/use-admin-mutations";
-import type { Row, RowData } from "@tanstack/react-table";
+import type { Row } from "@tanstack/react-table";
 import type { UsersTableFeatures } from "./data-table-features";
 import type { User } from "#lib/auth/current-user";
 import { adminResetPasswordSchema, adminUpdateProfileSchema } from "#schemas/auth";
@@ -61,15 +61,15 @@ import { adminResetPasswordSchema, adminUpdateProfileSchema } from "#schemas/aut
  * 调接口，也会被服务端拒。
  */
 
-interface DataTableRowActionsProps<TData extends RowData> {
-  row: Row<UsersTableFeatures, TData>;
+interface DataTableRowActionsProps {
+  row: Row<UsersTableFeatures, User>;
 }
 
-export function DataTableRowActions<TData extends RowData>({
-  row,
-}: DataTableRowActionsProps<TData>) {
-  // 官方写法：从 row 取数据。这里 row.original 就是当前用户。
-  const user = row.original as User;
+export function DataTableRowActions({ row }: DataTableRowActionsProps) {
+  // row.original 就是 User —— 参数类型直接写成 User，不再用泛型 + as。
+  // 此前是 <TData extends RowData> 再 `row.original as User`：泛型只被
+  // 实例化成 User 一种，那个 as 纯粹是在给自己遮丑。
+  const user = row.original;
   const toTeacher = user.role === "student";
 
   const setRole = useAdminSetRoleMutation();

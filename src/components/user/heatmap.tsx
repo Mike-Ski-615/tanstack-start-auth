@@ -70,8 +70,12 @@ export default function Heatmap({ data }: { data: ActivityDay[] }) {
     const el = hostRef.current;
     if (!el) return;
 
-    const ro = new ResizeObserver(([entry]) => {
-      setWidth(entry!.contentRect.width);
+    const ro = new ResizeObserver((entries) => {
+      // entries 至少一条（只 observe 了一个元素），但类型上不保证 ——
+      // 用解构默认挡一下，比 entry! 安全：真的空数组时不会崩。
+      const entry = entries[0];
+      if (!entry) return;
+      setWidth(entry.contentRect.width);
     });
     ro.observe(el);
     return () => ro.disconnect();
