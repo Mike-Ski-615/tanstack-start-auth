@@ -28,7 +28,17 @@ export const Route = createFileRoute("/authenticated/admin/teachers")({
 
 /** 教师管理。结构与 Tasks 示例的 page.tsx 一致：标题 + 描述 + 表格。 */
 function AdminTeachersPage() {
-  const { data: teachers = [] } = useQuery(adminUsersQueryOptions("teacher"));
+  const {
+    data: teachers = [],
+    isPending,
+    error,
+    refetch,
+  } = useQuery(adminUsersQueryOptions("teacher"));
+
+  // 三态分开写，理由同 students.tsx：只解构 data 会让「查询失败」
+  // 长得跟「真的没有教师」一样（都是「共 0 位」+ 空表）。
+  if (isPending) return <LoadingPage />;
+  if (error) return <ErrorPage reset={() => void refetch()} />;
 
   return (
     <div className="flex flex-1 flex-col gap-8">

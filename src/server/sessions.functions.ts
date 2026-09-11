@@ -3,6 +3,7 @@ import { setResponseHeader } from "@tanstack/react-start/server";
 import { db } from "#prisma/db";
 import { getCurrentUser } from "#lib/auth/guard";
 import { invalidateAllSessions } from "#lib/auth/session-manager";
+import { ERROR_MESSAGE } from "#lib/error-messages";
 
 /**
  * 当前用户的设备、会话、账户安全信息（用于隐私与安全页展示）。
@@ -51,7 +52,7 @@ export const revokeAllSessionsFn = createServerFn({
   setResponseHeader("Cache-Control", "no-store");
 
   const user = await getCurrentUser();
-  if (!user) throw new Error("unauthorized");
+  if (!user) throw new Error(ERROR_MESSAGE.UNAUTHENTICATED);
 
   // 递增 sessionVersion → 所有 Session 全局失效
   await invalidateAllSessions(user.id);

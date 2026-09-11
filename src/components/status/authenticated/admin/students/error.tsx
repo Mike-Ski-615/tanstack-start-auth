@@ -9,8 +9,12 @@ import { Button } from "#components/ui/button";
  *
  * 这一页的错误多半出在 loader（预取学生列表失败），所以重试是首选动作；
  * 退路给教师管理（管理区入口），而不是 `/`。
+ *
+ * 两种用法共用这一个组件：路由级 errorComponent（loader 失败），以及页面内
+ * 组件级 —— students.tsx 里 useQuery 失败时就地渲染。后者没有路由的 error
+ * 对象，所以只取 reset（强行要求 error 会逼调用点编一个假的）。
  */
-export function ErrorPage({ reset }: ErrorComponentProps) {
+export function ErrorPage({ reset }: Pick<ErrorComponentProps, "reset">) {
   return (
     <div className="flex flex-1 flex-col items-start gap-3">
       <h1 className="text-2xl font-semibold tracking-tight text-foreground">学生列表加载失败</h1>

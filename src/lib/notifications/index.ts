@@ -14,6 +14,7 @@
 
 import { db } from "#prisma/db";
 import { isManagedRole, MANAGED_ROLES, type ManagedRole } from "#lib/auth/admin-actions";
+import { ERROR_MESSAGE } from "#lib/error-messages";
 
 /** 单次发送的收件人上限。防手滑给几万人建行（每人一行）。 */
 export const MAX_RECIPIENTS = 5000;
@@ -83,7 +84,7 @@ export async function resolveRecipients(
 
   if (ids.size === 0) return [];
   if (ids.size > MAX_RECIPIENTS) {
-    throw new Error("too_many_recipients");
+    throw new Error(ERROR_MESSAGE.TOO_MANY_RECIPIENTS);
   }
 
   return [...ids];

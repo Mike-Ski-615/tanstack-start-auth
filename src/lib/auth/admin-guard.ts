@@ -10,9 +10,15 @@
  */
 import { getCurrentUser } from "./guard";
 import type { User } from "./current-user";
+import { ERROR_MESSAGE } from "#lib/error-messages";
 
-/** 权限不足时抛出的错误码（前端据此显示静态文案，不透传服务端字符串）。 */
-export const FORBIDDEN = "forbidden";
+/**
+ * 权限不足时抛出的错误。
+ *
+ * 直接是用户可读文案 —— 按 react-query 的约定，服务端抛出的
+ * error.message 会被界面直接展示（见 lib/error-messages.ts）。
+ */
+export const FORBIDDEN = ERROR_MESSAGE.FORBIDDEN;
 
 /**
  * 要求当前会话属于 admin，否则抛错。

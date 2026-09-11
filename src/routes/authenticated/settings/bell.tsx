@@ -32,7 +32,21 @@ function SettingsBellPage() {
    * 这里与 beforeLoad 共用同一个 queryOptions，所以进页面时不会多一次请求
    * （ensureQueryData 已把数据放进同一份缓存）。
    */
-  const { data: user } = useQuery(currentUserQueryOptions);
+  const { data: user, isPending, error, refetch } = useQuery(currentUserQueryOptions);
+
+  /*
+   * 三态分开写（react-query 的约定）。
+   *
+   * 以前是 `user?.notifyOnNewMessage ?? true`：读不到时开关按「已开启」渲染，
+   * 用户看到一个**可能与他实际设置相反**的状态，还以为是自己的配置。
+   *
+   * 用早返回而非嵌套三元：user 的类型能正常收窄，代码也平直些。
+   *
+   * data 为 null 是「会话已失效」这个确定结果（getUserFn 返回 null），
+   * 会由 useSessionGuard 跳登录页；这里先显示骨架，不渲染错误的开关状态。
+   */
+  if (isPending || user === null) return <LoadingPage />;
+  if (error) return <ErrorPage reset={() => void refetch()} />;
 
   return (
     <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col gap-6">

@@ -29,7 +29,6 @@ function SettingsPasswordPage() {
       toast.success("密码已修改");
       pwdForm.reset();
     },
-    onError: () => toast.error("当前密码不正确"),
   });
 
   const pwdForm = useForm({

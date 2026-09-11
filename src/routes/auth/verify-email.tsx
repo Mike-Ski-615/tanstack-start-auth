@@ -47,7 +47,6 @@ function VerifyEmailPage() {
       setOtp("");
       toast.success("验证码已重新发送");
     },
-    onError: () => toast.error("发送失败，请稍后重试"),
   });
 
   // 缺 email 无从验证（本页由注册/重发邮件跳转而来，正常不会缺）

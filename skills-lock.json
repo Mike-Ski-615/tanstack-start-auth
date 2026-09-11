@@ -103,6 +103,12 @@
       "skillPath": "skills/engineering/prototype/SKILL.md",
       "computedHash": "62979fe039ef64407b258f8824db41b9185f788638747df803032df4153c2aae"
     },
+    "react-query": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "react-query/SKILL.md",
+      "computedHash": "d10965586d687a14aea531f058f5e4d811f35ed8df92a235cb347d8960021a89"
+    },
     "research": {
       "source": "mattpocock/skills",
       "sourceType": "github",

@@ -12,6 +12,7 @@ import { createUser, deleteUser, callServerFnValidated } from "#test/helpers";
 import { listManagedUsers } from "#lib/auth/admin-actions";
 import type { CallContext } from "#test/request";
 import { db } from "#prisma/db";
+import { ERROR_MESSAGE } from "#lib/error-messages";
 import {
   adminSetRoleSchema,
   adminResetPasswordSchema,
@@ -93,17 +94,17 @@ const fetchTeachers = () => listManagedUsers("teacher");
 
 describe("非管理员调用一律被拒", () => {
   it("未登录调用列表被拒", async () => {
-    await expect(listStudents()).rejects.toThrow(/forbidden/);
+    await expect(listStudents()).rejects.toThrow(ERROR_MESSAGE.FORBIDDEN);
   });
 
   it("学生调用列表被拒", async () => {
     const s = await userWithSession({ role: "student" });
-    await expect(listStudents(s.token)).rejects.toThrow(/forbidden/);
+    await expect(listStudents(s.token)).rejects.toThrow(ERROR_MESSAGE.FORBIDDEN);
   });
 
   it("教师调用列表被拒（教师也不是管理员）", async () => {
     const t = await userWithSession({ role: "teacher" });
-    await expect(listStudents(t.token)).rejects.toThrow(/forbidden/);
+    await expect(listStudents(t.token)).rejects.toThrow(ERROR_MESSAGE.FORBIDDEN);
   });
 
   it("学生不能改别人角色", async () => {
@@ -117,7 +118,7 @@ describe("非管理员调用一律被拒", () => {
         { userId: target.id, role: "teacher" },
         ctx(s.token),
       ),
-    ).rejects.toThrow(/forbidden/);
+    ).rejects.toThrow(ERROR_MESSAGE.FORBIDDEN);
 
     const after = await db.orm.public.User.where({ id: target.id }).first();
     expect(after!.role).toBe("student");
@@ -129,7 +130,7 @@ describe("非管理员调用一律被拒", () => {
 
     await expect(
       callServerFnValidated(adminDeleteUserFn, userIdSchema, { userId: target.id }, ctx(s.token)),
-    ).rejects.toThrow(/forbidden/);
+    ).rejects.toThrow(ERROR_MESSAGE.FORBIDDEN);
 
     expect(await db.orm.public.User.where({ id: target.id }).first()).toBeTruthy();
   });
@@ -146,7 +147,7 @@ describe("非管理员调用一律被拒", () => {
         { userId: target.id, password: "hacked123" },
         ctx(s.token),
       ),
-    ).rejects.toThrow(/forbidden/);
+    ).rejects.toThrow(ERROR_MESSAGE.FORBIDDEN);
 
     const after = await db.orm.public.User.where({ id: target.id }).first();
     expect(after!.passwordHash).toBe(before!.passwordHash);
@@ -159,7 +160,7 @@ describe("非管理员调用一律被拒", () => {
 
     await expect(
       callServerFnValidated(adminKickUserFn, userIdSchema, { userId: target.id }, ctx(s.token)),
-    ).rejects.toThrow(/forbidden/);
+    ).rejects.toThrow(ERROR_MESSAGE.FORBIDDEN);
 
     const after = await db.orm.public.User.where({ id: target.id }).first();
     expect(after!.sessionVersion).toBe(before!.sessionVersion);
@@ -171,7 +172,7 @@ describe("非管理员调用一律被拒", () => {
     const asStudent = await listStudents(s.token).catch((e: Error) => e.message);
 
     expect(anon).toBe(asStudent);
-    expect(anon).toMatch(/forbidden/);
+    expect(anon).toBe(ERROR_MESSAGE.FORBIDDEN);
   });
 });
 
@@ -243,7 +244,7 @@ describe("管理员不能对自己操作", () => {
         { userId: admin.user.id, role: "student" },
         ctx(admin.token),
       ),
-    ).rejects.toThrow(/cannot_target_self/);
+    ).rejects.toThrow(ERROR_MESSAGE.CANNOT_TARGET_SELF);
   });
 
   it("不能删自己", async () => {
@@ -255,7 +256,7 @@ describe("管理员不能对自己操作", () => {
         { userId: admin.user.id },
         ctx(admin.token),
       ),
-    ).rejects.toThrow(/cannot_target_self/);
+    ).rejects.toThrow(ERROR_MESSAGE.CANNOT_TARGET_SELF);
   });
 
   it("不能踢自己下线", async () => {
@@ -267,7 +268,7 @@ describe("管理员不能对自己操作", () => {
         { userId: admin.user.id },
         ctx(admin.token),
       ),
-    ).rejects.toThrow(/cannot_target_self/);
+    ).rejects.toThrow(ERROR_MESSAGE.CANNOT_TARGET_SELF);
   });
 
   it("不能重置自己的密码（应走普通改密流程）", async () => {
@@ -279,7 +280,7 @@ describe("管理员不能对自己操作", () => {
         { userId: admin.user.id, password: "newpass123" },
         ctx(admin.token),
       ),
-    ).rejects.toThrow(/cannot_target_self/);
+    ).rejects.toThrow(ERROR_MESSAGE.CANNOT_TARGET_SELF);
   });
 
   it("不能改自己的资料", async () => {
@@ -291,7 +292,7 @@ describe("管理员不能对自己操作", () => {
         { userId: admin.user.id, name: "改名", bio: "" },
         ctx(admin.token),
       ),
-    ).rejects.toThrow(/cannot_target_self/);
+    ).rejects.toThrow(ERROR_MESSAGE.CANNOT_TARGET_SELF);
   });
 });
 
@@ -307,7 +308,7 @@ describe("管理员不能操作其他管理员", () => {
         { userId: a2.user.id, role: "student" },
         ctx(a1.token),
       ),
-    ).rejects.toThrow(/not_found/);
+    ).rejects.toThrow(ERROR_MESSAGE.NOT_FOUND);
   });
 
   it("删另一个管理员 → not_found，且对方还在", async () => {
@@ -316,7 +317,7 @@ describe("管理员不能操作其他管理员", () => {
 
     await expect(
       callServerFnValidated(adminDeleteUserFn, userIdSchema, { userId: a2.user.id }, ctx(a1.token)),
-    ).rejects.toThrow(/not_found/);
+    ).rejects.toThrow(ERROR_MESSAGE.NOT_FOUND);
 
     expect(await db.orm.public.User.where({ id: a2.user.id }).first()).toBeTruthy();
   });
@@ -353,7 +354,7 @@ describe("改角色", () => {
         { userId: "00000000-0000-7000-8000-000000000000", role: "teacher" },
         ctx(admin.token),
       ),
-    ).rejects.toThrow(/not_found/);
+    ).rejects.toThrow(ERROR_MESSAGE.NOT_FOUND);
   });
 });
 

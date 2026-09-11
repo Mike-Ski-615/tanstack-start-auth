@@ -22,6 +22,7 @@ import { db } from "#prisma/db";
 import { createUser, deleteUser, callServerFnValidated, callServerFn } from "#test/helpers";
 import type { CallContext } from "#test/request";
 import { createNotification } from "#lib/notifications";
+import { ERROR_MESSAGE } from "#lib/error-messages";
 
 /**
  * 通知接口的鉴权与校验。
@@ -82,7 +83,7 @@ describe("只有管理员能发通知", () => {
         { ...sendPayload, roles: ["student"] },
         {},
       ),
-    ).rejects.toThrow(/forbidden/);
+    ).rejects.toThrow(ERROR_MESSAGE.FORBIDDEN);
   });
 
   it("学生被拒", async () => {
@@ -94,7 +95,7 @@ describe("只有管理员能发通知", () => {
         { ...sendPayload, roles: ["student"] },
         ctx(s.token),
       ),
-    ).rejects.toThrow(/forbidden/);
+    ).rejects.toThrow(ERROR_MESSAGE.FORBIDDEN);
   });
 
   it("教师被拒", async () => {
@@ -106,7 +107,7 @@ describe("只有管理员能发通知", () => {
         { ...sendPayload, roles: ["student"] },
         ctx(t.token),
       ),
-    ).rejects.toThrow(/forbidden/);
+    ).rejects.toThrow(ERROR_MESSAGE.FORBIDDEN);
   });
 
   it("被拒时不会建出任何通知", async () => {
@@ -129,7 +130,9 @@ describe("只有管理员能发通知", () => {
 describe("只有管理员能看已发通知 / 撤回 / 列用户", () => {
   it("学生不能列已发通知", async () => {
     const s = await userWithSession("student");
-    await expect(callNoArgs(listSentNotificationsFn, ctx(s.token))).rejects.toThrow(/forbidden/);
+    await expect(callNoArgs(listSentNotificationsFn, ctx(s.token))).rejects.toThrow(
+      ERROR_MESSAGE.FORBIDDEN,
+    );
   });
 
   it("学生不能撤回", async () => {
@@ -141,12 +144,14 @@ describe("只有管理员能看已发通知 / 撤回 / 列用户", () => {
         { notificationId: "00000000-0000-7000-8000-000000000000" },
         ctx(s.token),
       ),
-    ).rejects.toThrow(/forbidden/);
+    ).rejects.toThrow(ERROR_MESSAGE.FORBIDDEN);
   });
 
   it("学生不能列出可选用户（名单含全部邮箱）", async () => {
     const s = await userWithSession("student");
-    await expect(callNoArgs(listSelectableUsersFn, ctx(s.token))).rejects.toThrow(/forbidden/);
+    await expect(callNoArgs(listSelectableUsersFn, ctx(s.token))).rejects.toThrow(
+      ERROR_MESSAGE.FORBIDDEN,
+    );
   });
 });
 
@@ -231,7 +236,7 @@ describe("发送时的输入校验", () => {
 
   it("站内路径通过校验", async () => {
     const { token } = await asAdmin();
-    // 必须有人可发 —— 接口在收件人为 0 时会报 no_recipients
+    // 必须有人可发 —— 接口在收件人为 0 时会报“没有匹配的收件人”
     const target = await createUser({ verified: true, role: "student" });
     created.push(target.user.id);
     // 读不到返回值（client 存根的限制），断言数据库副作用更严格
@@ -327,11 +332,13 @@ describe("勾了全体时忽略另外两项", () => {
 
 describe("用户侧鉴权", () => {
   it("未登录不能读列表", async () => {
-    await expect(callNoArgs(listNotificationsFn, {})).rejects.toThrow(/unauthenticated/);
+    await expect(callNoArgs(listNotificationsFn, {})).rejects.toThrow(
+      ERROR_MESSAGE.UNAUTHENTICATED,
+    );
   });
 
   it("未登录不能读未读数", async () => {
-    await expect(callNoArgs(unreadCountFn, {})).rejects.toThrow(/unauthenticated/);
+    await expect(callNoArgs(unreadCountFn, {})).rejects.toThrow(ERROR_MESSAGE.UNAUTHENTICATED);
   });
 
   it("未登录不能标已读", async () => {
@@ -342,11 +349,13 @@ describe("用户侧鉴权", () => {
         { recipientId: "00000000-0000-7000-8000-000000000000" },
         {},
       ),
-    ).rejects.toThrow(/unauthenticated/);
+    ).rejects.toThrow(ERROR_MESSAGE.UNAUTHENTICATED);
   });
 
   it("未登录不能全部已读", async () => {
-    await expect(callNoArgs(markAllNotificationsReadFn, {})).rejects.toThrow(/unauthenticated/);
+    await expect(callNoArgs(markAllNotificationsReadFn, {})).rejects.toThrow(
+      ERROR_MESSAGE.UNAUTHENTICATED,
+    );
   });
 
   it("未登录不能删除", async () => {
@@ -357,7 +366,7 @@ describe("用户侧鉴权", () => {
         { recipientId: "00000000-0000-7000-8000-000000000000" },
         {},
       ),
-    ).rejects.toThrow(/unauthenticated/);
+    ).rejects.toThrow(ERROR_MESSAGE.UNAUTHENTICATED);
   });
 });
 
@@ -486,7 +495,7 @@ describe("通知偏好", () => {
         { notifyOnNewMessage: false },
         {},
       ),
-    ).rejects.toThrow(/unauthenticated/);
+    ).rejects.toThrow(ERROR_MESSAGE.UNAUTHENTICATED);
   });
 
   it("只改自己的 —— 别人的偏好不受影响", async () => {

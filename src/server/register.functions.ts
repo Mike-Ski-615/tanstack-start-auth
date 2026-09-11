@@ -8,6 +8,7 @@ import { hashPassword } from "../lib/auth/password";
 import { createVerificationOtp } from "#lib/auth/email-verification";
 import { sendMail } from "../lib/auth/mail";
 import { enforceRateLimit } from "#lib/auth/rate-limiter";
+import { ERROR_MESSAGE } from "#lib/error-messages";
 
 /** 注册表单不含头像/简介，给新用户初始值。 */
 const DEFAULT_IMAGE = "/default-user.webp";
@@ -36,7 +37,7 @@ export const register = createServerFn({
 
       const existingUser = await db.orm.public.User.where({ email }).first();
       if (existingUser) {
-        throw new Error("User already exists");
+        throw new Error(ERROR_MESSAGE.EMAIL_TAKEN);
       }
 
       const passwordHash = await hashPassword(password);

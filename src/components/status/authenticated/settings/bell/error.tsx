@@ -11,7 +11,7 @@ import { Button } from "#components/ui/button";
  * 读不到时会退回默认值（true，即照弹），所以这里失败的影响是温和的，
  * 文案不必危言耸听。
  */
-export function ErrorPage({ reset }: ErrorComponentProps) {
+export function ErrorPage({ reset }: Pick<ErrorComponentProps, "reset">) {
   return (
     <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col items-center justify-center gap-4 text-center">
       <h1 className="text-lg font-semibold text-foreground">通知设置加载失败</h1>

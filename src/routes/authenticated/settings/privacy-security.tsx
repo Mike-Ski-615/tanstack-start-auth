@@ -12,7 +12,6 @@ import {
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "#lib/query-keys";
-import { toast } from "sonner";
 import { Button } from "#components/ui/button";
 import {
   AlertDialog,
@@ -58,7 +57,7 @@ function SettingsPrivacySecurityPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery({
+  const { data, isPending, error, refetch } = useQuery({
     queryKey: queryKeys.securityInfo,
     queryFn: () => listSessionsFn(),
   });
@@ -70,12 +69,20 @@ function SettingsPrivacySecurityPage() {
       // 撤销全部 → 当前会话也失效 → 跳转首页
       router.navigate({ to: "/" });
     },
-    onError: () => toast.error("操作失败，请重试"),
   });
 
   const device: Device | null = data?.device ?? null;
   const session: Session | null = data?.session ?? null;
   const emailVerifiedAt: string | null = data?.emailVerifiedAt ?? null;
+
+  /*
+   * 错误分支。以前只有 isLoading，没有 error —— 请求失败时 data 是 undefined，
+   * 下面所有的 ?? null 都会静默变成「没设备 / 没会话」，用户看不出取数失败。
+   *
+   * 整页替换在这里是合理的：这一页的全部内容都来自这一个查询，
+   * 没有可保留的旧内容。
+   */
+  if (error) return <ErrorPage reset={() => void refetch()} />;
 
   return (
     <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col gap-6">
@@ -132,7 +139,7 @@ function SettingsPrivacySecurityPage() {
           <h2 className="font-semibold">当前设备</h2>
         </div>
 
-        {isLoading ? (
+        {isPending ? (
           <div className="space-y-3 p-4">
             <div className="h-16 animate-pulse rounded-lg bg-muted" />
           </div>
@@ -168,7 +175,7 @@ function SettingsPrivacySecurityPage() {
           <h2 className="font-semibold">当前会话</h2>
         </div>
 
-        {isLoading ? (
+        {isPending ? (
           <div className="space-y-3 p-4">
             <div className="h-16 animate-pulse rounded-lg bg-muted" />
           </div>

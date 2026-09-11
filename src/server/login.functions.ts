@@ -13,6 +13,7 @@ import { loginSchema } from "#schemas/auth";
 import { verifyPassword } from "#lib/auth/password";
 import { signIn } from "#lib/auth/session-manager";
 import { enforceRateLimit } from "#lib/auth/rate-limiter";
+import { ERROR_MESSAGE } from "#lib/error-messages";
 
 /**
  * 登录用例：校验凭据 → createAuthenticatedSession → 设 cookie。
@@ -38,7 +39,7 @@ export const login = createServerFn({
     const valid = await verifyPassword(passwordHash, password);
 
     if (!user || !valid) {
-      throw new Error("Invalid email or password");
+      throw new Error(ERROR_MESSAGE.INVALID_CREDENTIALS);
     }
 
     await signIn(user.id);

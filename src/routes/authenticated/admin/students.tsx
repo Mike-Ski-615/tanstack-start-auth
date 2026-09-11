@@ -28,7 +28,26 @@ export const Route = createFileRoute("/authenticated/admin/students")({
 
 /** 学生管理。结构与 Tasks 示例的 page.tsx 一致：标题 + 描述 + 表格。 */
 function AdminStudentsPage() {
-  const { data: students = [] } = useQuery(adminUsersQueryOptions("student"));
+  const {
+    data: students = [],
+    isPending,
+    error,
+    refetch,
+  } = useQuery(adminUsersQueryOptions("student"));
+
+  /*
+   * 三态分开写（react-query 的约定）：以前只解构 `data: students = []`，
+   * 查询进行中与失败时 students 都是空数组 —— 页面照常渲染「共 0 位」+「没有
+   * 结果。」，与「真的没有学生」完全无法区分，管理员可能据此以为账号下没学生。
+   *
+   * 注意这跟路由的 errorComponent 是两回事：那个只接 **loader** 的错误，
+   * 组件内 useQuery 失败不会触发它。
+   *
+   * 错误文案直接展示 error.message —— 服务端抛的就是用户可读句子
+   * （见 lib/error-messages.ts）。
+   */
+  if (isPending) return <LoadingPage />;
+  if (error) return <ErrorPage reset={() => void refetch()} />;
 
   return (
     <div className="flex flex-1 flex-col gap-8">

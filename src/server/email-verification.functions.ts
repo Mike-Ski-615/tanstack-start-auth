@@ -7,6 +7,7 @@ import { signIn } from "#lib/auth/session-manager";
 import { createVerificationOtp, verifyEmailOtp } from "#lib/auth/email-verification";
 import { sendMail } from "#lib/auth/mail";
 import { enforceRateLimit } from "#lib/auth/rate-limiter";
+import { ERROR_MESSAGE, OTP_REASON_MESSAGE } from "#lib/error-messages";
 
 /**
  * 验证邮箱 OTP：校验验证码 → 标记 verifiedAt → createAuthenticatedSession（自动登录）。
@@ -29,10 +30,10 @@ export const verifyEmailFn = createServerFn({
 
     // 防枚举：用户不存在也返回统一的验证码错误
     const user = await db.orm.public.User.where({ email }).first();
-    if (!user) throw new Error("invalid_otp");
+    if (!user) throw new Error(ERROR_MESSAGE.OTP_INVALID);
 
     const result = await verifyEmailOtp(user.id, otp);
-    if (!result.ok) throw new Error(result.reason);
+    if (!result.ok) throw new Error(OTP_REASON_MESSAGE[result.reason]);
 
     // 验证通过 → 自动登录
     await signIn(result.userId);

@@ -16,7 +16,6 @@ import { listSessionsFn } from "#server/sessions.functions";
 import { LoadingPage } from "#components/status/authenticated/settings/account/loading";
 import { ErrorPage } from "#components/status/authenticated/settings/account/error";
 import { NotFoundPage } from "#components/status/authenticated/settings/account/not-found";
-
 export const Route = createFileRoute("/authenticated/settings/account")({
   pendingComponent: LoadingPage,
   errorComponent: ErrorPage,
@@ -33,10 +32,18 @@ const ROLE_LABELS: Record<string, string> = {
 function SettingsAccountPage() {
   const { user } = Route.useRouteContext();
 
-  const { data } = useQuery({
+  const { data, isPending, error, refetch } = useQuery({
     queryKey: queryKeys.securityInfo,
     queryFn: () => listSessionsFn(),
   });
+
+  /*
+   * 这一页全是「只读的真值」：邮箱验证状态、设备信息。
+   * 以前全用 data?. 可选链，失败/加载中就渲染成空值 —— 用户看到一片空白，
+   * 无法区分「没绑定设备」与「请求挂了」。所以这里先拦状态再渲染。
+   */
+  if (isPending) return <LoadingPage />;
+  if (error) return <ErrorPage reset={() => void refetch()} />;
 
   const emailVerifiedAt: string | null = data?.emailVerifiedAt ?? null;
   const hasDevice = !!data?.device;

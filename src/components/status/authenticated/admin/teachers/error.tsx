@@ -10,8 +10,12 @@ import { Button } from "#components/ui/button";
  *
  * 挂载在 admin 布局的 `<Outlet />` 内，外层已有 padding，不重复。
  * 退路不能是 teachers 自己（那就是当前页，点了原地打转），给回工作台。
+ *
+ * 两种用法共用这一个组件：路由级 errorComponent（loader 失败），以及页面内
+ * 组件级 —— teachers.tsx 里 useQuery 失败时就地渲染。后者没有路由的 error
+ * 对象，所以只取 reset。
  */
-export function ErrorPage({ reset }: ErrorComponentProps) {
+export function ErrorPage({ reset }: Pick<ErrorComponentProps, "reset">) {
   return (
     <div className="flex flex-1 flex-col items-start gap-3">
       <h1 className="text-2xl font-semibold tracking-tight text-foreground">教师列表加载失败</h1>

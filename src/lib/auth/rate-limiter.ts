@@ -14,6 +14,7 @@
 
 import { db } from "#prisma/db";
 import { setResponseStatus, setResponseHeader } from "@tanstack/react-start/server";
+import { ERROR_MESSAGE } from "#lib/error-messages";
 
 const WINDOW_MS = 60_000; // 1 分钟
 
@@ -118,7 +119,7 @@ export async function rateLimit(
  * 与「被限速」（全部显示笼统文案），所以这句 message 暂无消费者。
  * 写成稳定的标识符，将来要做区分时可以直接匹配，比匹配英文句子可靠。
  */
-export const RATE_LIMITED = "rate_limited";
+export const RATE_LIMITED = ERROR_MESSAGE.RATE_LIMITED;
 
 /**
  * 限速检查：未通过时设 429 + Retry-After 并抛错，通过则静默返回。

@@ -17,6 +17,7 @@ import {
   adminUpdateProfileSchema,
   userIdSchema,
 } from "#schemas/auth";
+import { ERROR_MESSAGE } from "#lib/error-messages";
 import { db } from "#prisma/db";
 import { PUBLIC_COLUMNS } from "#lib/auth/current-user";
 import { requireAdmin } from "#lib/auth/admin-guard";
@@ -26,9 +27,15 @@ import { invalidateAllSessions } from "#lib/auth/session-manager";
 /** 可被管理的角色（admin 自身排除在外）。 */
 const MANAGED_ROLES = ["student", "teacher"] as const;
 
-/** 错误码。前端据此显示静态文案。 */
-const NOT_FOUND = "not_found";
-const CANNOT_TARGET_SELF = "cannot_target_self";
+/**
+ * 错误文案（用户可读）。
+ *
+ * 直接来自共享常量而非本地错误码：按 react-query 的约定，服务端抛出的
+ * error.message 会被界面直接展示，所以它必须是句子而不是机器码。
+ * 详见 lib/error-messages.ts 的说明。
+ */
+const NOT_FOUND = ERROR_MESSAGE.NOT_FOUND;
+const CANNOT_TARGET_SELF = ERROR_MESSAGE.CANNOT_TARGET_SELF;
 
 /**
  * 取出目标用户，并确认它是可管理的角色。

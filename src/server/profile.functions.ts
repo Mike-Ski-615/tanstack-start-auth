@@ -4,6 +4,7 @@ import { verifyPassword } from "#lib/auth/password";
 import { rotatePassword } from "#lib/auth/password-rotation";
 import { changePasswordSchema, updateProfileSchema } from "#schemas/auth";
 import { getCurrentUser } from "#lib/auth/guard";
+import { ERROR_MESSAGE } from "#lib/error-messages";
 
 /**
  * 更新当前登录用户的可编辑资料（name / bio）。
@@ -15,7 +16,7 @@ export const updateProfileFn = createServerFn({
   .validator(updateProfileSchema)
   .handler(async ({ data: { name, bio } }) => {
     const user = await getCurrentUser();
-    if (!user) throw new Error("unauthorized");
+    if (!user) throw new Error(ERROR_MESSAGE.UNAUTHENTICATED);
 
     await db.orm.public.User.where({ id: user.id }).update({
       name,
@@ -37,12 +38,12 @@ export const changePasswordFn = createServerFn({
   .validator(changePasswordSchema)
   .handler(async ({ data: { currentPassword, newPassword } }) => {
     const user = await getCurrentUser();
-    if (!user) throw new Error("当前密码不正确");
+    if (!user) throw new Error(ERROR_MESSAGE.WRONG_PASSWORD);
 
     const fullUser = await db.orm.public.User.where({ id: user.id }).first();
     const ok = fullUser && (await verifyPassword(fullUser.passwordHash, currentPassword));
 
-    if (!ok) throw new Error("当前密码不正确");
+    if (!ok) throw new Error(ERROR_MESSAGE.WRONG_PASSWORD);
 
     await rotatePassword(user.id, newPassword);
 

@@ -21,6 +21,7 @@ import { db } from "#prisma/db";
 import { requireAdmin } from "#lib/auth/admin-guard";
 import { listManagedUsers } from "#lib/auth/admin-actions";
 import { getCurrentUser } from "#lib/auth/guard";
+import { ERROR_MESSAGE } from "#lib/error-messages";
 import {
   countUnread,
   createNotification,
@@ -33,7 +34,7 @@ import {
 } from "#lib/notifications";
 
 /** 未登录时统一抛这个（与 admin 的 forbidden 区分开）。 */
-const UNAUTHENTICATED = "unauthenticated";
+const UNAUTHENTICATED = ERROR_MESSAGE.UNAUTHENTICATED;
 
 async function requireUserId(): Promise<string> {
   const user = await getCurrentUser();
@@ -120,7 +121,7 @@ export const sendNotificationFn = createServerFn({ method: "POST" })
     });
 
     // 一个收件人都没有（比如选了空角色）也算失败，免得管理员以为发出去了
-    if (recipientCount === 0) throw new Error("no_recipients");
+    if (recipientCount === 0) throw new Error(ERROR_MESSAGE.NO_RECIPIENTS);
 
     return { success: true, recipientCount };
   });

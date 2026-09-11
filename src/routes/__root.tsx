@@ -11,6 +11,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { Toaster } from "#components/ui/sonner";
 import { LoadingPage } from "#components/status/__root/loading";
 import { ErrorPage } from "#components/status/__root/error";
+import { QueryErrorBoundary } from "#components/query-error-boundary";
 import { NotFoundPage } from "#components/status/__root/not-found";
 import { ThemeProvider } from "#provider/theme-provider";
 import { ContentWidthProvider } from "#provider/content-width-provider";
@@ -68,7 +69,17 @@ function RootComponent() {
           <ContentWidthProvider>
             <Toaster richColors position="top-center" />
             <TooltipProvider>
-              <Outlet />
+              {/*
+                查询错误的边界。
+
+                路由的 errorComponent 只接 loader 的错误，组件内 useQuery 在
+                渲染期间抛出的错误（throwOnError / 数据访问抛错）此前没有兜底，
+                直接白屏。放在这里能盖住所有页面，且配合 QueryErrorResetBoundary
+                的 reset 能让「重试」真的重查（详见该组件的说明）。
+              */}
+              <QueryErrorBoundary>
+                <Outlet />
+              </QueryErrorBoundary>
             </TooltipProvider>
           </ContentWidthProvider>
           <Scripts />

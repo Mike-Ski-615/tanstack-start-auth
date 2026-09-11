@@ -9,8 +9,10 @@ import { Button } from "#components/ui/button";
  *
  * 退路给设置总览：这页是设置的一个分区，打不开时把用户送到分区列表，
  * 他可以换别的分区继续 —— 比直接踢回工作台有用。
+ *
+ * 两种用法共用（路由级 errorComponent / 页面内组件级），所以只取 reset。
  */
-export function ErrorPage({ reset }: ErrorComponentProps) {
+export function ErrorPage({ reset }: Pick<ErrorComponentProps, "reset">) {
   return (
     <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col items-center justify-center gap-4 text-center">
       <h1 className="text-lg font-semibold text-foreground">账号设置加载失败</h1>

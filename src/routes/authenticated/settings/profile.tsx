@@ -34,7 +34,6 @@ function SettingsProfilePage() {
       // （含 beforeLoad 里的 getUser 查询），为了刷新侧边栏用户名太重。
       queryClient.invalidateQueries({ queryKey: queryKeys.currentUser });
     },
-    onError: () => toast.error("保存失败，请重试"),
   });
 
   const infoForm = useForm({

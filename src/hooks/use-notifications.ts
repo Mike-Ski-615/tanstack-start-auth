@@ -83,7 +83,6 @@ export function useMarkAllReadMutation() {
       void invalidate();
       toast.success("已全部标记为已读");
     },
-    onError: () => toast.error("操作失败，请稍后重试"),
   });
 }
 
@@ -92,7 +91,6 @@ export function useDeleteNotificationMutation() {
   return useMutation({
     mutationFn: (recipientId: string) => deleteNotificationFn({ data: { recipientId } }),
     onSuccess: invalidate,
-    onError: () => toast.error("删除失败，请稍后重试"),
   });
 }
 
@@ -127,21 +125,6 @@ export function useSendNotificationMutation() {
       void qc.invalidateQueries({ queryKey: queryKeys.notifications });
       toast.success("通知已发送");
     },
-    onError: (e: Error) => {
-      if (e.message.includes("forbidden")) {
-        toast.error("权限不足，请重新登录");
-        return;
-      }
-      if (e.message.includes("no_recipients")) {
-        toast.error("没有匹配的收件人，请检查发送目标");
-        return;
-      }
-      if (e.message.includes("too_many_recipients")) {
-        toast.error("收件人过多，请分批发");
-        return;
-      }
-      toast.error("发送失败，请稍后重试");
-    },
   });
 }
 
@@ -156,7 +139,6 @@ export function useUpdateNotificationPrefsMutation() {
       void qc.invalidateQueries({ queryKey: queryKeys.currentUser });
       toast.success("设置已保存");
     },
-    onError: () => toast.error("保存失败，请稍后重试"),
   });
 }
 
@@ -169,7 +151,6 @@ export function useDeleteNotificationBatchMutation() {
       void qc.invalidateQueries({ queryKey: queryKeys.notifications });
       toast.success("已撤回");
     },
-    onError: () => toast.error("撤回失败，请稍后重试"),
   });
 }
 

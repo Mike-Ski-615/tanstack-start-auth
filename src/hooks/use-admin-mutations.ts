@@ -22,15 +22,14 @@ import type {
  * 改角色会让那个人从学生列表**消失**、出现在教师列表里，两个列表都要重取。
  * 所以统一 invalidate users 前缀（见 query-keys）。
  *
- * 错误文案是静态的，不透传服务端字符串（项目约定）。服务端只发错误码：
- *   forbidden          —— 不是管理员（正常流程下不该出现，除非会话过期）
- *   not_found          —— 目标不存在，或目标是管理员
- *   cannot_target_self —— 管理员对自己操作
+ * 错误文案直接展示服务端的 error.message —— 服务端抛的就是用户可读句子
+ * （见 lib/error-messages.ts）。所以这里不再做错误码字符串匹配，
+ * 也无需传入 notAdmin / self 之类的自定义文案。
  */
 
 function useAdminMutation<TVars>(
   mutationFn: (vars: TVars) => Promise<unknown>,
-  messages: { success: string; notAdmin?: string; self?: string },
+  messages: { success: string },
 ) {
   const qc = useQueryClient();
   return useMutation({
@@ -38,23 +37,6 @@ function useAdminMutation<TVars>(
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: queryKeys.adminUsers });
       toast.success(messages.success);
-    },
-    onError: (e: Error) => {
-      const m = e.message;
-      // 会话过期（原本是管理员，token 失效后被判为非管理员）
-      if (m.includes("forbidden")) {
-        toast.error(messages.notAdmin ?? "权限不足，请重新登录");
-        return;
-      }
-      if (m.includes("cannot_target_self")) {
-        toast.error(messages.self ?? "不能对自己执行此操作");
-        return;
-      }
-      if (m.includes("not_found")) {
-        toast.error("该用户不存在或不可管理");
-        return;
-      }
-      toast.error("操作失败，请稍后重试");
     },
   });
 }

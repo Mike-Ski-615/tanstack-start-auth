@@ -6,6 +6,7 @@ import { sendMail } from "../lib/auth/mail";
 import { createResetOtp, verifyResetOtp } from "#lib/auth/reset-otp";
 import { rotatePassword } from "#lib/auth/password-rotation";
 import { enforceRateLimit } from "#lib/auth/rate-limiter";
+import { ERROR_MESSAGE, OTP_REASON_MESSAGE } from "#lib/error-messages";
 
 /**
  * 密码重置用例（DB 版）：重置令牌为一枚随机串 { userId, exp }，
@@ -63,10 +64,10 @@ export const resetPasswordFn = createServerFn({
 
     // 防枚举：用户不存在也报同一个验证码错误
     const user = await db.orm.public.User.where({ email }).first();
-    if (!user) throw new Error("invalid_otp");
+    if (!user) throw new Error(ERROR_MESSAGE.OTP_INVALID);
 
     const result = await verifyResetOtp(user.id, otp);
-    if (!result.ok) throw new Error(result.reason);
+    if (!result.ok) throw new Error(OTP_REASON_MESSAGE[result.reason]);
 
     const userId = result.userId;
 
