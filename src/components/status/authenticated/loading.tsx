@@ -1,4 +1,5 @@
 import { Skeleton } from "#components/ui/skeleton";
+import { SIDEBAR_GUTTER_CLASS } from "#provider/content-width-provider";
 
 /**
  * 已登录区加载态（/authenticated）。
@@ -17,7 +18,9 @@ import { Skeleton } from "#components/ui/skeleton";
  */
 export function LoadingPage() {
   return (
-    <div className="flex flex-1 items-center justify-center bg-background p-4 sm:p-6 lg:ps-7">
+    <div
+      className={`flex flex-1 items-center justify-center bg-background p-4 sm:p-6 ${SIDEBAR_GUTTER_CLASS}`}
+    >
       <div className="flex w-full max-w-sm flex-col items-center gap-4">
         <Skeleton className="h-8 w-40" />
         <Skeleton className="h-5 w-full" />

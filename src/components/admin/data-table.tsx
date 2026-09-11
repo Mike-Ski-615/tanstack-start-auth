@@ -22,6 +22,16 @@ import { DataTablePagination } from "./data-table-pagination";
 import { DataTableToolbar } from "./data-table-toolbar";
 
 /**
+ * 表格外框 —— 真表格与骨架共用。
+ *
+ * 骨架以前是手写 `overflow-hidden rounded-md border` 这个盒子的：盒子形状改了
+ * 只改一边，两边就不再重合（而加载完那一瞬间会看出来）。
+ */
+export function DataTableFrame({ children }: { children: React.ReactNode }) {
+  return <div className="overflow-hidden rounded-md border">{children}</div>;
+}
+
+/**
  * 用户表格（管理员用）。
  *
  * 结构照 shadcn 的 Tasks 示例（examples/tasks）：
@@ -84,7 +94,7 @@ export function DataTable<TData extends RowData>({
         roleOptions={roleOptions}
         verifiedOptions={verifiedOptions}
       />
-      <div className="overflow-hidden rounded-md border">
+      <DataTableFrame>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -119,7 +129,7 @@ export function DataTable<TData extends RowData>({
             )}
           </TableBody>
         </Table>
-      </div>
+      </DataTableFrame>
       <DataTablePagination table={table} />
     </div>
   );

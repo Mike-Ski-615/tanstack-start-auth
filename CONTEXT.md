@@ -293,15 +293,21 @@ User
    （`student` / `teacher` / `admin` 的三件套都漏过 `content-region`）。
    `loading-alignment.test.ts` 现在盯着它。
 
-2. **不是所有骨架都会被看到**。路由只有 loader / `beforeLoad` 异步时才进入 pending
-   态。当前可触发的只有 8 个：`auth`（布局）、`authenticated`（布局）、
-   `admin/notifications`、`admin/students`、`admin/teachers`、`settings/account`、
-   `settings/bell`、`settings/privacy-security`；另有 4 个页面在组件里直接渲染骨架
-   （`isPending` 分支）。其余骨架（含 `student` / `teacher` / `admin` 三个工作台）
-   进不了 pending —— 它们仍按约定保留，但改它们时不必担心「有人会看到」。
+2. **不是所有骨架都会被看到**。触发有三条路，判断时要都看：
+   - 路由的 `beforeLoad` 异步（await / 返回 promise）
+   - 路由的 **`loader:`** 异步 —— 容易漏，`users/$userId` 就是走这条
+   - 页面组件里有 `isPending` 分支，直接渲染骨架
 
-   > 判断方法：看该路由的 `beforeLoad` 是否 `await` / 返回 promise，以及页面组件里
-   > 有没有 `isPending` 分支。
+   当前可触发的只有 9 个：`auth`（布局）、`authenticated`（布局）、
+   `admin/notifications`、`admin/students`、`admin/teachers`、`settings/account`、
+   `settings/bell`、`settings/privacy-security`、`users/$userId`；另有 4 个页面在
+   组件里直接渲染骨架（`isPending` 分支）。其余骨架（含 `student` / `teacher` /
+   `admin` 三个工作台）进不了 pending —— 它们仍按约定保留，但改它们时不必担心
+   「有人会看到」。
+
+   > 这一条我第一版写错过（只查了 `beforeLoad`，漏掉 `users/$userId` 的
+   > `loader:`），而那一处恰好是**真的会看到**、且**真漏了 `content-region`** 的
+   > 那个 —— 可达性判断错了，就会把力气花在看不见的地方。
 
 ### 安全审计状态
 

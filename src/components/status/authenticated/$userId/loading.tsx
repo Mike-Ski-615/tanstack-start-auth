@@ -1,4 +1,5 @@
 import { Skeleton } from "#components/ui/skeleton";
+import { CONTENT_WIDTH_CLASS } from "#provider/content-width-provider";
 
 /**
  * 用户主页加载态（/authenticated/users/$userId）。
@@ -14,7 +15,9 @@ import { Skeleton } from "#components/ui/skeleton";
 export function LoadingPage() {
   return (
     <main className="min-h-full min-w-0">
-      <div className="flex min-w-0 flex-col gap-4 p-4 sm:gap-5 sm:p-6 lg:gap-6 lg:p-8">
+      <div
+        className={`flex min-w-0 flex-col gap-4 p-4 sm:gap-5 sm:p-6 lg:gap-6 lg:p-8 ${CONTENT_WIDTH_CLASS}`}
+      >
         {/* 头部：头像 + 姓名/邮箱 */}
         <header className="flex min-w-0 items-center gap-4 rounded-2xl bg-card p-5 lg:flex-col lg:gap-3 lg:bg-transparent lg:py-4">
           <Skeleton className="size-16 shrink-0 rounded-full lg:size-24" />

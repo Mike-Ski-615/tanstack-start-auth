@@ -25,17 +25,29 @@ import { CONTENT_WIDTH_CLASS, SIDEBAR_GUTTER_CLASS } from "#provider/content-wid
  * 常数列表从 `content-width-provider` import（不是抄一遍值），所以将来新增
  * 一个布局常数，这条测试自动覆盖它。
  *
- * ## 刻意没做的事
+ * ## 三条规则
  *
- * 没有加「状态文件里不得出现常数字面值」那条更宽的规则：`lg:ps-7` 在
- * `components/status/` 下有 13 处历史硬编码（含 error/not-found），而它们对应的
- * 页面并没有用常数 —— 那条规则会变成一次 13 文件的大扫除，超出「修已知漂移」
- * 的范围。等那些文件被别的原因碰到时再顺手收。
+ * 1. **页面用了常数 → 三件套必须用**（下面第一条用例）。URL 映射见 statusDirFor。
+ * 2. **照组件的骨架**：少数骨架照的不是路由文件，而是某个组件 —— 容器的来源在
+ *    那个组件里，路由文件上什么都没有（`$userId` 就是：容器在 `UserView`）。
+ *    这类骨架由 MIRRORS_COMPONENT 显式登记，否则规则 1 看不见它们。
+ * 3. **状态文件里不得出现常数的字面值**（下面第三条用例）。这一条才抓得住
+ *    「抄了值」：`lg:ps-7` 抄进去看不出问题、也永远不会报错 ——
+ *    `components/status/` 下曾有 7 处是这么来的（含 error/not-found/help）。
  *
  * ## 它不证明什么
  *
- * 只证明「引用了同一个常数」。它不检查状态页内部结构与页面是否一致
- * （那部分靠骨架用真组件来保证，见各个 loading.tsx 的注释）。
+ * 它只证明「引用了该引用的常数」。它不检查状态页内部结构与页面是否一致
+ * （那部分靠骨架用真组件来保证，见各个 loading.tsx 的注释），也抓不住
+ * 「既没引用常数、也没抄字面值」的整类漏掉 —— 除非那个骨架登记在
+ * MIRRORS_COMPONENT 里（规则 2）。`$userId/loading.tsx` 漏 `content-region`
+ * 就是这么漏的，所以才有规则 2。
+ *
+ * ## 刻意没做的事
+ *
+ * 没有为工具栏那种「骨架照一个耦合很深的组件」发明机制：`DataTableToolbar`
+ * 要一个 TanStack table 实例才能渲染，骨架拿不到，那部分仍是手写近似
+ * （见 admin 下 students / teachers 两个 loading.tsx 的注释）。
  */
 
 const ROUTES = "src/routes";
@@ -72,6 +84,17 @@ const routeIds = walk(ROUTES)
 function statusDirFor(routeId: string): string {
   return routeId.replace(/^authenticated\/users\//, "authenticated/");
 }
+
+/**
+ * 少数骨架照的不是路由文件，而是组件 —— 容器的来源在那些组件里。
+ *
+ * 键是 status 目录（相对 STATUS），值是它镜像的组件。加上新条目就等于多查一份
+ * 文件；路径写错会因读不到文件而直接失败，不会静默跳过。
+ */
+const MIRRORS_COMPONENT: Record<string, string> = {
+  // 用户主页的容器在 UserView 里（路由文件只渲染 <UserView />）
+  "authenticated/$userId": "src/components/user/user-view.tsx",
+};
 
 /**
  * 去掉注释与 import 后再查。
@@ -121,6 +144,41 @@ describe("状态页与页面用同一组布局常数", () => {
   it("被检查的常数确实是内容宽度那组（防止 import 到空值）", () => {
     for (const [name, value] of LAYOUT_CONSTANTS) {
       expect(value, `${name} 取到空值，规则会永远通过`).toBeTruthy();
+    }
+  });
+});
+
+describe("照组件的骨架也要跟上（容器的来源在组件里）", () => {
+  it.each(Object.entries(MIRRORS_COMPONENT))("%s 的骨架引用了 %s 用的常数", (dir, file) => {
+    const source = codeOnly(readFileSync(file, "utf8"));
+    const wanted = LAYOUT_CONSTANTS.filter(([name]) => source.includes(name)).map(([n]) => n);
+    expect(wanted.length, `${file} 没引用任何布局常数，这条映射该删了`).toBeGreaterThan(0);
+
+    for (const kind of KINDS) {
+      const path = join(STATUS, dir, `${kind}.tsx`).replace(/\\/g, "/");
+      const src = codeOnly(readFileSync(path, "utf8"));
+      for (const name of wanted) {
+        expect(src.includes(name), `${path} 没引用 ${name} —— ${file} 用了它`).toBe(true);
+      }
+    }
+  });
+});
+
+describe("状态文件不抄布局常数的字面值", () => {
+  const statusFiles = walk(STATUS).filter((f) => f.endsWith(".tsx") && !f.includes("__tests__"));
+
+  it("范围非空", () => {
+    expect(statusFiles.length).toBeGreaterThan(20);
+  });
+
+  it.each(LAYOUT_CONSTANTS)("%s 的值没有被抄进任何状态文件", (_name, value) => {
+    for (const file of statusFiles) {
+      const src = codeOnly(readFileSync(file, "utf8"));
+      expect(
+        src.includes(value),
+        `${file} 里出现了 ${_name} 的字面值（"${value}"）—— 应改用它本身；` +
+          `抄字面值不会报错，只会让两边慢慢分叉`,
+      ).toBe(false);
     }
   });
 });

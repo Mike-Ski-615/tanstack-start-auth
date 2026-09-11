@@ -1,4 +1,5 @@
 import { Skeleton } from "#components/ui/skeleton";
+import { SIDEBAR_GUTTER_CLASS } from "#provider/content-width-provider";
 
 /**
  * 帮助文档加载态（/authenticated/help）。
@@ -14,7 +15,7 @@ import { Skeleton } from "#components/ui/skeleton";
  */
 export function LoadingPage() {
   return (
-    <div className="flex h-full min-h-0 flex-col gap-6 p-4 lg:flex-row lg:ps-7">
+    <div className={`flex h-full min-h-0 flex-col gap-6 p-4 lg:flex-row ${SIDEBAR_GUTTER_CLASS}`}>
       {/* 左侧目录：6 个分组 */}
       <nav className="flex shrink-0 flex-col gap-1 lg:w-56">
         {Array.from({ length: 6 }).map((_, i) => (

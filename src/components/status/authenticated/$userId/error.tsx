@@ -1,6 +1,7 @@
 import type { ErrorComponentProps } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { Button } from "#components/ui/button";
+import { CONTENT_WIDTH_CLASS } from "#provider/content-width-provider";
 
 /**
  * 用户主页错误（/authenticated/users/$userId）。
@@ -14,7 +15,7 @@ import { Button } from "#components/ui/button";
 export function ErrorPage({ reset }: ErrorComponentProps) {
   return (
     <main className="min-h-full min-w-0">
-      <div className="flex flex-col items-start gap-3 p-4 sm:p-6 lg:p-8">
+      <div className={`flex flex-col items-start gap-3 p-4 sm:p-6 lg:p-8 ${CONTENT_WIDTH_CLASS}`}>
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">用户资料加载失败</h1>
         <p className="text-sm text-muted-foreground">
           没能取到这个用户的资料。可以重试，或先回到你的工作台。
