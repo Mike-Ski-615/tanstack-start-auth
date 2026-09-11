@@ -1,9 +1,9 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { ROLE_HOME } from "#lib/auth/current-user";
 import { CONTENT_WIDTH_CLASS, SIDEBAR_GUTTER_CLASS } from "#provider/content-width-provider";
-import { LoadingPage } from "#components/status/authenticated/loading";
-import { ErrorPage } from "#components/status/authenticated/error";
-import { NotFoundPage } from "#components/status/authenticated/not-found";
+import { LoadingPage } from "#components/status/authenticated/admin/loading";
+import { ErrorPage } from "#components/status/authenticated/admin/error";
+import { NotFoundPage } from "#components/status/authenticated/admin/not-found";
 
 /**
  * 管理员区的父布局。

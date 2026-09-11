@@ -2,12 +2,21 @@ import type { ErrorComponentProps } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { Button } from "#components/ui/button";
 
-/** 500 / 运行时错误：可重试，避免整站白屏。 */
+/**
+ * 登录页错误（/auth/login）。
+ *
+ * 渲染在 auth 布局内，不加 min-h-svh。
+ *
+ * 这里文案是**针对登录**写的：登录失败最常见的原因是凭据不对或
+ * 服务端会话出错，所以先建议重试，再给「重新登录」的明确出口。
+ */
 export function ErrorPage({ reset }: ErrorComponentProps) {
   return (
-    <main className="flex min-h-svh flex-col items-center justify-center gap-4 bg-background p-6">
-      <h1 className="text-2xl font-semibold text-foreground">出错了</h1>
-      <p className="max-w-md text-center text-muted-foreground">页面加载时出现问题，请稍后重试。</p>
+    <div className="flex flex-col items-center gap-4 text-center">
+      <h1 className="text-xl font-semibold text-foreground">登录失败</h1>
+      <p className="text-sm text-muted-foreground">
+        没能完成登录，可能是网络问题。可以重试，或返回首页重新进入。
+      </p>
       <div className="flex items-center gap-3">
         <Button variant="outline" onClick={reset}>
           重试
@@ -19,6 +28,6 @@ export function ErrorPage({ reset }: ErrorComponentProps) {
           回到首页
         </Link>
       </div>
-    </main>
+    </div>
   );
 }

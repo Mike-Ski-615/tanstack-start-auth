@@ -1,6 +1,13 @@
 import { Link } from "@tanstack/react-router";
 
-/** 404：给回首页的退路，而非死胡同。 */
+/**
+ * 整站未找到（__root）。
+ *
+ * 挂在整站根上，是所有「没有更具体 404 页」的兜底。无外壳，整屏居中。
+ *
+ * 退路只给首页：这里拿不到用户角色（不在 authenticated 的 context 内），
+ * 无法按角色给工作台；首页是唯一无条件可达的落点。
+ */
 export function NotFoundPage() {
   return (
     <main className="flex min-h-svh flex-col items-center justify-center gap-4 bg-background p-6">

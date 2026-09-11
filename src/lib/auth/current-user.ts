@@ -40,12 +40,19 @@ export const ROLES = ["student", "teacher", "admin"] as const;
 
 export type Role = (typeof ROLES)[number];
 
-/** 各角色登录后默认落在哪个工作台。路由重定向与页内守卫共用此表。 */
-export const ROLE_HOME: Record<Role, string> = {
+/**
+ * 各角色登录后默认落在哪个工作台。路由重定向与页内守卫共用此表。
+ *
+ * 故意**不用** `Record<Role, string>` 标注：那样每个值会退化成 string，
+ * 导致 `<Link to={ROLE_HOME[role]}>` 无法通过类型检查（Link 的 to 只接受
+ * 已知路由字面量），只能靠 as 断言绕过。用 as const satisfies 保留字面量
+ * 类型，同时仍然强制覆盖每个角色。
+ */
+export const ROLE_HOME = {
   student: "/authenticated/student",
   teacher: "/authenticated/teacher",
   admin: "/authenticated/admin/teachers",
-};
+} as const satisfies Record<Role, string>;
 
 export type User = {
   id: string;

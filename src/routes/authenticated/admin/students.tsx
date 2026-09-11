@@ -6,9 +6,9 @@ import { DataTable } from "#components/admin/data-table";
 import { verificationStates } from "#components/admin/data";
 import { listUsersByRoleFn } from "#server/admin.functions";
 import { queryKeys } from "#lib/query-keys";
-import { LoadingPage } from "#components/status/authenticated/loading";
-import { ErrorPage } from "#components/status/authenticated/error";
-import { NotFoundPage } from "#components/status/authenticated/not-found";
+import { LoadingPage } from "#components/status/authenticated/admin/students/loading";
+import { ErrorPage } from "#components/status/authenticated/admin/students/error";
+import { NotFoundPage } from "#components/status/authenticated/admin/students/not-found";
 
 const adminUsersQueryOptions = (role: "student" | "teacher") => ({
   queryKey: queryKeys.adminUsersList(role),

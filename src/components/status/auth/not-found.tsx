@@ -1,14 +1,21 @@
 import { Link } from "@tanstack/react-router";
 
-/** 404：给回首页的退路，而非死胡同。 */
+/**
+ * auth 区未找到（/auth）。
+ *
+ * 渲染在 auth 布局的 max-w-sm 容器内，所以不重复 min-h-svh。
+ *
+ * 退路给首页：`/auth/xxx` 这种路径打错时，能去的稳定落点是首页 ——
+ * 而不是再丢一个 auth 链接（那正是刚失败的地方）。
+ */
 export function NotFoundPage() {
   return (
-    <main className="flex min-h-svh flex-col items-center justify-center gap-4 bg-background p-6">
-      <h1 className="text-2xl font-semibold text-foreground">页面未找到</h1>
-      <p className="text-muted-foreground">你访问的地址不存在或已被移动。</p>
+    <div className="flex flex-col items-center gap-4 text-center">
+      <h1 className="text-xl font-semibold text-foreground">页面不存在</h1>
+      <p className="text-sm text-muted-foreground">这个登录相关页面不存在，可能链接已失效。</p>
       <Link to="/" className="text-sm font-medium underline underline-offset-4 hover:no-underline">
         回到首页
       </Link>
-    </main>
+    </div>
   );
 }

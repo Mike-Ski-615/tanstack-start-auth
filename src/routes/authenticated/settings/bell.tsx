@@ -5,9 +5,9 @@ import { useQuery } from "@tanstack/react-query";
 import { currentUserQueryOptions } from "#lib/queries/current-user";
 
 import { Switch } from "#components/ui/switch";
-import { LoadingPage } from "#components/status/authenticated/loading";
-import { ErrorPage } from "#components/status/authenticated/error";
-import { NotFoundPage } from "#components/status/authenticated/not-found";
+import { LoadingPage } from "#components/status/authenticated/settings/bell/loading";
+import { ErrorPage } from "#components/status/authenticated/settings/bell/error";
+import { NotFoundPage } from "#components/status/authenticated/settings/bell/not-found";
 import { useUpdateNotificationPrefsMutation } from "#hooks/use-notifications";
 import { NotificationHistory } from "#components/notification/notification-history";
 

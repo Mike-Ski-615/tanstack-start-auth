@@ -1,7 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { LoadingPage } from "#components/status/authenticated/users/$userId/loading";
-import { ErrorPage } from "#components/status/authenticated/users/$userId/error";
-import { NotFoundPage } from "#components/status/authenticated/users/$userId/not-found";
+import { LoadingPage } from "#components/status/authenticated/$userId/loading";
+import { ErrorPage } from "#components/status/authenticated/$userId/error";
+import { NotFoundPage } from "#components/status/authenticated/$userId/not-found";
 
 import { UserView } from "#components/user/user-view";
 import { userByIdQueryOptions } from "#lib/queries/user-by-id";

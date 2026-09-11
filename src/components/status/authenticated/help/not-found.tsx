@@ -1,14 +1,26 @@
 import { Link } from "@tanstack/react-router";
 
-/** 404：给回首页的退路，而非死胡同。 */
+/**
+ * 帮助文档未找到（/authenticated/help）。
+ *
+ * 挂载在 SidebarInset 内，让开侧栏手柄（lg:ps-7）。
+ *
+ * 这页是固定路径，所以"未找到"只可能是地址错了 —— 文案承认这点，
+ * 并给回工作台的出路。指 `/` 会离开已登录上下文，绕远路。
+ */
 export function NotFoundPage() {
   return (
-    <main className="flex min-h-svh flex-col items-center justify-center gap-4 bg-background p-6">
-      <h1 className="text-2xl font-semibold text-foreground">页面未找到</h1>
-      <p className="text-muted-foreground">你访问的地址不存在或已被移动。</p>
-      <Link to="/" className="text-sm font-medium underline underline-offset-4 hover:no-underline">
-        回到首页
+    <div className="flex flex-1 flex-col items-start gap-3 p-4 lg:ps-7">
+      <h1 className="text-2xl font-semibold tracking-tight text-foreground">帮助页不存在</h1>
+      <p className="text-sm text-muted-foreground">
+        没找到这个帮助页面，地址可能有误。帮助文档在侧栏「帮助」里。
+      </p>
+      <Link
+        to="/authenticated"
+        className="text-sm font-medium underline underline-offset-4 hover:no-underline"
+      >
+        回到工作台
       </Link>
-    </main>
+    </div>
   );
 }

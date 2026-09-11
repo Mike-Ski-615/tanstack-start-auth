@@ -15,9 +15,9 @@ import { RoleMultiSelect, UserMultiSelect } from "#components/admin/user-multi-s
 import { SentNotificationsList } from "#components/admin/sent-notifications";
 import { useSelectableUsers, useSendNotificationMutation } from "#hooks/use-notifications";
 import { sendNotificationSchema } from "#schemas/auth";
-import { LoadingPage } from "#components/status/authenticated/loading";
-import { ErrorPage } from "#components/status/authenticated/error";
-import { NotFoundPage } from "#components/status/authenticated/not-found";
+import { LoadingPage } from "#components/status/authenticated/admin/notifications/loading";
+import { ErrorPage } from "#components/status/authenticated/admin/notifications/error";
+import { NotFoundPage } from "#components/status/authenticated/admin/notifications/not-found";
 
 export const Route = createFileRoute("/authenticated/admin/notifications")({
   pendingComponent: LoadingPage,

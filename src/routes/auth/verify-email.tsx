@@ -9,12 +9,18 @@ import { Button } from "#components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "#components/ui/input-otp";
 import { verifyEmailFn, resendVerificationEmailFn } from "#server/email-verification.functions";
 import { useAuthCacheSync } from "#lib/queries/auth-sync";
+import { LoadingPage } from "#components/status/auth/verify-email/loading";
+import { ErrorPage } from "#components/status/auth/verify-email/error";
+import { NotFoundPage } from "#components/status/auth/verify-email/not-found";
 
 const verifyEmailSearchSchema = z.object({
   email: z.string().catch(""),
 });
 
 export const Route = createFileRoute("/auth/verify-email")({
+  pendingComponent: LoadingPage,
+  errorComponent: ErrorPage,
+  notFoundComponent: NotFoundPage,
   validateSearch: verifyEmailSearchSchema,
   component: VerifyEmailPage,
 });

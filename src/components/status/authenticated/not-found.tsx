@@ -1,14 +1,46 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
+import { ROLE_HOME, type Role } from "#lib/auth/current-user";
 
-/** 404：给回首页的退路，而非死胡同。 */
+/**
+ * 已登录区未找到（/authenticated）。
+ *
+ * ### 与 __root 那版的区别
+ *
+ * 挂载点在 `SidebarInset` 内 —— 侧栏和 header 仍在树上。所以：
+ *   1. **不用 `min-h-svh`**（整屏高度会顶到 header 下面并撑出滚动条），
+ *      改用 `flex-1` 填满内容区剩余高度；
+ *   2. 让开侧栏拖拽手柄（`lg:ps-7`），与真实页面保持同一条左侧边缘。
+ *
+ * ### 退路为什么不是 `/`
+ *
+ * 这是这类页面最初最实际的 bug：`/authenticated` 有 `beforeLoad` 校验，
+ * 未登录会被打回登录页；而 404 指向 `/` 时用户点下去像是"回了家"，
+ * 实际又被重定向回工作台 —— 绕一圈什么都没解决。
+ *
+ * 所以按角色给本人工作台（ROLE_HOME）。角色从 router state 读，不 import
+ * `#routes/authenticated`（那会形成循环依赖 —— 它 import 了本文件）。
+ */
 export function NotFoundPage() {
+  const role = useRouterState({
+    select: (s) =>
+      (
+        s.matches.find((m) => m.routeId === "/authenticated")?.context as
+          { user?: { role?: Role } } | undefined
+      )?.user?.role,
+  });
+
+  const fallback: string = role ? ROLE_HOME[role] : "/";
+
   return (
-    <main className="flex min-h-svh flex-col items-center justify-center gap-4 bg-background p-6">
-      <h1 className="text-2xl font-semibold text-foreground">页面未找到</h1>
-      <p className="text-muted-foreground">你访问的地址不存在或已被移动。</p>
-      <Link to="/" className="text-sm font-medium underline underline-offset-4 hover:no-underline">
-        回到首页
+    <div className="flex flex-1 flex-col items-center justify-center gap-4 bg-background p-4 text-center sm:p-6 lg:ps-7">
+      <h1 className="text-2xl font-semibold text-foreground">页面不存在</h1>
+      <p className="max-w-md text-muted-foreground">这个地址不在你的账号里，或者已经被移动了。</p>
+      <Link
+        to={fallback}
+        className="text-sm font-medium underline underline-offset-4 hover:no-underline"
+      >
+        回到工作台
       </Link>
-    </main>
+    </div>
   );
 }
