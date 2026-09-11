@@ -43,7 +43,7 @@
  *
  * 它和认证是**正交**的：14 处 no-store 里 6 处属于未登录的 handler
  * （登录 / 注册 / 重置 ×2 / 验证邮件 ×2），任何认证中间件都盖不到。
- * 所以它由 src/start.ts 的全局 functionMiddleware 一处负责。
+ * 所以它由 `src/server.ts` 在响应层统一奶底（理由与踩过的坑见那个文件）。
  */
 
 import { createMiddleware } from "@tanstack/react-start";
