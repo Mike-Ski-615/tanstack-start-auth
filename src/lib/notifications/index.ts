@@ -13,77 +13,65 @@
  */
 
 import { db } from "#prisma/db";
-import { isManagedRole, MANAGED_ROLES, type ManagedRole } from "#lib/auth/current-user";
+import { MANAGED_ROLES } from "#lib/auth/current-user";
 import { ERROR_MESSAGE } from "#lib/error-messages";
-
-/** 单次发送的收件人上限。防手滑给几万人建行（每人一行）。 */
-export const MAX_RECIPIENTS = 5000;
+import { resolveAudience, type AudienceCandidate, type NotificationTarget } from "./audience";
 
 // ============================================================
 // 收件人解析
 // ============================================================
 
-/** 选择发送目标的方式。三者可混用（前提是没勾 all）。 */
-export type NotificationTarget = {
-  /** 发给全部师生。勾了它，下面两项忽略。 */
-  all?: boolean;
-  /** 按角色。 */
-  roles?: ManagedRole[];
-  /** 指定若干用户。 */
-  userIds?: string[];
-};
+/**
+ * 取出**可能与目标相关**的用户行。
+ *
+ * 这里是查询层的窄化，不做任何规则判断：取回来的允许是超集
+ * （比如 `userIds` 里混了个 admin，或者 `roles` 里传了非法值），
+ * 最终“谁是受众”由 resolveAudience 一处定。
+ *
+ * 两件事分开的好处：规则只写一份（客户端也用它），而且规则变了不用动 SQL。
+ */
+async function fetchCandidates(target: NotificationTarget): Promise<AudienceCandidate[]> {
+  if (target.all) {
+    return db.orm.public.User.where((u) => u.role.in([...MANAGED_ROLES]))
+      .select("id", "role")
+      .all();
+  }
+
+  const out = new Map<string, AudienceCandidate>();
+
+  for (const role of target.roles ?? []) {
+    const rows = await db.orm.public.User.where((u) => u.role.eq(role))
+      .select("id", "role")
+      .all();
+    for (const row of rows) out.set(row.id, row);
+  }
+
+  for (const id of target.userIds ?? []) {
+    const row = await db.orm.public.User.where({ id }).select("id", "role").first();
+    if (row) out.set(row.id, row);
+  }
+
+  return [...out.values()];
+}
 
 /**
  * 把发送目标解析成去重后的收件人 id 列表。
  *
- * 规则：
- * - admin 永远不是受众（无论哪种方式都不会命中 —— 角色过滤天然排除，
- *   指定 id 也会被下面的白名单校验剔除）
- * - 排除发送者自己（即便他当前是 student/teacher —— 角色被改过的情况）
- * - 三路结果取并集后去重
- * - 超出 MAX_RECIPIENTS 直接抛错，不静默截断（宁可让管理员分批发）
+ * 这里只负责「取行 + 超限抛错」；受众规则本身在 ./audience.ts，与发送页
+ * 的预览人数是同一个函数 —— 所以界面提示的人数不可能与实际收到的不同。
+ *
+ * 超限直接抛错而不静默截断：宁可让管理员分批发。
  */
 export async function resolveRecipients(
   target: NotificationTarget,
   senderId: string,
 ): Promise<string[]> {
-  const ids = new Set<string>();
+  const candidates = await fetchCandidates(target);
+  const { recipientIds, overLimit } = resolveAudience(candidates, target, senderId);
 
-  if (target.all) {
-    const everyone = await db.orm.public.User.where((u) => u.role.in([...MANAGED_ROLES]))
-      .select("id")
-      .all();
-    for (const u of everyone) ids.add(u.id);
-  } else {
-    for (const role of target.roles ?? []) {
-      // 只接受受管角色 —— 传 "admin" 也不会命中
-      if (!isManagedRole(role)) continue;
-      const byRole = await db.orm.public.User.where((u) => u.role.eq(role))
-        .select("id")
-        .all();
-      for (const u of byRole) ids.add(u.id);
-    }
+  if (overLimit) throw new Error(ERROR_MESSAGE.TOO_MANY_RECIPIENTS);
 
-    if (target.userIds?.length) {
-      // 逐个确认是受管角色：不能让 admin 混进来，也不能靠前端限制
-      for (const id of target.userIds) {
-        const u = await db.orm.public.User.where({ id }).select("id", "role").first();
-        if (!u) continue;
-        if (!isManagedRole(u.role)) continue;
-        ids.add(u.id);
-      }
-    }
-  }
-
-  // 发送者自己不收自己的通知
-  ids.delete(senderId);
-
-  if (ids.size === 0) return [];
-  if (ids.size > MAX_RECIPIENTS) {
-    throw new Error(ERROR_MESSAGE.TOO_MANY_RECIPIENTS);
-  }
-
-  return [...ids];
+  return recipientIds;
 }
 
 // ============================================================

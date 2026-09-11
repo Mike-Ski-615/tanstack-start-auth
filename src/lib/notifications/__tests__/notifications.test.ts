@@ -12,8 +12,8 @@ import {
   softDeleteForUser,
   listSentNotifications,
   deleteNotificationBatch,
-  MAX_RECIPIENTS,
 } from "#lib/notifications";
+import { MAX_RECIPIENTS } from "#lib/notifications/audience";
 import type { ManagedRole } from "#lib/auth/current-user";
 
 /**

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { SentIcon, Alert01Icon, Loading02Icon } from "@hugeicons/core-free-icons";
@@ -18,6 +19,8 @@ import {
   selectableUsersQueryOptions,
   sentNotificationsQueryOptions,
 } from "#lib/queries/notifications";
+import { currentUserQueryOptions } from "#lib/queries/user";
+import { MAX_RECIPIENTS, resolveAudience } from "#lib/notifications/audience";
 import {
   NOTIFICATION_BODY_MAX,
   NOTIFICATION_TITLE_MAX,
@@ -57,11 +60,25 @@ function AdminNotificationsPage() {
   const [roles, setRoles] = useState<ManagedRole[]>([]);
   const [userIds, setUserIds] = useState<string[]>([]);
 
-  // 角色与指定人取并集去重 —— 与接口层 resolveRecipients 同一套规则，
-  // 这样提示的人数就是实际会收到的人数。
-  const targetCount = all
-    ? users.length
-    : new Set([...users.filter((u) => roles.includes(u.role)).map((u) => u.id), ...userIds]).size;
+  /**
+   * 发送者自己 —— 布局已把 currentUser 放进缓存，这里不会多一次请求。
+   *
+   * 传它是为了那个边角：管理员角色被改成师生后，他会出现在候选名单里，
+   * 而服务端会把他剔掉（见 lib/notifications/audience.ts）。
+   */
+  const { data: currentUser } = useQuery(currentUserQueryOptions);
+
+  /*
+   * 人数与「是否超限」都来自与接口层**同一个函数**（lib/notifications/audience），
+   * 不再在这里手写一份并集。以前那个写法算不出上限、也算不出「排除发送者」——
+   * 界面会显示「将发送给 6000 人」，点下去直接抛 TOO_MANY_RECIPIENTS。
+   */
+  const audience = resolveAudience(users, { all, roles, userIds }, currentUser?.id);
+  const targetCount = audience.recipientIds.length;
+
+  // 勾选框上那个「N 人」也走同一条规则 —— 否则会出现
+  // 「全部师生（6000 人）」旁边写着「将发送给 5999 人」这种看上去像 bug 的组合
+  const allCount = resolveAudience(users, { all: true }, currentUser?.id).recipientIds.length;
 
   const form = useForm({
     defaultValues: { title: "", body: "", link: "" },
@@ -222,7 +239,7 @@ function AdminNotificationsPage() {
                   <div className="flex items-center gap-2">
                     <Checkbox id="n-all" checked={all} onCheckedChange={(v) => setAll(!!v)} />
                     <Label htmlFor="n-all" className="font-normal">
-                      全部师生（{users.length} 人）
+                      全部师生（{allCount} 人）
                     </Label>
                   </div>
 
@@ -245,11 +262,13 @@ function AdminNotificationsPage() {
                 </div>
 
                 <FieldDescription>
-                  {all
-                    ? "勾选「全部师生」后，角色与指定用户不再生效。"
-                    : targetCount === 0
-                      ? "请至少选择一种发送目标。"
-                      : `将发送给 ${targetCount} 人（管理员不会收到）。`}
+                  {audience.overLimit
+                    ? `将发送给 ${targetCount} 人，超出单次上限 ${MAX_RECIPIENTS} 人 —— 请分批发。`
+                    : all
+                      ? "勾选「全部师生」后，角色与指定用户不再生效。"
+                      : targetCount === 0
+                        ? "请至少选择一种发送目标。"
+                        : `将发送给 ${targetCount} 人（管理员不会收到）。`}
                 </FieldDescription>
               </Field>
             </form>
@@ -258,7 +277,7 @@ function AdminNotificationsPage() {
               <Button
                 type="submit"
                 form="send-notification"
-                disabled={send.isPending || (!all && targetCount === 0)}
+                disabled={send.isPending || (!all && targetCount === 0) || audience.overLimit}
               >
                 <HugeiconsIcon icon={SentIcon} />
                 {send.isPending ? "发送中…" : "发送通知"}
