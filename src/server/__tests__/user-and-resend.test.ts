@@ -9,7 +9,7 @@ import { db } from "#prisma/db";
 import {
   createUser,
   deleteUser,
-  clearRateLimit,
+  scopedClearRateLimit,
   withRequest,
   callServerFnValidated,
   getEmailOtps,
@@ -49,7 +49,7 @@ const withToken = <T>(token: string, fn: () => Promise<T>) =>
 
 beforeEach(async () => {
   clearMails();
-  await clearRateLimit("resend");
+  await scopedClearRateLimit(IP, "resend");
 });
 
 afterEach(cleanup);
@@ -246,7 +246,7 @@ describe("重发验证邮件 — 限速边界", () => {
       created.push(r.user.id);
       return r;
     });
-    await clearRateLimit("resend");
+    await scopedClearRateLimit(IP, "resend");
     const ip = "192.0.2.201";
 
     for (let i = 0; i < 3; i++) {
@@ -262,7 +262,7 @@ describe("重发验证邮件 — 限速边界", () => {
       created.push(r.user.id);
       return r;
     });
-    await clearRateLimit("resend");
+    await scopedClearRateLimit(IP, "resend");
     const ip = "192.0.2.202";
 
     for (let i = 0; i < 3; i++) {
@@ -276,7 +276,7 @@ describe("重发验证邮件 — 限速边界", () => {
   it("被限速时不生成新 OTP", async () => {
     const { user, email } = await createUser({ verified: false });
     created.push(user.id);
-    await clearRateLimit("resend");
+    await scopedClearRateLimit(IP, "resend");
     const ip = "192.0.2.203";
 
     for (let i = 0; i < 3; i++) {
@@ -293,7 +293,7 @@ describe("重发验证邮件 — 限速边界", () => {
   it("换 IP 但同邮箱仍受邮箱维度限制", async () => {
     const { user, email } = await createUser({ verified: false });
     created.push(user.id);
-    await clearRateLimit("resend");
+    await scopedClearRateLimit(IP, "resend");
 
     // 三个不同 IP，同一邮箱
     for (let i = 0; i < 3; i++) {
@@ -312,7 +312,7 @@ describe("重发验证邮件 — 限速边界", () => {
     const a = await createUser({ verified: false });
     const b = await createUser({ verified: false });
     created.push(a.user.id, b.user.id);
-    await clearRateLimit("resend");
+    await scopedClearRateLimit(IP, "resend");
     const ip = "192.0.2.230";
 
     for (let i = 0; i < 3; i++) {
@@ -336,7 +336,7 @@ describe("重发验证邮件 — OTP 生命周期", () => {
     // 记下旧记录（重发后会新增一条，只比对旧的这条是否被作废）
     const beforeId = (await getEmailOtps(user.id))[0].id;
 
-    await clearRateLimit("resend");
+    await scopedClearRateLimit(IP, "resend");
     await withRequest({ ip: IP }, () => resendVerificationEmailFn({ data: { email } }));
 
     const newOtp = mails[mails.length - 1]?.text.match(/^\s{4}(\d{6})\s*$/m)?.[1];
@@ -351,7 +351,7 @@ describe("重发验证邮件 — OTP 生命周期", () => {
     expect(live).toHaveLength(1);
 
     if (newOtp !== oldOtp) {
-      await clearRateLimit("verify-otp");
+      await scopedClearRateLimit(IP, "verify-otp");
       const r = await verifyEmailOtp(user.id, newOtp!);
       expect(r.ok).toBe(true);
     }
@@ -366,7 +366,7 @@ describe("重发验证邮件 — OTP 生命周期", () => {
 
     await verifyEmailOtp(user.id, wrong);
 
-    await clearRateLimit("resend");
+    await scopedClearRateLimit(IP, "resend");
     await withRequest({ ip: IP }, () => resendVerificationEmailFn({ data: { email } }));
 
     const live = (await getEmailOtps(user.id)).filter((o) => !o.verifiedAt);
@@ -378,7 +378,7 @@ describe("重发验证邮件 — OTP 生命周期", () => {
     const { user, email } = await createUser({ verified: false });
     created.push(user.id);
 
-    await clearRateLimit("resend");
+    await scopedClearRateLimit(IP, "resend");
     await withRequest({ ip: IP }, () => resendVerificationEmailFn({ data: { email } }));
 
     expect(mails).toHaveLength(1);
@@ -392,7 +392,7 @@ describe("重发验证邮件 — OTP 生命周期", () => {
     const { createAuthenticatedSession } = await import("#lib/auth/session-manager");
     await createAuthenticatedSession({ userId: user.id, ip: IP });
 
-    await clearRateLimit("resend");
+    await scopedClearRateLimit(IP, "resend");
     await withRequest({ ip: IP }, () => resendVerificationEmailFn({ data: { email } }));
 
     expect(mails).toHaveLength(1);
@@ -405,7 +405,7 @@ describe("重发验证邮件 — OTP 生命周期", () => {
     await createAuthenticatedSession({ userId: user.id, ip: IP });
     expect(await getSessions(user.id)).toHaveLength(1);
 
-    await clearRateLimit("resend");
+    await scopedClearRateLimit(IP, "resend");
     await withRequest({ ip: IP }, () => resendVerificationEmailFn({ data: { email } }));
 
     expect(await getSessions(user.id)).toHaveLength(1);

@@ -7,7 +7,7 @@ import {
   uniqueEmail,
   TEST_PASSWORD,
   deleteUser,
-  clearRateLimit,
+  scopedClearRateLimit,
   withRequest,
   callServerFnValidated,
   getEmailOtps,
@@ -53,11 +53,22 @@ const regValidated = (data: { name: string; email: string; password: string }, i
 
 beforeEach(async () => {
   clearMails();
-  // 清全部 register 计数。这意味着**其它测试文件不要再用 register 这个维度**
-  // 做限速断言 —— 两边交错执行会互相擦掉计数（表现为「第 4 次应该被拒却
-  // 通过了」的偶发失败，实际发生过一次）。需要测 register 的 429 响应时，
-  // 用未被他处使用的 IP 段，见 rate-limit-response.test.ts。
-  await clearRateLimit("register");
+  /*
+   * 只清**本文件用到的** register 桶，不要清整个 register 维度。
+   *
+   * 之前写的是 clearRateLimit("register")，会删掉所有 `register%` 的 key ——
+   * 包括其它测试文件（如 rate-limit-response.test.ts）用别的 IP 建的桶。
+   * 两个文件并行跑时会互相擦除计数，表现为“操作过于频繁”的偶发 429。
+   *
+   * 必须清两个桶（不是一个）：
+   *   register:ip=<IP>   通过 reg()/callServerFnValidated(..., { ip }) 发的
+   *   register:          没传 ctx 的调用 —— subjectKey() 跳过 undefined，
+   *                      于是 key 里 ip= 段为空（见 rate-limiter 的说明）
+   * 只清前者时，后者会在整个文件的用例间累积，跑到第 4 次就炸。
+   *
+   * 注：本文件内部用到的其它 IP（.77/.98/.99 等）各自在用例里显式清。
+   */
+  await scopedClearRateLimit(IP, "register");
 });
 
 afterEach(cleanup);
@@ -209,20 +220,32 @@ describe("注册 — 邮箱冲突", () => {
      * 走了不同的代码路径，那必然表现为多建了用户 / 发了验证码邮件。
      */
     const email = uniqueEmail();
-    await callServerFnValidated(register, registerSchema, {
-      name: "A",
-      email,
-      password: TEST_PASSWORD,
-    });
+    // 显式传 { ip }：不传的话 subjectKey() 会跳过 ip，落到 `register:` 这个
+    // 空 subject 桶上 —— 与 beforeEach 清的桶不是同一个，会让计数跨用例累积。
+    await callServerFnValidated(
+      register,
+      registerSchema,
+      {
+        name: "A",
+        email,
+        password: TEST_PASSWORD,
+      },
+      { ip: IP },
+    );
     await userByEmail(email);
 
     clearMails();
     // 第二次注册不报错
-    await callServerFnValidated(register, registerSchema, {
-      name: "B",
-      email,
-      password: TEST_PASSWORD,
-    });
+    await callServerFnValidated(
+      register,
+      registerSchema,
+      {
+        name: "B",
+        email,
+        password: TEST_PASSWORD,
+      },
+      { ip: IP },
+    );
 
     // 没多建用户
     const users = await db.orm.public.User.where({ email }).all();
@@ -350,7 +373,7 @@ describe("注册 — 输入校验", () => {
 describe("注册 — 限速", () => {
   it("前 3 次成功，第 4 次被拒", async () => {
     const ip = "203.0.113.77";
-    await clearRateLimit("register");
+    await scopedClearRateLimit(ip, "register");
     const outcomes: string[] = [];
 
     for (let i = 0; i < 4; i++) {
@@ -369,7 +392,7 @@ describe("注册 — 限速", () => {
 
   it("被限速的第 4 次不建用户", async () => {
     const ip = "203.0.113.98";
-    await clearRateLimit("register");
+    await scopedClearRateLimit(ip, "register");
 
     for (let i = 0; i < 3; i++) {
       const email = uniqueEmail("rl2");
@@ -386,7 +409,7 @@ describe("注册 — 限速", () => {
 
   it("被限速的第 4 次不发邮件", async () => {
     const ip = "203.0.113.99";
-    await clearRateLimit("register");
+    await scopedClearRateLimit(ip, "register");
 
     for (let i = 0; i < 3; i++) {
       const email = uniqueEmail("rl3");
@@ -400,7 +423,8 @@ describe("注册 — 限速", () => {
   });
 
   it("不同 IP 各有独立配额", async () => {
-    await clearRateLimit("register");
+    await scopedClearRateLimit("203.0.113.1", "register");
+    await scopedClearRateLimit("203.0.113.2", "register");
 
     for (let i = 0; i < 3; i++) {
       const email = uniqueEmail("ipA");
@@ -416,7 +440,7 @@ describe("注册 — 限速", () => {
 
   it("同 IP 不同邮箱也共享配额（按 IP 限，不按邮箱）", async () => {
     const ip = "203.0.113.55";
-    await clearRateLimit("register");
+    await scopedClearRateLimit(ip, "register");
 
     for (let i = 0; i < 3; i++) {
       const email = uniqueEmail("shared");

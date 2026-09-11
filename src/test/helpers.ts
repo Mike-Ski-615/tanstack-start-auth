@@ -60,26 +60,46 @@ export async function deleteUser(userId: string): Promise<void> {
 }
 
 /**
- * 清掉指定维度的限速计数。
- *
- * 限速是 DB 型、跨用例持久 —— 同一 IP 跑多个「连续尝试」用例会互相干扰。
- * 需要干净窗口的用例在 beforeEach 里调它，而不是依赖全库清空。
- */
-/**
  * 清限速计数。
  *
  * 传 type（如 "register"）会清掉该维度**全部** key。
  *
- * ⚠️ 这在跨文件时是危险的：两个测试文件都用 register 维度、但靠不同 IP 段
- * 隔离时，一方的 clear 会把另一方的计数擦掉 —— 表现为「第 N 次应该被限速
- * 却通过了」的偶发失败。
+ * ⚠️ 跨文件时这样写是危险的：多个测试文件并行执行（vitest 默认多 worker），
+ * 而限速是 DB 型、跨文件共享的。一方清全量会把另一方的计数擦掉，
+ * 表现为两类偶发失败：
+ *   - “第 N 次应该被限速却通过了”（计数被清）
+ *   - “操作过于频繁”（计数被别处累加）
  *
- * 需要精确隔离时传完整前缀，例如 clearRateLimit("register:ip=203.0.113.10")，
- * 只清自己那个桶。key 的构造见 lib/auth/rate-limiter.ts 的 subjectKey()。
+ * 所以**优先用 scopedClearRateLimit**，它只清本文件自己的 subject。
+ * 只有在确实需要全库清空（如测「清空后第一次应放行」）时才用这个。
+ *
+ * key 的构造见 lib/auth/rate-limiter.ts 的 subjectKey()。
  */
 export async function clearRateLimit(...types: string[]): Promise<void> {
   for (const t of types) {
     await db.orm.public.RateLimit.where((r) => r.key.like(`${t}%`)).delete();
+  }
+}
+
+/**
+ * 只清**当前测试文件自己的**限速计数。
+ *
+ * 这是跨文件安全的形式：每个测试文件用一个专属 IP（见各文件的 IP 常量），
+ * 这里按该 IP 清，不会碰到别的文件。
+ *
+ * 同时清掉「空 subject」桶 —— 不传 ctx 的 serverFn 调用会让 subjectKey()
+ * 跳过 undefined，key 变成 `register:`（无 `ip=` 段），与按 IP 清的不是
+ * 同一个桶。漏掉它会让计数在整个文件里累积，跑到第 N 次就撞上限。
+ *
+ * 用法：
+ *   const IP = "192.0.2.30";           // 文件顶部，各文件不重复
+ *   await scopedClearRateLimit(IP, "resend");
+ */
+export async function scopedClearRateLimit(ip: string, ...types: string[]): Promise<void> {
+  for (const t of types) {
+    await db.orm.public.RateLimit.where((r) => r.key.eq(`${t}:ip=${ip}`)).delete();
+    // 空 subject（未注入 IP 的调用）
+    await db.orm.public.RateLimit.where((r) => r.key.eq(`${t}:`)).delete();
   }
 }
 

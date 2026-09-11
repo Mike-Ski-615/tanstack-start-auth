@@ -7,7 +7,7 @@ import {
   TEST_PASSWORD,
   createUser,
   deleteUser,
-  clearRateLimit,
+  scopedClearRateLimit,
   withRequest,
   callServerFnValidated,
   getSessions,
@@ -35,7 +35,7 @@ const loginValidated = (data: { email: string; password: string }, ip = IP) =>
   callServerFnValidated(login, loginSchema, data, { ip });
 
 beforeEach(async () => {
-  await clearRateLimit("login");
+  await scopedClearRateLimit(IP, "login");
 });
 
 afterEach(cleanup);
@@ -254,7 +254,7 @@ describe("登录 — 限速", () => {
   it("前 5 次失败均被正常拒绝，第 6 次触发限速", async () => {
     const { user, email } = await createUser({ verified: true });
     created.push(user.id);
-    await clearRateLimit("login");
+    await scopedClearRateLimit(IP, "login");
 
     for (let i = 0; i < 5; i++) {
       await doLogin({ email, password: "wrong" }).catch(() => {});
@@ -268,7 +268,7 @@ describe("登录 — 限速", () => {
   it("限速按「邮箱+IP」组合，不同 IP 独立", async () => {
     const { user, email } = await createUser({ verified: true });
     created.push(user.id);
-    await clearRateLimit("login");
+    await scopedClearRateLimit(IP, "login");
 
     for (let i = 0; i < 5; i++) {
       await doLogin({ email, password: "wrong" }, "198.51.100.1").catch(() => {});
@@ -283,7 +283,7 @@ describe("登录 — 限速", () => {
     const a = await createUser({ verified: true });
     const b = await createUser({ verified: true });
     created.push(a.user.id, b.user.id);
-    await clearRateLimit("login");
+    await scopedClearRateLimit(IP, "login");
 
     for (let i = 0; i < 5; i++) {
       await doLogin({ email: a.email, password: "wrong" }).catch(() => {});
@@ -297,7 +297,7 @@ describe("登录 — 限速", () => {
   it("被限速时不建 Session", async () => {
     const { user, email } = await createUser({ verified: true });
     created.push(user.id);
-    await clearRateLimit("login");
+    await scopedClearRateLimit(IP, "login");
 
     for (let i = 0; i < 6; i++) {
       await doLogin({ email, password: TEST_PASSWORD }).catch(() => {});

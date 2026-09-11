@@ -10,7 +10,7 @@ import {
   uniqueEmail,
   createUser,
   deleteUser,
-  clearRateLimit,
+  scopedClearRateLimit,
   withRequest,
   callServerFnValidated,
   getResetOtps,
@@ -59,7 +59,7 @@ const resetValidated = (data: { email: string; otp: string; password: string }, 
 
 beforeEach(async () => {
   clearMails();
-  await clearRateLimit("reset", "reset-verify");
+  await scopedClearRateLimit(IP, "reset", "reset-verify");
 });
 
 afterEach(cleanup);
@@ -140,7 +140,7 @@ describe("请求重置 — 防枚举", () => {
   it("请求限速：同一 IP 1 分钟最多 3 次", async () => {
     const { user, email } = await createUser({ verified: true });
     created.push(user.id);
-    await clearRateLimit("reset");
+    await scopedClearRateLimit(IP, "reset");
 
     for (let i = 0; i < 3; i++) await requestReset(email, "198.51.100.77");
     await expect(requestReset(email, "198.51.100.77")).rejects.toThrow();
@@ -149,7 +149,7 @@ describe("请求重置 — 防枚举", () => {
   it("限速按 IP，换 IP 不受影响", async () => {
     const { user, email } = await createUser({ verified: true });
     created.push(user.id);
-    await clearRateLimit("reset");
+    await scopedClearRateLimit(IP, "reset");
 
     for (let i = 0; i < 3; i++) await requestReset(email, "198.51.100.1");
     await expect(requestReset(email, "198.51.100.2")).resolves.toBeUndefined();
@@ -158,7 +158,7 @@ describe("请求重置 — 防枚举", () => {
   it("被限速时不发邮件", async () => {
     const { user, email } = await createUser({ verified: true });
     created.push(user.id);
-    await clearRateLimit("reset");
+    await scopedClearRateLimit(IP, "reset");
 
     for (let i = 0; i < 3; i++) await requestReset(email, "198.51.100.88");
     clearMails();

@@ -7,7 +7,7 @@ import { resendVerificationEmailFn } from "#server/email-verification.functions"
 import {
   createUser,
   deleteUser,
-  clearRateLimit,
+  scopedClearRateLimit,
   withRequest,
   lastResponseStatus,
   uniqueEmail,
@@ -32,13 +32,23 @@ async function cleanup() {
 afterEach(cleanup);
 
 beforeEach(async () => {
-  // 只清本文件使用的 login / reset / resend 维度。
-  //
-  // 刻意不清 register：register.test.ts 的 beforeEach 也在清同一个 type，
-  // 两边交错时会把对方的计数擦掉，表现为「第 4 次应该被拒却通过了」的偶发
-  // 失败（实际发生过一次）。本文件的 register 用例改用独立的 IP 段
-  // 203.0.113.240+，天然干净，不需要清。
-  await clearRateLimit("login", "reset", "resend");
+  /*
+   * 只清**本文件专属 IP** 的计数，不碰别的测试文件。
+   *
+   * 本文件原先写 clearRateLimit("login", "reset", "resend")，那是全量清除 ——
+   * 会擦掉其它测试文件（login.test / reset-password.test / user-and-resend /
+   * verify-otp）在同一 type 下建的计数。vitest 多 worker 并行时两边交错，
+   * 表现为偶发的 429「操作过于频繁」（本文件与 register 文件都撞上过）。
+   *
+   * 本文件统一用 203.0.113.240–252 这一段（见各用例里的 ip 常量），
+   * 只要按这些 IP 清就不会与任何人冲突。
+   *
+   * 为何每个 IP 都要清：这些 IP 每次运行都相同，而限速窗口是 1 分钟 ——
+   * 短时间连跑两次时上一轮的计数还在，用例会在循环中途就撞上限。
+   */
+  for (let i = 240; i <= 252; i++) {
+    await scopedClearRateLimit(`203.0.113.${i}`, "login", "reset", "resend", "register");
+  }
 });
 
 /** 返回 { threw, status }。 */
@@ -60,7 +70,7 @@ describe("被限速时返回 429", () => {
     // 包括 register.test.ts 正在用的 203.0.113.10 等，两边交错执行时互相
     // 擦除，表现为「第 4 次应该被拒却通过了」的偶发失败（本轮真的撞上过）。
     const ip = "203.0.113.240";
-    await clearRateLimit(`register:ip=${ip}`);
+    await scopedClearRateLimit(ip, "register");
     for (let i = 0; i < 3; i++) {
       const email = uniqueEmail("rl");
       await withRequest({ ip }, () =>
@@ -92,6 +102,7 @@ describe("被限速时返回 429", () => {
     const { user, email } = await createUser({ verified: true });
     created.push(user.id);
     const ip = "203.0.113.241";
+    await scopedClearRateLimit(ip, "login");
 
     for (let i = 0; i < 5; i++) {
       await withRequest({ ip }, () => login({ data: { email, password: "wrongpass" } })).catch(
@@ -111,6 +122,7 @@ describe("被限速时返回 429", () => {
     const { user, email } = await createUser({ verified: true });
     created.push(user.id);
     const ip = "203.0.113.242";
+    await scopedClearRateLimit(ip, "reset");
 
     for (let i = 0; i < 3; i++) {
       await withRequest({ ip }, () => requestPasswordResetFn({ data: { email } }));
@@ -128,6 +140,7 @@ describe("被限速时返回 429", () => {
     const { user, email } = await createUser({ verified: false });
     created.push(user.id);
     const ip = "203.0.113.243";
+    await scopedClearRateLimit(ip, "resend", "verify-otp");
 
     for (let i = 0; i < 3; i++) {
       await withRequest({ ip }, () => resendVerificationEmailFn({ data: { email } }));
@@ -145,7 +158,14 @@ describe("被限速时返回 429", () => {
     const { user, email } = await createUser({ verified: false });
     created.push(user.id);
 
-    // 三个不同 IP 打满邮箱维度
+    // 三个不同 IP 打满邮箱维度。
+    //
+    // 必须先清这三个 IP 的 resend 计数：它们每次运行都相同，而窗口是 1 分钟 ——
+    // 短时间连跑两次时上一轮的计数还在，第一轮循环里就会撞上 IP 上限，
+    // 报错位置看着像“邮箱维度”用例坏了，实际是 IP 桶脏了。
+    for (let i = 0; i < 3; i++) {
+      await scopedClearRateLimit(`203.0.113.${250 + i}`, "resend");
+    }
     for (let i = 0; i < 3; i++) {
       await withRequest({ ip: `203.0.113.${250 + i}` }, () =>
         resendVerificationEmailFn({ data: { email } }),

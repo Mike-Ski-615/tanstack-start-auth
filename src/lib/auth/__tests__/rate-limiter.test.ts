@@ -13,13 +13,27 @@ import { db } from "#prisma/db";
 const KEY = "login";
 const ID = { email: "ratelimit-test@example.com" } as const;
 
-/** 清空整张 RateLimit 表（带一个恒真条件，无参调用过不了 this 类型检查）。 */
-async function clearAll() {
-  await db.orm.public.RateLimit.where((r) => r.key.gte("")).deleteAndCount();
+/**
+ * 只清本文件自己的桶（subject 只含 email，key 为
+ * `login:email=ratelimit-test@example.com`）。
+ *
+ * 不能写 like("login:%") —— 那会连 login.test.ts 的桶一起删（那边用 IP 区分），
+ * vitest 多 worker 并行时两边交错，表现为偶发的「remaining 不是预期值」。
+ */
+async function reset() {
+  await db.orm.public.RateLimit.where((r) => r.key.eq(`${KEY}:email=${ID.email}`)).delete();
 }
 
-async function reset() {
-  await db.orm.public.RateLimit.where((r) => r.key.like("login:%")).delete();
+/**
+ * 清空**整张**表。
+ *
+ * 仅用于测 purgeExpiredRateLimit（它扫全表，所以必须先把表清干净）。
+ * 这个操作会影响并行跑的其他文件 —— 但那些用例自己每次都会清/重建自己的桶，
+ * 所以实际上只要求它们不在“写入与断言之”间被清空。为降低风险，只在
+ * purge 那组用例里用它。
+ */
+async function clearAll() {
+  await db.orm.public.RateLimit.where((r) => r.key.gte("")).deleteAndCount();
 }
 
 beforeEach(reset);

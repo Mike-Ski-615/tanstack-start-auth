@@ -10,7 +10,7 @@ import {
   TEST_PASSWORD,
   createUser,
   deleteUser,
-  clearRateLimit,
+  scopedClearRateLimit,
   withRequest,
   callServerFnValidated,
   getEmailOtps,
@@ -49,7 +49,7 @@ const verifyValidated = (data: { email: string; otp: string }, ip = IP) =>
 
 beforeEach(async () => {
   clearMails();
-  await clearRateLimit("verify-otp", "resend");
+  await scopedClearRateLimit(IP, "verify-otp", "resend");
 });
 
 afterEach(cleanup);
@@ -120,7 +120,7 @@ describe("OTP 验证 — 成功", () => {
     await doVerify({ email, otp });
 
     const { login } = await import("#server/login.functions");
-    await clearRateLimit("login");
+    await scopedClearRateLimit(IP, "login");
     await withRequest({ ip: IP }, () => login({ data: { email, password: TEST_PASSWORD } }));
 
     expect(await getSessions(user.id)).toHaveLength(1);
@@ -241,12 +241,12 @@ describe("OTP 验证 — 错误次数上限", () => {
     }
 
     // 重发 → 新 OTP
-    await clearRateLimit("resend");
+    await scopedClearRateLimit(IP, "resend");
     await withRequest({ ip: IP }, () => resendVerificationEmailFn({ data: { email } }));
 
     const fresh = mails[mails.length - 1]?.text.match(/^\s{4}(\d{6})\s*$/m)?.[1];
     expect(fresh).toBeTruthy();
-    await clearRateLimit("verify-otp");
+    await scopedClearRateLimit(IP, "verify-otp");
     await doVerify({ email, otp: fresh! });
 
     const u = await db.orm.public.User.where({ id: user.id }).first();
@@ -291,7 +291,7 @@ describe("OTP 重发", () => {
   it("重发生成新 OTP 并作废旧 OTP", async () => {
     const { user, email, otp: oldOtp } = await pendingUser();
 
-    await clearRateLimit("resend");
+    await scopedClearRateLimit(IP, "resend");
     await withRequest({ ip: IP }, () => resendVerificationEmailFn({ data: { email } }));
 
     const newOtp = mails[mails.length - 1].text.match(/^\s{4}(\d{6})\s*$/m)?.[1];
@@ -299,12 +299,12 @@ describe("OTP 重发", () => {
 
     // 旧 OTP 失效（防枚举：即使用户不存在也返回成功，这里用户存在）
     if (newOtp !== oldOtp) {
-      await clearRateLimit("verify-otp");
+      await scopedClearRateLimit(IP, "verify-otp");
       await expect(doVerify({ email, otp: oldOtp })).rejects.toThrow();
     }
 
     // 新 OTP 可用
-    await clearRateLimit("verify-otp");
+    await scopedClearRateLimit(IP, "verify-otp");
     await doVerify({ email, otp: newOtp! });
     const u = await db.orm.public.User.where({ id: user.id }).first();
     expect(u!.emailVerifiedAt).toBeTruthy();
@@ -314,7 +314,7 @@ describe("OTP 重发", () => {
     const { user, email } = await pendingUser();
 
     for (let i = 0; i < 3; i++) {
-      await clearRateLimit("resend");
+      await scopedClearRateLimit(IP, "resend");
       await withRequest({ ip: IP }, () => resendVerificationEmailFn({ data: { email } }));
     }
 
@@ -324,7 +324,7 @@ describe("OTP 重发", () => {
   });
 
   it("对不存在的邮箱重发也返回成功（防枚举）", async () => {
-    await clearRateLimit("resend");
+    await scopedClearRateLimit(IP, "resend");
     // 不抛错即为通过
     await withRequest({ ip: IP }, () =>
       resendVerificationEmailFn({
@@ -340,7 +340,7 @@ describe("OTP 重发", () => {
       emailVerifiedAt: new Date().toISOString(),
     });
 
-    await clearRateLimit("resend");
+    await scopedClearRateLimit(IP, "resend");
     clearMails();
     await withRequest({ ip: IP }, () => resendVerificationEmailFn({ data: { email } }));
     expect(mails).toHaveLength(0);
@@ -348,7 +348,7 @@ describe("OTP 重发", () => {
 
   it("重发限速 3 次/分钟（IP 维度）", async () => {
     const { email } = await pendingUser();
-    await clearRateLimit("resend");
+    await scopedClearRateLimit(IP, "resend");
 
     for (let i = 0; i < 3; i++) {
       await withRequest({ ip: "203.0.113.150" }, () =>
@@ -363,7 +363,7 @@ describe("OTP 重发", () => {
 
   it("重发限速 3 次/分钟（邮箱维度）", async () => {
     const { email } = await pendingUser();
-    await clearRateLimit("resend");
+    await scopedClearRateLimit(IP, "resend");
 
     for (let i = 0; i < 3; i++) {
       await withRequest({ ip: `203.0.113.${160 + i}` }, () =>
@@ -385,7 +385,7 @@ describe("OTP 重发", () => {
 describe("OTP 验证 — 限速", () => {
   it("同一邮箱+IP 超过 10 次触发限速", async () => {
     const { email } = await pendingUser();
-    await clearRateLimit("verify-otp");
+    await scopedClearRateLimit(IP, "verify-otp");
 
     for (let i = 0; i < 10; i++) {
       await doVerify({ email, otp: "000000" }).catch(() => {});
@@ -396,7 +396,7 @@ describe("OTP 验证 — 限速", () => {
 
   it("限速不影响其他 IP", async () => {
     const { email } = await pendingUser();
-    await clearRateLimit("verify-otp");
+    await scopedClearRateLimit(IP, "verify-otp");
 
     for (let i = 0; i < 10; i++) {
       await doVerify({ email, otp: "000000" }, "203.0.113.1").catch(() => {});
