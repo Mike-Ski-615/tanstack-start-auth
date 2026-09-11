@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { SentIcon } from "@hugeicons/core-free-icons";
+import { SentIcon, Alert01Icon, Loading02Icon } from "@hugeicons/core-free-icons";
 
 import { Button } from "#components/ui/button";
 import { Input } from "#components/ui/input";
@@ -34,7 +34,7 @@ export const Route = createFileRoute("/authenticated/admin/notifications")({
  * 接口层也会在 all=true 时忽略另外两项，两边一致。
  */
 function AdminNotificationsPage() {
-  const { data: users = [] } = useSelectableUsers();
+  const { data: users = [], isPending, error } = useSelectableUsers();
   const send = useSendNotificationMutation();
 
   const [all, setAll] = useState(false);
@@ -82,6 +82,45 @@ function AdminNotificationsPage() {
       );
     },
   });
+
+  /*
+   * 收件人名单直接决定发送目标（下面 targetCount 就算在它上）。
+   * 以前 data 默认 []：名单挂了会渲染成「全部师生（0 人）」、发送按钮看似
+   * 无目标 —— 用户会以为系统里真的没师生。
+   *
+   * 整个发信表单都依赖这份名单，所以加载/错误就替掉表单区（不是只换一行），
+   * 三态同形：居中 + 图标 + 文字，靠图标区分语义，不加按钮。
+   */
+  if (isPending || error) {
+    return (
+      <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-2xl font-semibold tracking-tight">发送通知</h2>
+          <p className="text-muted-foreground">通知会出现在收件人的铃铛里，并计入未读数。</p>
+        </div>
+
+        <div
+          className={
+            error
+              ? "flex flex-col items-center gap-2 rounded-xl border py-16 text-destructive"
+              : "flex flex-col items-center gap-2 rounded-xl border py-16 text-muted-foreground"
+          }
+        >
+          {error ? (
+            <>
+              <HugeiconsIcon icon={Alert01Icon} className="size-5" />
+              <p className="text-sm">{error.message}</p>
+            </>
+          ) : (
+            <>
+              <HugeiconsIcon icon={Loading02Icon} className="size-5 animate-spin" />
+              <p className="text-sm">加载中…</p>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-8">

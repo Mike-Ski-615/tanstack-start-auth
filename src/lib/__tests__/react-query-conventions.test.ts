@@ -30,6 +30,10 @@ function walk(dir: string): string[] {
 const sourceFiles = walk("src").filter((f) => !f.includes("__tests__"));
 const read = (f: string) => readFileSync(f, "utf8");
 
+/** 去掉注释后再查 —— 说明性注释里会引用旧写法作为反例，不该被算作违规。 */
+const stripComments = (s: string) =>
+  s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+
 describe("服务端抛出用户可读文案（不是机器码）", () => {
   const serverFiles = sourceFiles.filter(
     (f) => f.startsWith("src/server/") || f.startsWith("src/lib/"),
@@ -77,10 +81,6 @@ describe("服务端抛出用户可读文案（不是机器码）", () => {
 });
 
 describe("客户端不做错误码字符串匹配", () => {
-  /** 去掉注释后再查 —— 说明性注释里会引用旧写法作为反例。 */
-  const stripComments = (s: string) =>
-    s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
-
   it("没有任何 includes() 匹配错误码", () => {
     const patterns = [
       /\.message\.includes\(/,
@@ -156,10 +156,48 @@ describe("页面的三态处理", () => {
   const pages = [
     "src/routes/authenticated/admin/students.tsx",
     "src/routes/authenticated/admin/teachers.tsx",
+    "src/routes/authenticated/admin/notifications.tsx",
     "src/routes/authenticated/settings/account.tsx",
     "src/routes/authenticated/settings/bell.tsx",
     "src/routes/authenticated/settings/privacy-security.tsx",
   ];
+
+  /**
+   * 非路由组件（列表）也要三态齐全。
+   *
+   * 它们没有路由级 errorComponent 可依赖，所以错误分支必须就地写。
+   * 原先这些地方只有 isLoading + 「空」两支 —— 请求失败会被误算成「空」，
+   * 渲染成「还没有收到过通知」这类文案，用户分不清是没数据还是没取到。
+   */
+  const listComponents = [
+    "src/components/admin/sent-notifications.tsx",
+    "src/components/notification/notification-history.tsx",
+    "src/components/header/header-bell.tsx",
+  ];
+
+  it.each(listComponents)("%s 列表三态齐全", (f) => {
+    const src = read(f);
+    expect(src, `${f} 没处理加载态`).toMatch(/isPending/);
+    expect(src, `${f} 没处理错误态`).toMatch(/\berror\b/);
+    // 错误文案直接展示 message，不再给一个笼统的固定句
+    expect(src, `${f} 应展示 error.message`).toMatch(/error\.message/);
+  });
+
+  it.each(listComponents)("%s 的三态同形（都是居中 + 图标 + 文字）", (f) => {
+    const src = read(f);
+    // 加载中 = 转圈图标；失败 = 告警图标；两者都应出现
+    expect(src, `${f} 缺少加载图标`).toMatch(/Loading02Icon/);
+    expect(src, `${f} 缺少失败图标`).toMatch(/Alert01Icon/);
+    // 形状：flex flex-col items-center gap-2
+    expect(src, `${f} 三态未共用居中排版`).toMatch(/flex flex-col items-center gap-2/);
+  });
+
+  it("这几个列表不再用 isLoading（改用 isPending，避免「有数据但刷新中」也闪加载）", () => {
+    for (const f of listComponents) {
+      const src = stripComments(read(f));
+      expect(src, `${f} 仍在用 isLoading`).not.toMatch(/\bisLoading\b/);
+    }
+  });
 
   it.each(pages)("%s 同时处理了 pending 与 error", (f) => {
     const src = read(f);
@@ -169,11 +207,12 @@ describe("页面的三态处理", () => {
 
   it.each(pages)("%s 的 error 分支在渲染内容之前", (f) => {
     const src = read(f);
-    const err = src.search(/if \(error\)|error \?/);
-    const body = src.indexOf("return (");
-    expect(err).toBeGreaterThan(-1);
-    expect(body).toBeGreaterThan(-1);
-    // error 判断必须在主 return 之前
+    // 允许 `if (error)`、`if (isPending || error)`、`error ?` 三种写法
+    const err = src.search(/if \([^)]*\berror\b[^)]*\)|error \?/);
+    // 主 return：缩进为两空格的 return（排除早返回里那个四空格的）
+    const body = src.search(/\n  return \(/);
+    expect(err, `${f} 没找到 error 分支`).toBeGreaterThan(-1);
+    expect(body, `${f} 没找到主 return`).toBeGreaterThan(-1);
     expect(err, `${f} 的 error 判断在主 return 之后`).toBeLessThan(body);
   });
 });

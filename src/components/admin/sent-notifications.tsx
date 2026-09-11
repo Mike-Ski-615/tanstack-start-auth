@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Delete02Icon, Link01Icon } from "@hugeicons/core-free-icons";
+import {
+  Delete02Icon,
+  Link01Icon,
+  SentIcon,
+  Alert01Icon,
+  Loading02Icon,
+} from "@hugeicons/core-free-icons";
 
 import { Button } from "#components/ui/button";
 import { Badge } from "#components/ui/badge";
@@ -24,16 +30,41 @@ import { useSentNotifications, useDeleteNotificationBatchMutation } from "#hooks
  * 撤回需二次确认：它会把所有收件人的那条通知一并删除，不可恢复。
  */
 export function SentNotificationsList() {
-  const { data: items = [], isLoading } = useSentNotifications();
+  const { data: items = [], isPending, error } = useSentNotifications();
   const remove = useDeleteNotificationBatchMutation();
   const [pendingId, setPendingId] = useState<string | null>(null);
 
-  if (isLoading) {
-    return <p className="py-6 text-center text-sm text-muted-foreground">加载中…</p>;
+  /*
+   * 三态同形：居中 + 图标 + 文字。靠图标区分语义，不换容器结构、不加按钮。
+   *
+   * 之前只有 isLoading 与「空」两支，请求失败会被误算成「空」—— 直接渲染
+   * 「还没有发送过通知」，管理员会以为发送记录丢了。
+   */
+  if (isPending) {
+    return (
+      <div className="flex flex-col items-center gap-2 py-6 text-muted-foreground">
+        <HugeiconsIcon icon={Loading02Icon} className="size-5 animate-spin" />
+        <p className="text-sm">加载中…</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center gap-2 py-6 text-destructive">
+        <HugeiconsIcon icon={Alert01Icon} className="size-5" />
+        <p className="text-sm">{error.message}</p>
+      </div>
+    );
   }
 
   if (items.length === 0) {
-    return <p className="py-6 text-center text-sm text-muted-foreground">还没有发送过通知</p>;
+    return (
+      <div className="flex flex-col items-center gap-2 py-6 text-muted-foreground">
+        <HugeiconsIcon icon={SentIcon} className="size-5" />
+        <p className="text-sm">还没有发送过通知</p>
+      </div>
+    );
   }
 
   const pending = items.find((n) => n.id === pendingId);

@@ -54,7 +54,17 @@ function AuthenticatedLayout() {
   // 会话守卫 — 其它设备登录 / 全局登出后跳登录页
   useSessionGuard();
 
-  // 新通知到达时弹 toast（开关在设置页，关掉就完全不打扰）
+  /*
+   * 新通知到达时弹 toast（开关在设置页，关掉就完全不打扰）。
+   *
+   * 这里**故意**用 `?? true` 而不写 isPending / error 分支：它读的是一个布尔
+   * 偏好，且不向用户展示任何数据 —— 读不到时「照旧弹」是安全的默认值
+   * （宁可多弹一次，也不要静默地不再提醒）。真正的会话失效已由上面的
+   * useSessionGuard 处理（它会跳登录页并提示）。
+   *
+   * 对比：settings/bell.tsx 里同一个值就**必须**拦状态 —— 那里它是一个开关
+   * 的 checked，渲染错值会让用户误以为自己的配置变了。
+   */
   useNewNotificationToast(freshUser?.notifyOnNewMessage ?? true);
 
   // Ctrl + Shift + L 退出登录

@@ -1,5 +1,12 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Link01Icon, CheckmarkCircle02Icon, Delete02Icon } from "@hugeicons/core-free-icons";
+import {
+  Link01Icon,
+  CheckmarkCircle02Icon,
+  Delete02Icon,
+  NotificationOff01Icon,
+  Alert01Icon,
+  Loading02Icon,
+} from "@hugeicons/core-free-icons";
 import { Link } from "@tanstack/react-router";
 
 import { Badge } from "#components/ui/badge";
@@ -19,24 +26,42 @@ import {
  * 任一处操作后另一处立刻同步。
  */
 export function NotificationHistory() {
-  const { data: items = [], isLoading } = useNotifications(true);
+  const { data: items = [], isPending, error } = useNotifications(true);
 
   const markRead = useMarkReadMutation();
   const remove = useDeleteNotificationMutation();
 
-  if (isLoading) {
+  /*
+   * 三态同形：同一张卡片（rounded-xl border bg-card p-6）、居中、图标 + 文字。
+   * 靠图标区分语义，不换容器结构、不加按钮。
+   *
+   * 之前只有 isLoading 与「空」两支，请求失败会被误算成「空」—— 渲染成
+   * 「还没有收到过通知」，用户会以为真的没消息。
+   */
+  if (isPending) {
     return (
-      <p className="rounded-xl border bg-card p-6 text-center text-sm text-muted-foreground">
-        加载中…
-      </p>
+      <div className="flex flex-col items-center gap-2 rounded-xl border bg-card p-6 text-muted-foreground">
+        <HugeiconsIcon icon={Loading02Icon} className="size-5 animate-spin" />
+        <p className="text-sm">加载中…</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center gap-2 rounded-xl border bg-card p-6 text-destructive">
+        <HugeiconsIcon icon={Alert01Icon} className="size-5" />
+        <p className="text-sm">{error.message}</p>
+      </div>
     );
   }
 
   if (items.length === 0) {
     return (
-      <p className="rounded-xl border bg-card p-6 text-center text-sm text-muted-foreground">
-        还没有收到过通知
-      </p>
+      <div className="flex flex-col items-center gap-2 rounded-xl border bg-card p-6 text-muted-foreground">
+        <HugeiconsIcon icon={NotificationOff01Icon} className="size-5" />
+        <p className="text-sm">还没有收到过通知</p>
+      </div>
     );
   }
 

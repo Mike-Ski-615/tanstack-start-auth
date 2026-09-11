@@ -2,8 +2,11 @@ import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Notification01Icon,
+  NotificationOff01Icon,
   CheckmarkCircle02Icon,
   Cancel01Icon,
+  Alert01Icon,
+  Loading02Icon,
 } from "@hugeicons/core-free-icons";
 import { Link } from "@tanstack/react-router";
 import {
@@ -38,7 +41,7 @@ export function HeaderBell() {
   const [open, setOpen] = useState(false);
 
   const { data: unread = 0 } = useUnreadCount();
-  const { data: items = [], isLoading } = useNotifications(open);
+  const { data: items = [], isPending, error } = useNotifications(open);
 
   const markRead = useMarkReadMutation();
   const markAll = useMarkAllReadMutation();
@@ -88,10 +91,27 @@ export function HeaderBell() {
         </PopoverHeader>
 
         <ScrollArea className="max-h-80">
-          {isLoading ? (
-            <p className="px-4 py-8 text-center text-sm text-muted-foreground">加载中…</p>
+          {/*
+            三态同形：居中 + 图标 + 文字。靠图标区分语义，不换容器结构。
+
+            之前只有 isLoading 与「空」两支，且都不带图标 —— 请求失败会被
+            误算成「空」，用户看到「暂无通知」分不清是真的没有还是没取到。
+          */}
+          {isPending ? (
+            <div className="flex flex-col items-center gap-2 px-4 py-8 text-muted-foreground">
+              <HugeiconsIcon icon={Loading02Icon} className="size-5 animate-spin" />
+              <p className="text-sm">加载中…</p>
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center gap-2 px-4 py-8 text-destructive">
+              <HugeiconsIcon icon={Alert01Icon} className="size-5" />
+              <p className="text-sm">{error.message}</p>
+            </div>
           ) : items.length === 0 ? (
-            <p className="px-4 py-8 text-center text-sm text-muted-foreground">暂无通知</p>
+            <div className="flex flex-col items-center gap-2 px-4 py-8 text-muted-foreground">
+              <HugeiconsIcon icon={NotificationOff01Icon} className="size-5" />
+              <p className="text-sm">暂无通知</p>
+            </div>
           ) : (
             <div className="divide-y">
               {items.map((n) => (
