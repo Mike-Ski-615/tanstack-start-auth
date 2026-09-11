@@ -52,7 +52,7 @@ export function SidebarTrigger({ className, ...props }: HTMLMotionProps<"div">) 
         if (event.key === "ArrowRight" || event.key === "End") setOpen(true);
       }}
       className={cn(
-        "group absolute left-2 top-1/2 z-20 -translate-y-1/2 hidden w-2.5 cursor-ew-resize touch-none select-none focus-visible:outline-none md:flex",
+        "group absolute left-2 top-1/2 z-20 -translate-y-1/2 hidden w-2.5 cursor-ew-resize touch-none select-none focus-visible:outline-none lg:flex",
         className,
       )}
       {...props}

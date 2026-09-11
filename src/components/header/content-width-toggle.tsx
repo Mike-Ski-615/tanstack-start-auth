@@ -6,6 +6,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { Button } from "#components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#components/ui/tooltip";
+import { cn } from "#lib/utils";
 import { useContentWidth, CONTENT_WIDTH_LABEL } from "#provider/content-width-provider";
 
 /**
@@ -14,7 +15,7 @@ import { useContentWidth, CONTENT_WIDTH_LABEL } from "#provider/content-width-pr
  * 只在三个工作台布局（student / teacher / admin）里生效 —— 它们读同一个
  * provider 的宽度。其它页面（设置、帮助等）各有各的宽度，不受影响。
  */
-export function ContentWidthToggle() {
+export function ContentWidthToggle({ className }: { className?: string }) {
   const { width, cycle } = useContentWidth();
 
   const icon =
@@ -32,6 +33,7 @@ export function ContentWidthToggle() {
           variant="ghost"
           size="icon"
           onClick={cycle}
+          className={cn(className)}
           aria-label={`内容宽度：${CONTENT_WIDTH_LABEL[width]}（点击切换）`}
         >
           <HugeiconsIcon icon={icon} className="h-[1.2rem] w-[1.2rem]" />

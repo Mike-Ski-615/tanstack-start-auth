@@ -248,7 +248,7 @@ function Sidebar({
   return (
     <motion.aside
       className={cn(
-        "group hidden shrink-0 overflow-hidden bg-sidebar text-sidebar-foreground md:block",
+        "group hidden shrink-0 overflow-hidden bg-sidebar text-sidebar-foreground lg:block",
         className,
       )}
       data-state={state}
