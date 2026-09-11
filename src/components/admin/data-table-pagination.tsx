@@ -96,14 +96,19 @@ export function DataTablePagination<TData extends RowData>({
         {/* 控件组：小于 md 时换行排列，md 以上回到单行 */}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 @3xl:flex-nowrap @3xl:gap-x-8">
           <div className="flex items-center gap-2">
-            <p className="text-sm font-medium whitespace-nowrap">每页行数</p>
+            {/* 用 aria-labelledby 把可见文字与控件连起来，而不是另写一个
+                aria-label —— 之前两者没关联，Lighthouse 的 button-name 报
+                critical：该按钮的无障碍名只有裸的「25」。 */}
+            <p id="page-size-label" className="text-sm font-medium whitespace-nowrap">
+              每页行数
+            </p>
             <Select
               value={`${table.state.pagination.pageSize}`}
               onValueChange={(value) => {
                 table.setPageSize(Number(value));
               }}
             >
-              <SelectTrigger className="h-8 w-17.5">
+              <SelectTrigger aria-labelledby="page-size-label" className="h-8 w-17.5">
                 <SelectValue placeholder={table.state.pagination.pageSize} />
               </SelectTrigger>
               <SelectContent side="top">
