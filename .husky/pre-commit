@@ -2,4 +2,3 @@
 
 bunx lint-staged
 bun run typecheck
-bun run test

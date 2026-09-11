@@ -60,31 +60,18 @@ bun run dev
 | `bun run dev`           | 启动开发服务器（端口 3000）                                                       |
 | `bun run build`         | 生产构建                                                                          |
 | `bun run start`         | 预览生产构建                                                                      |
-| `bun run test`          | 跑全量测试（264 个用例，约 8 秒）                                                 |
-| `bun run test:watch`    | 测试监听模式                                                                      |
 | `bun run typecheck`     | 类型检查                                                                          |
 | `bun run contract:emit` | 修改 `src/prisma/contract.ts` 后重新生成契约（`contract.json` / `contract.d.ts`） |
 
 ## 测试
 
-集成测试直连真实数据库，覆盖认证的完整路径（含错误分支、限速、并发）。
+**当前没有测试。** 原有的全量集成测试（39 个文件 / 715 个用例，直连真实数据库，
+覆盖认证完整路径、限速、并发）已随测试能力一并移除 —— 见 `git log --oneline | grep 测试代码`。
 
-**前置准备**：复制 `.env.test.example` 为 `.env.test`，指向一个**本机**测试库
-（默认 `tanstack_auth_test`），不是生产库：
-
-```bash
-psql -h 127.0.0.1 -U postgres -c "CREATE DATABASE tanstack_auth_test;"
-DATABASE_URL="postgresql://postgres:<pw>@127.0.0.1:5432/tanstack_auth_test" bun prisma db update
-```
-
-`src/test/setup.ts` 会硬性拒绝指向 Neon 或任何非本机地址的连接 —— 测试会真实
-建表、建用户、删数据，这个防护避免了误操作生产库。
-
-测试环境用 `ARGON2_TEST_WEAK=1` 把 Argon2 降到最低强度（单次哈希 130ms →
-3ms，全量测试 38s → 8s）。强度参数不参与任何逻辑分支，默认不降。
-
-**提交时自动跑**：`.husky/pre-commit` 依次跑 lint-staged、typecheck、全量测试。
-CI（GitHub Actions）在 push / PR 时用一次性 Postgres service container 跑同一套。
+要重新引入的话，需要一并恢复：`vitest.config.ts`、`src/test/` 的请求上下文注入
+（那套脚手架让测试能走 serverFn 的**真服务端路径**，见 `3bf6035`）、
+`package.json` 的 `test` 脚本与 `#test/*` 别名、`tsconfig.json` 的对应 paths、
+以及 CI 里的 Postgres service。
 
 ## 项目结构
 
@@ -126,7 +113,6 @@ src/
 │   └── utils.ts                # cn() 等
 ├── schemas/
 │   └── auth.ts                 # zod 校验 schema（登录 / 注册 / 重置 / OTP 验证）
-├── test/                       # 测试基建（请求上下文注入 / helpers / mock / setup）
 ├── prisma/                     # Prisma 契约与生成产物（contract.ts / contract.json / contract.d.ts / db.ts）
 ├── provider/
 │   └── theme-provider.tsx      # 主题（暗色模式）

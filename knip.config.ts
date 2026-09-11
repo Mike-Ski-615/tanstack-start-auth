@@ -36,13 +36,10 @@ export default {
   entry: [
     // 路由文件由 routeTree.gen.ts 动态加载，静态分析看不出引用关系
     "src/routes/**/*.tsx",
-    // 测试基础设施：`#test/*` 由 vitest 的 setupFiles 与各测试动态引用
-    "src/test/helpers.ts",
-    "src/test/mock-server-env.ts",
     // prisma 契约由 prisma.config.ts 引用
     "src/prisma/contract.ts",
-    // 注：src/server.ts、src/router.tsx、src/test/setup.ts 不必列 ——
-    // Knip 的 TanStack Start / Vitest 插件能自动识别（列了会被提示冗余）。
+    // 注：src/server.ts、src/router.tsx 不必列 ——
+    // Knip 的 TanStack Start 插件能自动识别（列了会被提示冗余）。
   ],
 
   /**
@@ -68,21 +65,10 @@ export default {
    */
   ignoreDependencies: [
     "cookie-es", // src/lib/auth/session.ts 的加密
-    "h3-v2",
-    "@tanstack/start-storage-context",
   ],
 
   /** 同文件内 export 又自用的情况不算未使用。 */
   ignoreExportsUsedInFile: true,
-
-  /**
-   * 无法解析的 import —— 它们是构建期才存在的虚拟模块，磁盘上没有文件，
-   * Knip 的解析器看不到（TypeScript 侧由 src/test/virtual-modules.d.ts 声明）。
-   */
-  ignoreUnresolved: [
-    // start 插件生成：functionId → 服务端实现的清单（见 src/test/request.ts）
-    "#tanstack-start-server-fn-resolver",
-  ],
 
   /**
    * 导出相关降为 warn。

@@ -2,8 +2,8 @@
  * 用户活动：登录事件的记录与聚合。
  *
  * 认证模块之外的业务模块，分层同 notifications / admin-actions：**查询与写入
- * 放这里当普通函数**，serverFn 只做鉴权与转发 —— serverFn 的成功返回值在
- * 测试里拿不到（见 src/test/request.ts），而热力图与统计必须断言返回值。
+ * 放这里当普通函数**，serverFn 只做鉴权与转发 —— 热力图与统计是可复用的业务
+ * 查询，与「谁在调用它」无关。
  *
  * 数据源是 LoginEvent 表（每次成功登录一行）。**不用 Session 表** ——
  * 单设备模型下 Session.userId 是 UNIQUE，新登录覆盖旧记录，历史会丢光。
