@@ -348,7 +348,9 @@ describe("OTP 重发", () => {
 
   it("重发限速 3 次/分钟（IP 维度）", async () => {
     const { email } = await pendingUser();
-    await scopedClearRateLimit(IP, "resend");
+    // 清**这个用例自己用的**那个 IP 桶（以前清的是 IP 常量，桶从没被清过 ——
+    // 单跑一次看不出来，连跑两次必失败）
+    await scopedClearRateLimit("203.0.113.150", "resend");
 
     for (let i = 0; i < 3; i++) {
       await withRequest({ ip: "203.0.113.150" }, () =>
@@ -363,7 +365,10 @@ describe("OTP 重发", () => {
 
   it("重发限速 3 次/分钟（邮箱维度）", async () => {
     const { email } = await pendingUser();
-    await scopedClearRateLimit(IP, "resend");
+    // 这个用例用 4 个 IP，逐个清（理由同上）
+    for (const ip of ["203.0.113.160", "203.0.113.161", "203.0.113.162", "203.0.113.200"]) {
+      await scopedClearRateLimit(ip, "resend");
+    }
 
     for (let i = 0; i < 3; i++) {
       await withRequest({ ip: `203.0.113.${160 + i}` }, () =>

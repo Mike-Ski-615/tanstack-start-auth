@@ -239,8 +239,10 @@ describe("重发验证邮件 — 限速边界", () => {
       created.push(r.user.id);
       return r;
     });
-    await scopedClearRateLimit(IP, "resend");
+    // 清**这个用例自己用的**那个 IP 桶（以前清的是 IP 常量，桶从没被清过 ——
+    // 单跑一次看不出来，连跑两次必失败）。
     const ip = "192.0.2.201";
+    await scopedClearRateLimit(ip, "resend");
 
     for (let i = 0; i < 3; i++) {
       await withRequest({ ip }, () => resendVerificationEmailFn({ data: { email } }));
@@ -255,8 +257,10 @@ describe("重发验证邮件 — 限速边界", () => {
       created.push(r.user.id);
       return r;
     });
-    await scopedClearRateLimit(IP, "resend");
+    // 清**这个用例自己用的**那个 IP 桶（以前清的是 IP 常量，桶从没被清过 ——
+    // 单跑一次看不出来，连跑两次必失败）。
     const ip = "192.0.2.202";
+    await scopedClearRateLimit(ip, "resend");
 
     for (let i = 0; i < 3; i++) {
       await withRequest({ ip }, () => resendVerificationEmailFn({ data: { email } }));
@@ -269,8 +273,10 @@ describe("重发验证邮件 — 限速边界", () => {
   it("被限速时不生成新 OTP", async () => {
     const { user, email } = await createUser({ verified: false });
     created.push(user.id);
-    await scopedClearRateLimit(IP, "resend");
+    // 清**这个用例自己用的**那个 IP 桶（以前清的是 IP 常量，桶从没被清过 ——
+    // 单跑一次看不出来，连跑两次必失败）。
     const ip = "192.0.2.203";
+    await scopedClearRateLimit(ip, "resend");
 
     for (let i = 0; i < 3; i++) {
       await withRequest({ ip }, () => resendVerificationEmailFn({ data: { email } }));
@@ -286,7 +292,10 @@ describe("重发验证邮件 — 限速边界", () => {
   it("换 IP 但同邮箱仍受邮箱维度限制", async () => {
     const { user, email } = await createUser({ verified: false });
     created.push(user.id);
-    await scopedClearRateLimit(IP, "resend");
+    // 这个用例用 4 个 IP，逐个清（理由同上）
+    for (const ip of ["192.0.2.210", "192.0.2.211", "192.0.2.212", "192.0.2.220"]) {
+      await scopedClearRateLimit(ip, "resend");
+    }
 
     // 三个不同 IP，同一邮箱
     for (let i = 0; i < 3; i++) {
@@ -305,8 +314,10 @@ describe("重发验证邮件 — 限速边界", () => {
     const a = await createUser({ verified: false });
     const b = await createUser({ verified: false });
     created.push(a.user.id, b.user.id);
-    await scopedClearRateLimit(IP, "resend");
+    // 清**这个用例自己用的**那个 IP 桶（以前清的是 IP 常量，桶从没被清过 ——
+    // 单跑一次看不出来，连跑两次必失败）。
     const ip = "192.0.2.230";
+    await scopedClearRateLimit(ip, "resend");
 
     for (let i = 0; i < 3; i++) {
       await withRequest({ ip }, () => resendVerificationEmailFn({ data: { email: a.email } }));

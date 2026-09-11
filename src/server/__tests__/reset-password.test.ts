@@ -145,7 +145,10 @@ describe("请求重置 — 防枚举", () => {
   it("请求限速：同一 IP 1 分钟最多 3 次", async () => {
     const { user, email } = await createUser({ verified: true });
     created.push(user.id);
-    await scopedClearRateLimit(IP, "reset");
+    // 清**这个用例自己用的**那个 IP 桶。以前清的是 IP 常量，而请求用的是
+    // 198.51.100.77 —— 桶从来没被清过，于是第二次跑就被上一轮留下的计数拦下
+    // （单跑一次看不出来，连跑两次必失败）。
+    await scopedClearRateLimit("198.51.100.77", "reset");
 
     for (let i = 0; i < 3; i++) await requestReset(email, "198.51.100.77");
     await expect(requestReset(email, "198.51.100.77")).rejects.toThrow();
@@ -154,7 +157,8 @@ describe("请求重置 — 防枚举", () => {
   it("限速按 IP，换 IP 不受影响", async () => {
     const { user, email } = await createUser({ verified: true });
     created.push(user.id);
-    await scopedClearRateLimit(IP, "reset");
+    await scopedClearRateLimit("198.51.100.1", "reset");
+    await scopedClearRateLimit("198.51.100.2", "reset");
 
     for (let i = 0; i < 3; i++) await requestReset(email, "198.51.100.1");
     await expect(requestReset(email, "198.51.100.2")).resolves.toEqual({ success: true });
@@ -163,7 +167,7 @@ describe("请求重置 — 防枚举", () => {
   it("被限速时不发邮件", async () => {
     const { user, email } = await createUser({ verified: true });
     created.push(user.id);
-    await scopedClearRateLimit(IP, "reset");
+    await scopedClearRateLimit("198.51.100.88", "reset");
 
     for (let i = 0; i < 3; i++) await requestReset(email, "198.51.100.88");
     clearMails();
