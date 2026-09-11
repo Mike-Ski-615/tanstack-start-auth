@@ -39,11 +39,17 @@
  * `.middleware([requireAdmin]).validator(schema)` —— 与执行顺序一致，
  * 未授权请求不会走到解析输入那一步。
  *
- * ## no-store 不在这里
+ * ## 响应缓存不在这里（当前也没人管）
  *
- * 它和认证是**正交**的：14 处 no-store 里 6 处属于未登录的 handler
- * （登录 / 注册 / 重置 ×2 / 验证邮件 ×2），任何认证中间件都盖不到。
- * 所以它由 `src/server.ts` 在响应层统一奶底（理由与踩过的坑见那个文件）。
+ * 曾经在 `src/start.ts` 的全局 functionMiddleware 与 `src/server.ts` 的响应层
+ * 各放过一次统一兑底，现均已移除——**目前没有任何地方设置 `Cache-Control`**。
+ *
+ * 需要注意的是 serverFn 的 URL 是 `/_serverFn/<base64 of {file, export}>`，
+ * **不含任何用户标识**：同一个 URL 对不同用户返回不同内容（getUserFn /
+ * listSessionsFn / listNotificationsFn …）。而客户端那份 fetch 没有 `cache` 选项
+ *（见框架的 serverFnFetcher），所以响应是否被缓存完全取决于缓存层自己的启发式。
+ * 真要让它们不可缓存，在所有 handler 里各写一行 `setResponseHeader` 是下策
+ *（14 处，漏写不报错）；回到 `src/server.ts` 包一层是最省的。
  */
 
 import { createMiddleware } from "@tanstack/react-start";
