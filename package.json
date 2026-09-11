@@ -25,6 +25,7 @@
   },
   "devDependencies": {
     "@prisma/cli-engine": "0.2.3",
+    "@tanstack/devtools-vite": "^0.8.5",
     "@tanstack/react-devtools": "^0.10.12",
     "@types/node": "^26.2.0",
     "@types/react": "^19.2.18",

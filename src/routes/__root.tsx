@@ -14,20 +14,10 @@ import { ErrorPage } from "#components/status/__root/error";
 import { NotFoundPage } from "#components/status/__root/not-found";
 import { ThemeProvider } from "#provider/theme-provider";
 import { ContentWidthProvider } from "#provider/content-width-provider";
-import { lazy } from "react";
+import { TanStackDevtools } from "@tanstack/react-devtools";
+import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools";
 import { TooltipProvider } from "#components/ui/tooltip";
-
-// devtools 只在开发环境加载，**必须是动态 import**：
-// 它们是 Solid 写的，SSR 渲染时会抛 `Client-only API called on the server side`，
-// 生产构建里无条件渲染的话所有页面 500（原因与复现见 devtools-panel.tsx 顶部）。
-// `import.meta.env.DEV` 是编译期常量，生产下该分支连同这些包一起被 tree-shake。
-const DevtoolsPanel = import.meta.env.DEV
-  ? lazy(() =>
-      import("#components/devtools/devtools-panel").then((m) => ({
-        default: m.DevtoolsPanel,
-      })),
-    )
-  : () => null;
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
@@ -93,7 +83,20 @@ function RootComponent() {
             </TooltipProvider>
           </ContentWidthProvider>
           <Scripts />
-          <DevtoolsPanel router={router} queryClient={queryClient} />
+          <TanStackDevtools
+            plugins={[
+              {
+                id: "router",
+                name: "TanStack Router",
+                render: <TanStackRouterDevtoolsPanel router={router} />,
+              },
+              {
+                id: "query",
+                name: "TanStack Query",
+                render: <ReactQueryDevtoolsPanel client={queryClient} />,
+              },
+            ]}
+          />
         </ThemeProvider>
       </body>
     </html>
