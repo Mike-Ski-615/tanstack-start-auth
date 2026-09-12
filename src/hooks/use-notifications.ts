@@ -46,7 +46,6 @@ export function useMarkReadMutation() {
   return useMutation({
     mutationFn: (recipientId: string) => markNotificationReadFn({ data: { recipientId } }),
     onSuccess: invalidate,
-    onError: () => {},
   });
 }
 
