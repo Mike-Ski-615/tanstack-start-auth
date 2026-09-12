@@ -12,8 +12,6 @@ export function useSessionGuard() {
   const { data, error } = useQuery({
     ...currentUserQueryOptions,
     refetchInterval: SESSION_POLL_INTERVAL_MS,
-    retry: 2,
-    retryDelay: 1000,
   });
 
   useEffect(() => {
