@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { SidebarLeft01Icon } from "@hugeicons/core-free-icons";
 
 import { PreviewBox, SettingPage, SettingRow } from "#components/settings/setting-row";
-import { NumberSlider } from "#components/ui/number-slider";
+import { RangeSlider } from "#components/ui/range-slider";
 import { SIDEBAR_WIDTH_BOUNDS, readSidebarWidth, writeSidebarWidth } from "#lib/sidebar-width";
 
 export const Route = createFileRoute("/authenticated/settings/appearance/sidebar-width")({
@@ -31,17 +31,19 @@ function SidebarWidthSetting() {
         label="宽度"
         desc={`范围 ${SIDEBAR_WIDTH_BOUNDS.min}–${SIDEBAR_WIDTH_BOUNDS.max} 像素`}
       >
-        <div className="w-72">
-          <NumberSlider
-            label="侧边栏"
+        <div className="flex w-72 items-center gap-3">
+          <RangeSlider
             value={width}
             min={SIDEBAR_WIDTH_BOUNDS.min}
             max={SIDEBAR_WIDTH_BOUNDS.max}
             step={4}
-            onChange={setWidth}
-            onCommit={commit}
-            format={(v) => `${v}px`}
+            onValueChange={setWidth}
+            aria-label="侧边栏宽度"
+            formatValueText={(v) => `${v}px`}
           />
+          <span className="w-14 shrink-0 text-right text-sm font-semibold tabular-nums">
+            {width}px
+          </span>
         </div>
       </SettingRow>
 

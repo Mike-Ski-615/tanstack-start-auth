@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { TextFontIcon } from "@hugeicons/core-free-icons";
 
 import { PreviewBox, SettingPage, SettingRow, Segmented } from "#components/settings/setting-row";
-import { InlineSlider } from "#components/ui/inline-slider";
+import { EnumSlider } from "#components/ui/enum-slider";
 import { FONT_SCALE_LABEL, fontScale } from "#provider/appearance-provider";
 
 export const Route = createFileRoute("/authenticated/settings/appearance/font")({
@@ -23,7 +23,7 @@ function FontSetting() {
 
       <SettingRow label="滑块选择" desc="拖动滑块调整全局字号">
         <div className="w-64">
-          <InlineSlider
+          <EnumSlider
             label="字号"
             values={SCALES}
             value={value}

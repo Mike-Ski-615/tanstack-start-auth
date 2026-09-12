@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { RulerIcon } from "@hugeicons/core-free-icons";
 
 import { PreviewBox, SettingPage, SettingRow, Segmented } from "#components/settings/setting-row";
-import { InlineSlider } from "#components/ui/inline-slider";
+import { EnumSlider } from "#components/ui/enum-slider";
 import { RADIUS_LABEL, radius } from "#provider/appearance-provider";
 
 export const Route = createFileRoute("/authenticated/settings/appearance/radius")({
@@ -23,7 +23,7 @@ function RadiusSetting() {
 
       <SettingRow label="滑块选择" desc="拖动滑块调整圆角半径">
         <div className="w-64">
-          <InlineSlider
+          <EnumSlider
             label="圆角"
             values={RADII}
             value={value}

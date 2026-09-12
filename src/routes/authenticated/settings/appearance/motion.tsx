@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Motion01Icon } from "@hugeicons/core-free-icons";
 
 import { PreviewBox, SettingPage, SettingRow, Segmented } from "#components/settings/setting-row";
-import { InlineSlider } from "#components/ui/inline-slider";
+import { EnumSlider } from "#components/ui/enum-slider";
 import { MOTION_LABEL, motion } from "#provider/appearance-provider";
 
 export const Route = createFileRoute("/authenticated/settings/appearance/motion")({
@@ -26,7 +26,7 @@ function MotionSetting() {
 
       <SettingRow label="滑块选择" desc="拖动滑块切换动画偏好">
         <div className="w-72">
-          <InlineSlider
+          <EnumSlider
             label="动画"
             values={MODES}
             value={value}

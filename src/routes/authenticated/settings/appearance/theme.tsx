@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Moon02Icon } from "@hugeicons/core-free-icons";
 
 import { PreviewBox, SettingPage, SettingRow, Segmented } from "#components/settings/setting-row";
-import { InlineSlider } from "#components/ui/inline-slider";
+import { EnumSlider } from "#components/ui/enum-slider";
 import { useTheme } from "#provider/theme-provider";
 
 export const Route = createFileRoute("/authenticated/settings/appearance/theme")({
@@ -24,7 +24,7 @@ function ThemeSetting() {
 
       <SettingRow label="主题" desc="拖动滑块在亮色与暗色之间切换">
         <div className="w-64">
-          <InlineSlider
+          <EnumSlider
             label="主题"
             values={THEMES}
             value={theme}

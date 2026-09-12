@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Maximize01Icon } from "@hugeicons/core-free-icons";
 
 import { PreviewBox, SettingPage, SettingRow, Segmented } from "#components/settings/setting-row";
-import { InlineSlider } from "#components/ui/inline-slider";
+import { EnumSlider } from "#components/ui/enum-slider";
 import {
   CONTENT_WIDTH_LABEL,
   CONTENT_WIDTH_ORDER,
@@ -30,7 +30,7 @@ function WidthSetting() {
 
       <SettingRow label="滑块选择" desc="拖动滑块调整正文宽度">
         <div className="w-64">
-          <InlineSlider
+          <EnumSlider
             label="内容宽度"
             values={CONTENT_WIDTH_ORDER}
             value={width}
