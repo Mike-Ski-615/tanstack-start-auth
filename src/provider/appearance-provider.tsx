@@ -39,28 +39,6 @@ function applyAccent(value: Accent) {
   document.documentElement.setAttribute("data-accent", value);
 }
 
-export type Motion = "system" | "full" | "reduced";
-
-export const MOTION_LABEL: Record<Motion, string> = {
-  system: "跟随系统",
-  full: "始终开启",
-  reduced: "始终关闭",
-};
-
-function applyMotion(value: Motion) {
-  const root = document.documentElement;
-  if (value === "system") root.removeAttribute("data-motion");
-  else root.setAttribute("data-motion", value);
-}
-
-export const motion = createPreference<Motion>({
-  key: "motion",
-  attribute: "data-motion",
-  values: ["system", "full", "reduced"],
-  fallback: "system",
-  apply: applyMotion,
-});
-
 export const radius = createPreference<string>({
   key: "radius",
   attribute: "data-radius",

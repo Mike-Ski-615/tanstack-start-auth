@@ -35,10 +35,7 @@ import { Route as AuthenticatedSettingsProfileRouteImport } from './routes/authe
 import { Route as AuthenticatedUsersUserIdRouteImport } from './routes/authenticated/users/$userId'
 import { Route as AuthenticatedSettingsAppearanceAccentRouteImport } from './routes/authenticated/settings/appearance/accent'
 import { Route as AuthenticatedSettingsAppearanceFontRouteImport } from './routes/authenticated/settings/appearance/font'
-import { Route as AuthenticatedSettingsAppearanceMotionRouteImport } from './routes/authenticated/settings/appearance/motion'
 import { Route as AuthenticatedSettingsAppearanceRadiusRouteImport } from './routes/authenticated/settings/appearance/radius'
-import { Route as AuthenticatedSettingsAppearanceThemeRouteImport } from './routes/authenticated/settings/appearance/theme'
-import { Route as AuthenticatedSettingsAppearanceWidthRouteImport } from './routes/authenticated/settings/appearance/width'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -183,28 +180,10 @@ const AuthenticatedSettingsAppearanceFontRoute =
     path: '/font',
     getParentRoute: () => AuthenticatedSettingsAppearanceRoute,
   } as any)
-const AuthenticatedSettingsAppearanceMotionRoute =
-  AuthenticatedSettingsAppearanceMotionRouteImport.update({
-    id: '/motion',
-    path: '/motion',
-    getParentRoute: () => AuthenticatedSettingsAppearanceRoute,
-  } as any)
 const AuthenticatedSettingsAppearanceRadiusRoute =
   AuthenticatedSettingsAppearanceRadiusRouteImport.update({
     id: '/radius',
     path: '/radius',
-    getParentRoute: () => AuthenticatedSettingsAppearanceRoute,
-  } as any)
-const AuthenticatedSettingsAppearanceThemeRoute =
-  AuthenticatedSettingsAppearanceThemeRouteImport.update({
-    id: '/theme',
-    path: '/theme',
-    getParentRoute: () => AuthenticatedSettingsAppearanceRoute,
-  } as any)
-const AuthenticatedSettingsAppearanceWidthRoute =
-  AuthenticatedSettingsAppearanceWidthRouteImport.update({
-    id: '/width',
-    path: '/width',
     getParentRoute: () => AuthenticatedSettingsAppearanceRoute,
   } as any)
 
@@ -235,10 +214,7 @@ export interface FileRoutesByFullPath {
   '/authenticated/users/$userId': typeof AuthenticatedUsersUserIdRoute
   '/authenticated/settings/appearance/accent': typeof AuthenticatedSettingsAppearanceAccentRoute
   '/authenticated/settings/appearance/font': typeof AuthenticatedSettingsAppearanceFontRoute
-  '/authenticated/settings/appearance/motion': typeof AuthenticatedSettingsAppearanceMotionRoute
   '/authenticated/settings/appearance/radius': typeof AuthenticatedSettingsAppearanceRadiusRoute
-  '/authenticated/settings/appearance/theme': typeof AuthenticatedSettingsAppearanceThemeRoute
-  '/authenticated/settings/appearance/width': typeof AuthenticatedSettingsAppearanceWidthRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -267,10 +243,7 @@ export interface FileRoutesByTo {
   '/authenticated/users/$userId': typeof AuthenticatedUsersUserIdRoute
   '/authenticated/settings/appearance/accent': typeof AuthenticatedSettingsAppearanceAccentRoute
   '/authenticated/settings/appearance/font': typeof AuthenticatedSettingsAppearanceFontRoute
-  '/authenticated/settings/appearance/motion': typeof AuthenticatedSettingsAppearanceMotionRoute
   '/authenticated/settings/appearance/radius': typeof AuthenticatedSettingsAppearanceRadiusRoute
-  '/authenticated/settings/appearance/theme': typeof AuthenticatedSettingsAppearanceThemeRoute
-  '/authenticated/settings/appearance/width': typeof AuthenticatedSettingsAppearanceWidthRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -300,10 +273,7 @@ export interface FileRoutesById {
   '/authenticated/users/$userId': typeof AuthenticatedUsersUserIdRoute
   '/authenticated/settings/appearance/accent': typeof AuthenticatedSettingsAppearanceAccentRoute
   '/authenticated/settings/appearance/font': typeof AuthenticatedSettingsAppearanceFontRoute
-  '/authenticated/settings/appearance/motion': typeof AuthenticatedSettingsAppearanceMotionRoute
   '/authenticated/settings/appearance/radius': typeof AuthenticatedSettingsAppearanceRadiusRoute
-  '/authenticated/settings/appearance/theme': typeof AuthenticatedSettingsAppearanceThemeRoute
-  '/authenticated/settings/appearance/width': typeof AuthenticatedSettingsAppearanceWidthRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -334,10 +304,7 @@ export interface FileRouteTypes {
     | '/authenticated/users/$userId'
     | '/authenticated/settings/appearance/accent'
     | '/authenticated/settings/appearance/font'
-    | '/authenticated/settings/appearance/motion'
     | '/authenticated/settings/appearance/radius'
-    | '/authenticated/settings/appearance/theme'
-    | '/authenticated/settings/appearance/width'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -366,10 +333,7 @@ export interface FileRouteTypes {
     | '/authenticated/users/$userId'
     | '/authenticated/settings/appearance/accent'
     | '/authenticated/settings/appearance/font'
-    | '/authenticated/settings/appearance/motion'
     | '/authenticated/settings/appearance/radius'
-    | '/authenticated/settings/appearance/theme'
-    | '/authenticated/settings/appearance/width'
   id:
     | '__root__'
     | '/'
@@ -398,10 +362,7 @@ export interface FileRouteTypes {
     | '/authenticated/users/$userId'
     | '/authenticated/settings/appearance/accent'
     | '/authenticated/settings/appearance/font'
-    | '/authenticated/settings/appearance/motion'
     | '/authenticated/settings/appearance/radius'
-    | '/authenticated/settings/appearance/theme'
-    | '/authenticated/settings/appearance/width'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -594,32 +555,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsAppearanceFontRouteImport
       parentRoute: typeof AuthenticatedSettingsAppearanceRoute
     }
-    '/authenticated/settings/appearance/motion': {
-      id: '/authenticated/settings/appearance/motion'
-      path: '/motion'
-      fullPath: '/authenticated/settings/appearance/motion'
-      preLoaderRoute: typeof AuthenticatedSettingsAppearanceMotionRouteImport
-      parentRoute: typeof AuthenticatedSettingsAppearanceRoute
-    }
     '/authenticated/settings/appearance/radius': {
       id: '/authenticated/settings/appearance/radius'
       path: '/radius'
       fullPath: '/authenticated/settings/appearance/radius'
       preLoaderRoute: typeof AuthenticatedSettingsAppearanceRadiusRouteImport
-      parentRoute: typeof AuthenticatedSettingsAppearanceRoute
-    }
-    '/authenticated/settings/appearance/theme': {
-      id: '/authenticated/settings/appearance/theme'
-      path: '/theme'
-      fullPath: '/authenticated/settings/appearance/theme'
-      preLoaderRoute: typeof AuthenticatedSettingsAppearanceThemeRouteImport
-      parentRoute: typeof AuthenticatedSettingsAppearanceRoute
-    }
-    '/authenticated/settings/appearance/width': {
-      id: '/authenticated/settings/appearance/width'
-      path: '/width'
-      fullPath: '/authenticated/settings/appearance/width'
-      preLoaderRoute: typeof AuthenticatedSettingsAppearanceWidthRouteImport
       parentRoute: typeof AuthenticatedSettingsAppearanceRoute
     }
   }
@@ -661,10 +601,7 @@ const AuthenticatedAdminRouteWithChildren =
 interface AuthenticatedSettingsAppearanceRouteChildren {
   AuthenticatedSettingsAppearanceAccentRoute: typeof AuthenticatedSettingsAppearanceAccentRoute
   AuthenticatedSettingsAppearanceFontRoute: typeof AuthenticatedSettingsAppearanceFontRoute
-  AuthenticatedSettingsAppearanceMotionRoute: typeof AuthenticatedSettingsAppearanceMotionRoute
   AuthenticatedSettingsAppearanceRadiusRoute: typeof AuthenticatedSettingsAppearanceRadiusRoute
-  AuthenticatedSettingsAppearanceThemeRoute: typeof AuthenticatedSettingsAppearanceThemeRoute
-  AuthenticatedSettingsAppearanceWidthRoute: typeof AuthenticatedSettingsAppearanceWidthRoute
 }
 
 const AuthenticatedSettingsAppearanceRouteChildren: AuthenticatedSettingsAppearanceRouteChildren =
@@ -673,14 +610,8 @@ const AuthenticatedSettingsAppearanceRouteChildren: AuthenticatedSettingsAppeara
       AuthenticatedSettingsAppearanceAccentRoute,
     AuthenticatedSettingsAppearanceFontRoute:
       AuthenticatedSettingsAppearanceFontRoute,
-    AuthenticatedSettingsAppearanceMotionRoute:
-      AuthenticatedSettingsAppearanceMotionRoute,
     AuthenticatedSettingsAppearanceRadiusRoute:
       AuthenticatedSettingsAppearanceRadiusRoute,
-    AuthenticatedSettingsAppearanceThemeRoute:
-      AuthenticatedSettingsAppearanceThemeRoute,
-    AuthenticatedSettingsAppearanceWidthRoute:
-      AuthenticatedSettingsAppearanceWidthRoute,
   }
 
 const AuthenticatedSettingsAppearanceRouteWithChildren =

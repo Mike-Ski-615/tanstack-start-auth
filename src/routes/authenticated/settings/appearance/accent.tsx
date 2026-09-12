@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { DropletIcon } from "@hugeicons/core-free-icons";
 
+import { Badge } from "#components/ui/badge";
+import { Button } from "#components/ui/button";
 import { PreviewBox, SettingPage, SettingRow } from "#components/settings/setting-row";
 import { ACCENT_LABEL, ACCENT_SWATCH, accent } from "#provider/appearance-provider";
 import { cn } from "#lib/utils";
@@ -41,22 +43,10 @@ function AccentSetting() {
 
       <PreviewBox>
         <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            className="rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground"
-          >
-            主要按钮
-          </button>
-          <button
-            type="button"
-            className="rounded-lg border border-primary px-3 py-2 text-sm text-primary"
-          >
-            次要按钮
-          </button>
-          <a href="#" className="text-sm text-primary underline underline-offset-4">
-            链接文字
-          </a>
-          <span className="rounded-full bg-primary/15 px-2.5 py-1 text-xs text-primary">标签</span>
+          <Button>主要按钮</Button>
+          <Button variant="outline">次要按钮</Button>
+          <Button variant="link">链接文字</Button>
+          <Badge>标签</Badge>
           <div className="flex h-8 w-24 items-end gap-1">
             {[40, 70, 55, 90, 65].map((h, i) => (
               <div key={i} className="flex-1 rounded-t bg-primary" style={{ height: `${h}%` }} />

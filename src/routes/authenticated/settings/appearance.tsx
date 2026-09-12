@@ -11,7 +11,7 @@ export const Route = createFileRoute("/authenticated/settings/appearance")({
   component: () => <Outlet />,
   beforeLoad: ({ location }) => {
     if (location.pathname === "/authenticated/settings/appearance") {
-      throw redirect({ to: "/authenticated/settings/appearance/theme" });
+      throw redirect({ to: "/authenticated/settings/appearance/accent" });
     }
   },
 });

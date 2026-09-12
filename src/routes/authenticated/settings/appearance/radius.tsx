@@ -2,6 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { RulerIcon } from "@hugeicons/core-free-icons";
 
+import { Badge } from "#components/ui/badge";
+import { Button } from "#components/ui/button";
+import { Card, CardContent } from "#components/ui/card";
+import { Input } from "#components/ui/input";
 import { PreviewBox, SettingPage, SettingRow } from "#components/settings/setting-row";
 import { RangeSlider } from "#components/ui/range-slider";
 import { RADIUS_RANGE, radius } from "#provider/appearance-provider";
@@ -32,20 +36,12 @@ function RadiusSetting() {
 
       <PreviewBox>
         <div className="flex flex-wrap items-center gap-3">
-          <div className="rounded-lg border bg-background px-4 py-3 text-sm">卡片 rounded-lg</div>
-          <div className="rounded-xl border bg-background px-4 py-3 text-sm">卡片 rounded-xl</div>
-          <button
-            type="button"
-            className="rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground"
-          >
-            按钮
-          </button>
-          <input
-            readOnly
-            value="输入框"
-            className="h-9 rounded-lg border bg-background px-3 text-sm outline-none"
-          />
-          <div className="rounded-full border bg-background px-3 py-1 text-xs">圆角胶囊</div>
+          <Card className="w-fit">
+            <CardContent>卡片</CardContent>
+          </Card>
+          <Button>按钮</Button>
+          <Input readOnly value="输入框" className="w-40" />
+          <Badge>胶囊</Badge>
         </div>
       </PreviewBox>
     </SettingPage>
