@@ -52,10 +52,17 @@ export default function Heatmap({ data }: { data: ActivityDay[] }) {
     if (weeks >= FULL_YEAR_WEEKS) return data;
 
     const todayISO = isoDayUTC(new Date());
-    const idx = data.findIndex((d) => d.date === todayISO);
-    if (idx < 0) return data.slice(-weeks * 7);
+    const start = new Date(Date.parse(`${todayISO}T00:00:00.000Z`) - (weeks * 7 - 1) * 86400000);
+    const startISO = isoDayUTC(start);
 
-    return data.slice(Math.max(0, idx - weeks * 7 + 1), idx + 1);
+    const windowed = data.filter((d) => d.date >= startISO && d.date <= todayISO);
+    if (windowed[0]?.date !== startISO) {
+      windowed.unshift({ date: startISO, count: 0, level: 0 });
+    }
+    if (windowed[windowed.length - 1]?.date !== todayISO) {
+      windowed.push({ date: todayISO, count: 0, level: 0 });
+    }
+    return windowed;
   })();
 
   return (

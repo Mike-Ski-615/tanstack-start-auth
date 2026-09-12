@@ -51,6 +51,13 @@ function levelFor(count: number): number {
   return 4;
 }
 
+export { levelFor };
+
+/**
+ * Sparse activity list: only days with activity, plus explicit Jan 1 / Dec 31
+ * boundary entries so the calendar spans the whole year. Fully-empty days are
+ * omitted — react-activity-calendar treats missing dates as zero.
+ */
 export function buildActivityCalendar(events: LoginEvent[], now = new Date()): ActivityDay[] {
   const counts = new Map<string, number>();
   for (const e of events) {
@@ -59,17 +66,22 @@ export function buildActivityCalendar(events: LoginEvent[], now = new Date()): A
   }
 
   const year = now.getUTCFullYear();
-  const startUTC = Date.UTC(year, 0, 1);
-  const endUTC = Date.UTC(year, 11, 31);
   const todayUTC = startOfDayUTC(now);
 
   const days: ActivityDay[] = [];
-  for (let t = startUTC; t <= endUTC; t += DAY_MS) {
-    const date = isoDayUTC(new Date(t));
-    const count = t <= todayUTC ? (counts.get(date) ?? 0) : 0;
+  for (const [date, count] of counts) {
+    const t = Date.parse(`${date}T00:00:00.000Z`);
+    if (t > todayUTC) continue;
     days.push({ date, count, level: levelFor(count) });
   }
-  return days;
+  days.sort((a, b) => (a.date < b.date ? -1 : 1));
+
+  const first = isoDayUTC(new Date(Date.UTC(year, 0, 1)));
+  const last = isoDayUTC(new Date(Date.UTC(year, 11, 31)));
+  const out = days.slice();
+  if (out[0]?.date !== first) out.unshift({ date: first, count: 0, level: 0 });
+  if (out[out.length - 1]?.date !== last) out.push({ date: last, count: 0, level: 0 });
+  return out;
 }
 
 export function computeStats(events: LoginEvent[], now = new Date()): ActivityStats {
