@@ -37,7 +37,6 @@ import { Route as AuthenticatedSettingsAppearanceAccentRouteImport } from './rou
 import { Route as AuthenticatedSettingsAppearanceFontRouteImport } from './routes/authenticated/settings/appearance/font'
 import { Route as AuthenticatedSettingsAppearanceMotionRouteImport } from './routes/authenticated/settings/appearance/motion'
 import { Route as AuthenticatedSettingsAppearanceRadiusRouteImport } from './routes/authenticated/settings/appearance/radius'
-import { Route as AuthenticatedSettingsAppearanceSidebarWidthRouteImport } from './routes/authenticated/settings/appearance/sidebar-width'
 import { Route as AuthenticatedSettingsAppearanceThemeRouteImport } from './routes/authenticated/settings/appearance/theme'
 import { Route as AuthenticatedSettingsAppearanceWidthRouteImport } from './routes/authenticated/settings/appearance/width'
 
@@ -196,12 +195,6 @@ const AuthenticatedSettingsAppearanceRadiusRoute =
     path: '/radius',
     getParentRoute: () => AuthenticatedSettingsAppearanceRoute,
   } as any)
-const AuthenticatedSettingsAppearanceSidebarWidthRoute =
-  AuthenticatedSettingsAppearanceSidebarWidthRouteImport.update({
-    id: '/sidebar-width',
-    path: '/sidebar-width',
-    getParentRoute: () => AuthenticatedSettingsAppearanceRoute,
-  } as any)
 const AuthenticatedSettingsAppearanceThemeRoute =
   AuthenticatedSettingsAppearanceThemeRouteImport.update({
     id: '/theme',
@@ -244,7 +237,6 @@ export interface FileRoutesByFullPath {
   '/authenticated/settings/appearance/font': typeof AuthenticatedSettingsAppearanceFontRoute
   '/authenticated/settings/appearance/motion': typeof AuthenticatedSettingsAppearanceMotionRoute
   '/authenticated/settings/appearance/radius': typeof AuthenticatedSettingsAppearanceRadiusRoute
-  '/authenticated/settings/appearance/sidebar-width': typeof AuthenticatedSettingsAppearanceSidebarWidthRoute
   '/authenticated/settings/appearance/theme': typeof AuthenticatedSettingsAppearanceThemeRoute
   '/authenticated/settings/appearance/width': typeof AuthenticatedSettingsAppearanceWidthRoute
 }
@@ -277,7 +269,6 @@ export interface FileRoutesByTo {
   '/authenticated/settings/appearance/font': typeof AuthenticatedSettingsAppearanceFontRoute
   '/authenticated/settings/appearance/motion': typeof AuthenticatedSettingsAppearanceMotionRoute
   '/authenticated/settings/appearance/radius': typeof AuthenticatedSettingsAppearanceRadiusRoute
-  '/authenticated/settings/appearance/sidebar-width': typeof AuthenticatedSettingsAppearanceSidebarWidthRoute
   '/authenticated/settings/appearance/theme': typeof AuthenticatedSettingsAppearanceThemeRoute
   '/authenticated/settings/appearance/width': typeof AuthenticatedSettingsAppearanceWidthRoute
 }
@@ -311,7 +302,6 @@ export interface FileRoutesById {
   '/authenticated/settings/appearance/font': typeof AuthenticatedSettingsAppearanceFontRoute
   '/authenticated/settings/appearance/motion': typeof AuthenticatedSettingsAppearanceMotionRoute
   '/authenticated/settings/appearance/radius': typeof AuthenticatedSettingsAppearanceRadiusRoute
-  '/authenticated/settings/appearance/sidebar-width': typeof AuthenticatedSettingsAppearanceSidebarWidthRoute
   '/authenticated/settings/appearance/theme': typeof AuthenticatedSettingsAppearanceThemeRoute
   '/authenticated/settings/appearance/width': typeof AuthenticatedSettingsAppearanceWidthRoute
 }
@@ -346,7 +336,6 @@ export interface FileRouteTypes {
     | '/authenticated/settings/appearance/font'
     | '/authenticated/settings/appearance/motion'
     | '/authenticated/settings/appearance/radius'
-    | '/authenticated/settings/appearance/sidebar-width'
     | '/authenticated/settings/appearance/theme'
     | '/authenticated/settings/appearance/width'
   fileRoutesByTo: FileRoutesByTo
@@ -379,7 +368,6 @@ export interface FileRouteTypes {
     | '/authenticated/settings/appearance/font'
     | '/authenticated/settings/appearance/motion'
     | '/authenticated/settings/appearance/radius'
-    | '/authenticated/settings/appearance/sidebar-width'
     | '/authenticated/settings/appearance/theme'
     | '/authenticated/settings/appearance/width'
   id:
@@ -412,7 +400,6 @@ export interface FileRouteTypes {
     | '/authenticated/settings/appearance/font'
     | '/authenticated/settings/appearance/motion'
     | '/authenticated/settings/appearance/radius'
-    | '/authenticated/settings/appearance/sidebar-width'
     | '/authenticated/settings/appearance/theme'
     | '/authenticated/settings/appearance/width'
   fileRoutesById: FileRoutesById
@@ -621,13 +608,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsAppearanceRadiusRouteImport
       parentRoute: typeof AuthenticatedSettingsAppearanceRoute
     }
-    '/authenticated/settings/appearance/sidebar-width': {
-      id: '/authenticated/settings/appearance/sidebar-width'
-      path: '/sidebar-width'
-      fullPath: '/authenticated/settings/appearance/sidebar-width'
-      preLoaderRoute: typeof AuthenticatedSettingsAppearanceSidebarWidthRouteImport
-      parentRoute: typeof AuthenticatedSettingsAppearanceRoute
-    }
     '/authenticated/settings/appearance/theme': {
       id: '/authenticated/settings/appearance/theme'
       path: '/theme'
@@ -683,7 +663,6 @@ interface AuthenticatedSettingsAppearanceRouteChildren {
   AuthenticatedSettingsAppearanceFontRoute: typeof AuthenticatedSettingsAppearanceFontRoute
   AuthenticatedSettingsAppearanceMotionRoute: typeof AuthenticatedSettingsAppearanceMotionRoute
   AuthenticatedSettingsAppearanceRadiusRoute: typeof AuthenticatedSettingsAppearanceRadiusRoute
-  AuthenticatedSettingsAppearanceSidebarWidthRoute: typeof AuthenticatedSettingsAppearanceSidebarWidthRoute
   AuthenticatedSettingsAppearanceThemeRoute: typeof AuthenticatedSettingsAppearanceThemeRoute
   AuthenticatedSettingsAppearanceWidthRoute: typeof AuthenticatedSettingsAppearanceWidthRoute
 }
@@ -698,8 +677,6 @@ const AuthenticatedSettingsAppearanceRouteChildren: AuthenticatedSettingsAppeara
       AuthenticatedSettingsAppearanceMotionRoute,
     AuthenticatedSettingsAppearanceRadiusRoute:
       AuthenticatedSettingsAppearanceRadiusRoute,
-    AuthenticatedSettingsAppearanceSidebarWidthRoute:
-      AuthenticatedSettingsAppearanceSidebarWidthRoute,
     AuthenticatedSettingsAppearanceThemeRoute:
       AuthenticatedSettingsAppearanceThemeRoute,
     AuthenticatedSettingsAppearanceWidthRoute:

@@ -25,8 +25,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "#components/ui/tooltip";
-import { readSidebarWidth, writeSidebarWidth } from "#lib/sidebar-width";
-
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = "16rem";
@@ -80,9 +78,7 @@ function SidebarProvider({
 
   const [_open, _setOpen] = React.useState(defaultOpen);
   const open = openProp ?? _open;
-  const [width, setWidthPx] = React.useState(() =>
-    defaultOpen ? readSidebarWidth() : 0,
-  );
+  const [width, setWidthPx] = React.useState(open ? SIDEBAR_WIDTH_PX : 0);
   const [dragging, setDragging] = React.useState(false);
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
@@ -101,12 +97,8 @@ function SidebarProvider({
   );
 
   React.useEffect(() => {
-    setWidthPx(open ? readSidebarWidth() : 0);
+    setWidthPx(open ? SIDEBAR_WIDTH_PX : 0);
   }, [open]);
-
-  React.useEffect(() => {
-    if (width > 0) writeSidebarWidth(width);
-  }, [width]);
 
   const toggleSidebar = React.useCallback(() => {
     return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);

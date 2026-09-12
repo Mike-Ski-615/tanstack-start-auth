@@ -140,14 +140,6 @@ export const SETTINGS_NAV: NavItem[] = [
     group: "外观",
   },
   {
-    id: "appearance-sidebar-width",
-    title: "侧边栏宽度",
-    desc: "左侧导航栏的宽度",
-    icon: SidebarLeft01Icon,
-    to: "/authenticated/settings/appearance/sidebar-width",
-    group: "外观",
-  },
-  {
     id: "privacy-security",
     title: "隐私与安全",
     desc: "设备管理、会话详情与撤销",
@@ -382,11 +374,5 @@ export const INTRO: Intro[] = [
     icon: Motion01Icon,
     to: "/authenticated/settings/appearance/motion",
     desc: "控制系统动画与过渡效果。",
-  },
-  {
-    title: "侧边栏宽度",
-    icon: SidebarLeft01Icon,
-    to: "/authenticated/settings/appearance/sidebar-width",
-    desc: "调整左侧导航栏的宽度。",
   },
 ];
