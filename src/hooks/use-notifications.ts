@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -138,6 +139,7 @@ export function useDeleteNotificationBatchMutation() {
 }
 
 export function useNewNotificationToast(notifyOnNewMessage: boolean): void {
+  const navigate = useNavigate();
   const { data: unread } = useUnreadCount(NOTIFICATION_POLL_INTERVAL_MS);
 
   const [seen, setSeen] = useState<number | null>(null);
@@ -164,9 +166,9 @@ export function useNewNotificationToast(notifyOnNewMessage: boolean): void {
       action: {
         label: "查看",
         onClick: () => {
-          window.location.assign("/authenticated/settings/bell");
+          navigate({ to: "/authenticated/settings/bell" });
         },
       },
     });
-  }, [unread, seen, notifyOnNewMessage]);
+  }, [unread, seen, notifyOnNewMessage, navigate]);
 }
