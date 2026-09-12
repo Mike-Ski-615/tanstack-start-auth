@@ -33,7 +33,7 @@ export function HeaderBell() {
   const [open, setOpen] = useState(false);
 
   const { data: unread = 0 } = useUnreadCount();
-  const { data: items = [], isPending, error } = useNotifications(open);
+  const { data: items = [], isLoading, error } = useNotifications(open);
 
   const markRead = useMarkReadMutation();
   const markAll = useMarkAllReadMutation();
@@ -82,7 +82,7 @@ export function HeaderBell() {
         </PopoverHeader>
 
         <ScrollArea className="max-h-80">
-          {isPending ? (
+          {isLoading ? (
             <div className="flex flex-col items-center gap-2 px-4 py-8 text-muted-foreground">
               <HugeiconsIcon icon={Loading02Icon} className="size-5 animate-spin" />
               <p className="text-sm">加载中…</p>

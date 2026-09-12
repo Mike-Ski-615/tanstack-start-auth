@@ -21,10 +21,10 @@ import type { SendNotificationValues } from "#schemas/auth";
 
 const NOTIFICATION_POLL_INTERVAL_MS = 30_000;
 
-export function useUnreadCount() {
+export function useUnreadCount(refetchInterval?: number) {
   return useQuery({
     ...notificationsUnreadQueryOptions,
-    refetchInterval: NOTIFICATION_POLL_INTERVAL_MS,
+    refetchInterval,
   });
 }
 
@@ -139,7 +139,7 @@ export function useDeleteNotificationBatchMutation() {
 }
 
 export function useNewNotificationToast(notifyOnNewMessage: boolean): void {
-  const { data: unread } = useUnreadCount();
+  const { data: unread } = useUnreadCount(NOTIFICATION_POLL_INTERVAL_MS);
 
   const [seen, setSeen] = useState<number | null>(null);
 
