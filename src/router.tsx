@@ -38,6 +38,8 @@ export function getRouter() {
     scrollRestoration: true,
     defaultPreload: "intent",
     defaultPreloadStaleTime: 30_000,
+    defaultPendingMs: 500,
+    defaultPendingMinMs: 150,
   });
 
   setupRouterSsrQueryIntegration({
