@@ -1,5 +1,4 @@
 export const SPRING_GLIDE = {
-  type: "spring",
   stiffness: 520,
   damping: 32,
   mass: 1,
