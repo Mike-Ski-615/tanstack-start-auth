@@ -15,17 +15,19 @@ import {
   useState,
 } from "react";
 
-import { SPRING_GLIDE } from "#lib/ease";
-import { type SliderOptions, snapSliderValue, useSlider } from "#lib/hooks/use-slider";
-import { capturePointer, releasePointer, TOUCH_GESTURE_CLASS } from "#lib/touch";
-import { cn } from "#lib/utils";
+import { SliderFill, SliderTick, sliderTrackClass } from "#components/ui/slider-parts";
+import { SPRING_BOUNCY, SPRING_GLIDE } from "#lib/ease";
+import {
+  HANDLE_END_INSET,
+  HANDLE_START,
+  type SliderOptions,
+  snapSliderValue,
+  useSlider,
+} from "#lib/hooks/use-slider";
+import { capturePointer, releasePointer } from "#lib/touch";
 
 const STOP_COUNT = 10;
-const HANDLE_START = 8;
-const HANDLE_END_INSET = 12;
 const TEXT_INSET = 20;
-// Matches RangeSlider's bouncy grab and release feedback.
-const SPRING_BOUNCY = { type: "spring", stiffness: 500, damping: 14, mass: 0.7 } as const;
 
 type Stop = { value: number; x: number };
 
@@ -268,24 +270,9 @@ export function InlineSlider({
       onPointerUp={endGesture}
       onPointerCancel={endGesture}
       onLostPointerCapture={endGesture}
-      className={cn(
-        "relative h-10 w-full touch-none select-none overflow-hidden rounded-lg bg-muted",
-        TOUCH_GESTURE_CLASS,
-        options.disabled
-          ? "pointer-events-none opacity-50"
-          : "cursor-grab active:cursor-grabbing",
-        className,
-      )}
+      className={sliderTrackClass(options.disabled, className)}
     >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-[2px] inset-y-0 overflow-hidden rounded-lg"
-      >
-        <motion.div
-          className="absolute inset-0 rounded-lg bg-foreground/15"
-          style={{ x: fillX }}
-        />
-      </div>
+      <SliderFill x={fillX} />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 text-foreground">
         <span
           ref={labelRef}
@@ -295,16 +282,12 @@ export function InlineSlider({
         </span>
         <span
           ref={readoutRef}
-          className="absolute right-5 top-1/2 max-w-[40%] -translate-y-1/2 truncate text-[13px] font-semibold leading-[18px] tracking-tight tabular-nums"
+          className="absolute right-5 top-1/2 max-w-[40%] -translate-y-1/2 truncate text-xs font-semibold leading-4.5 tracking-tight tabular-nums"
         >
           {format(current)}
         </span>
         {ticks.map((left) => (
-          <span
-            key={left}
-            className="absolute top-1/2 size-1 -translate-y-1/2 rounded-full bg-foreground/25"
-            style={{ left }}
-          />
+          <SliderTick key={left} left={left} />
         ))}
       </div>
       <motion.div
@@ -338,7 +321,7 @@ export function InlineSlider({
             commit(next);
           }
         }}
-        className="absolute inset-0 cursor-inherit touch-none rounded-lg border-0 outline-none"
+        className="absolute inset-0 cursor-inherit touch-none border-0 outline-none"
       />
     </div>
   );

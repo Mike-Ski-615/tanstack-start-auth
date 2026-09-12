@@ -1,5 +1,10 @@
 import * as React from "react";
 
+// The 4px handle travels from 8px inside the left edge to 12px inside the
+// right edge, so it never clips against the rounded track at either end.
+export const HANDLE_START = 8;
+export const HANDLE_END_INSET = 12;
+
 export type SliderOptions = {
   value?: number;
   defaultValue?: number;
@@ -48,7 +53,12 @@ export function useSlider(options: SliderOptions) {
     (clientX: number) => {
       const rect = trackRef.current?.getBoundingClientRect();
       if (!rect || !rect.width) return undefined;
-      const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+      // Map the pointer along the same inset path the thumb is rendered on,
+      // otherwise a drag renders the handle up to HANDLE_END_INSET behind the
+      // pointer instead of under it.
+      const travel = rect.width - HANDLE_START - HANDLE_END_INSET;
+      const ratio =
+        travel > 0 ? Math.min(1, Math.max(0, (clientX - rect.left - HANDLE_START) / travel)) : 0;
       return snapSliderValue(min + ratio * span, min, max, step);
     },
     [min, max, step, span],
