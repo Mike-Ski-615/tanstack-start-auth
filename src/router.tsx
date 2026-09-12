@@ -1,31 +1,31 @@
-import { MutationCache, QueryCache, QueryClient } from "@tanstack/react-query";
+import { environmentManager, QueryCache, QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { routeTree } from "./routeTree.gen";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
+import { ErrorPage } from "#components/status/__root/error";
+import { NotFoundPage } from "#components/status/__root/not-found";
 
 export function getRouter() {
+  const isServer = environmentManager.isServer();
+
   const queryClient = new QueryClient({
     queryCache: new QueryCache({
       onError: (error) => {
-        if (!import.meta.env.SSR) {
-          toast.error(error.message);
-        }
-      },
-    }),
-    mutationCache: new MutationCache({
-      onError: (error) => {
-        if (!import.meta.env.SSR) {
-          toast.error(error.message);
-        }
+        if (!isServer) toast.error(error.message);
       },
     }),
     defaultOptions: {
       queries: {
         staleTime: 30_000,
-        gcTime: 30 * 60 * 1000,
+        gcTime: isServer ? undefined : 30 * 60 * 1000,
         retry: 1,
         refetchOnWindowFocus: true,
+      },
+      mutations: {
+        onError: (error) => {
+          if (!isServer) toast.error(error.message);
+        },
       },
     },
   });
@@ -33,8 +33,8 @@ export function getRouter() {
   const router = createRouter({
     routeTree,
     context: { queryClient },
-    defaultErrorComponent: () => <div>Internal Server Error</div>,
-    defaultNotFoundComponent: () => <div>Not Found</div>,
+    defaultErrorComponent: ErrorPage,
+    defaultNotFoundComponent: NotFoundPage,
     scrollRestoration: true,
     defaultPreload: "intent",
     defaultPreloadStaleTime: 30_000,
