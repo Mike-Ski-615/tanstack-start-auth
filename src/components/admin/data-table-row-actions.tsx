@@ -37,6 +37,7 @@ import {
 import { Input } from "#components/ui/input";
 import { Field, FieldLabel, FieldError } from "#components/ui/field";
 import { useForm } from "@tanstack/react-form";
+import * as v from "valibot";
 import {
   useAdminSetRoleMutation,
   useAdminKickMutation,
@@ -48,6 +49,7 @@ import type { Row } from "@tanstack/react-table";
 import type { UsersTableFeatures } from "#components/admin/data-table-features";
 import type { User } from "#lib/auth/current-user";
 import { adminResetPasswordSchema, adminUpdateProfileSchema } from "#schemas/auth";
+import { issuesToFields } from "#lib/validation";
 
 /**
  * 表格每行的操作菜单（下拉）。
@@ -234,7 +236,7 @@ function EditProfileDialog({
 }) {
   const form = useForm({
     defaultValues: { name: user.name, bio: user.bio },
-    validators: { onChange: adminUpdateProfileSchema.omit({ userId: true }) },
+    validators: { onChange: v.omit(adminUpdateProfileSchema, ["userId"]) },
     onSubmit: ({ value }) => onSubmit(value),
   });
 
@@ -315,8 +317,8 @@ function ResetPasswordDialog({
     defaultValues: { password: "", confirm: "" },
     validators: {
       onChange: ({ value }) => {
-        const r = adminResetPasswordSchema.omit({ userId: true }).safeParse(value);
-        if (!r.success) return r.error;
+        const r = v.safeParse(v.omit(adminResetPasswordSchema, ["userId"]), value);
+        if (!r.success) return issuesToFields(r.issues);
         if (value.password !== value.confirm) {
           return { fields: { confirm: { message: "两次输入不一致" } } };
         }

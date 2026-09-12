@@ -1,7 +1,7 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Mail01Icon, CheckCircle } from "@hugeicons/core-free-icons";
 import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
-import { z } from "zod";
+import * as v from "valibot";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -13,8 +13,8 @@ import { LoadingPage } from "#components/status/auth/verify-email/loading";
 import { ErrorPage } from "#components/status/auth/verify-email/error";
 import { NotFoundPage } from "#components/status/auth/verify-email/not-found";
 
-const verifyEmailSearchSchema = z.object({
-  email: z.string().catch(""),
+const verifyEmailSearchSchema = v.object({
+  email: v.fallback(v.string(), ""),
 });
 
 export const Route = createFileRoute("/auth/verify-email")({

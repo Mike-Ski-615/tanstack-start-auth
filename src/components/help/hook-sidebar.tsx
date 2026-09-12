@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, type ComponentProps } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
-import { motion, useReducedMotion } from "motion/react";
 import { cn } from "#lib/utils";
 
 const CORNER = 6;
@@ -22,10 +21,21 @@ const hrefOf = (item: HookSidebarItem) => (typeof item === "string" ? undefined 
 
 const labelOf = (item: HookSidebarItem) => (typeof item === "string" ? item : item.label);
 
+// Hydration-safe: first render is false (matches SSR), then syncs to the OS
+// preference in an effect. Replaces motion's useReducedMotion().
+function useReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    setReduced(!!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
+  }, []);
+  return reduced;
+}
+
 const Rail = ({
   from = 0,
   y,
   visible,
+  reduced,
   color,
   dashed,
   className,
@@ -33,39 +43,42 @@ const Rail = ({
   from?: number;
   y: number | null;
   visible: boolean;
+  reduced: boolean;
   color?: string;
   dashed: boolean;
   className?: string;
 }) => {
-  const reduced = useReducedMotion();
+  // CSS approximates the original spring (stiffness 420 / damping 34 / mass 0.7),
+  // which is near critically damped, so a plain ease-out matches its feel.
   const travel = reduced
-    ? { duration: 0 }
-    : { type: "spring" as const, stiffness: 420, damping: 34, mass: 0.7 };
+    ? "none"
+    : "top 320ms cubic-bezier(0.22, 1, 0.36, 1), height 320ms cubic-bezier(0.22, 1, 0.36, 1)";
 
   return (
-    <motion.span
+    <span
       aria-hidden
-      initial={false}
-      style={{ color }}
-      animate={{ opacity: visible && y !== null ? 1 : 0 }}
-      transition={reduced ? { duration: 0 } : { duration: 0.2 }}
+      style={{
+        color,
+        opacity: visible && y !== null ? 1 : 0,
+        transition: reduced ? "none" : "opacity 200ms ease",
+      }}
       className={cn("pointer-events-none absolute inset-0", className)}
     >
-      <motion.span
-        initial={false}
-        animate={{ top: from, height: Math.max(0, (y ?? 0) - CORNER - from) }}
-        transition={travel}
-        style={dashed ? { backgroundImage: DASH } : { backgroundColor: "currentColor" }}
+      <span
+        style={{
+          top: from,
+          height: Math.max(0, (y ?? 0) - CORNER - from),
+          transition: travel,
+          ...(dashed ? { backgroundImage: DASH } : { backgroundColor: "currentColor" }),
+        }}
         className="absolute start-0.5 w-px"
       />
-      <motion.svg
-        initial={false}
-        animate={{ top: (y ?? 0) - CORNER }}
-        transition={travel}
+      <svg
         width="12"
         height="7"
         viewBox="0 0 12 7"
         fill="none"
+        style={{ top: (y ?? 0) - CORNER, transition: travel }}
         className="absolute start-0.5"
       >
         <path
@@ -73,8 +86,8 @@ const Rail = ({
           stroke="currentColor"
           strokeDasharray={dashed ? "2 2" : undefined}
         />
-      </motion.svg>
-    </motion.span>
+      </svg>
+    </span>
   );
 };
 
@@ -90,6 +103,7 @@ export function HookSidebar({
   ...props
 }: HookSidebarProps) {
   const { pathname } = useLocation();
+  const reduced = useReducedMotion();
   const listRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLElement | null)[]>([]);
   const [centers, setCenters] = useState<number[]>([]);
@@ -153,10 +167,17 @@ export function HookSidebar({
           from={hoverFrom}
           y={hoverY}
           visible={(pointerInside || focusInside) && hoverIndex !== activeIndex}
+          reduced={reduced}
           dashed={dashed}
           className="text-foreground/30"
         />
-        <Rail y={activeY} visible={activeY !== null} color={color} dashed={dashed} />
+        <Rail
+          y={activeY}
+          visible={activeY !== null}
+          reduced={reduced}
+          color={color}
+          dashed={dashed}
+        />
 
         {items.map((item, index) => {
           const text = labelOf(item);

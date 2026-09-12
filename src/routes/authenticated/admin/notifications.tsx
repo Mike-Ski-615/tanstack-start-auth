@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
+import * as v from "valibot";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { SentIcon, Alert01Icon, Loading02Icon } from "@hugeicons/core-free-icons";
 
@@ -20,6 +21,7 @@ import {
   sentNotificationsQueryOptions,
 } from "#lib/queries/notifications";
 import { currentUserQueryOptions } from "#lib/queries/user";
+import { issuesToFields } from "#lib/validation";
 import { MAX_RECIPIENTS, resolveAudience } from "#lib/notifications/audience";
 import {
   NOTIFICATION_BODY_MAX,
@@ -84,13 +86,13 @@ function AdminNotificationsPage() {
     defaultValues: { title: "", body: "", link: "" },
     validators: {
       onChange: ({ value }) => {
-        const r = sendNotificationSchema.safeParse({
+        const r = v.safeParse(sendNotificationSchema, {
           ...value,
           all,
           roles: all ? undefined : roles,
           userIds: all ? undefined : userIds,
         });
-        return r.success ? undefined : r.error;
+        return r.success ? undefined : issuesToFields(r.issues);
       },
     },
     onSubmit: ({ value }) => {

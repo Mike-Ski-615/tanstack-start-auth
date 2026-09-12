@@ -7,6 +7,8 @@ out/
 build/
 *.tgz
 .output/
+stats-client.html
+stats-ssr.html
 
 # TanStack Start / Vite 临时目录与缓存
 .tanstack/

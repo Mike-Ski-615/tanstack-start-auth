@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "#components/ui/table";
-import { DataTableFrame } from "#components/admin/data-table";
+import { DataTableFrame } from "#components/admin/data-table-frame";
 
 /**
  * 学生管理加载态（/authenticated/admin/students）。

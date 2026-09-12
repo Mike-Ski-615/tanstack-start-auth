@@ -18,6 +18,7 @@
  */
 
 import { createServerFn } from "@tanstack/react-start";
+import * as v from "valibot";
 import {
   adminResetPasswordSchema,
   adminSetRoleSchema,
@@ -77,7 +78,7 @@ async function requireManageableTarget(targetId: string, adminId: string) {
  */
 export const listUsersByRoleFn = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
-  .validator(adminSetRoleSchema.pick({ role: true }))
+  .validator(v.pick(adminSetRoleSchema, ["role"]))
   .handler(async ({ data }) => {
     return listManagedUsers(data.role);
   });

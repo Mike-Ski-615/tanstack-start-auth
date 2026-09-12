@@ -18,18 +18,9 @@ import {
 } from "#components/ui/table";
 
 import { features, type UsersTableFeatures } from "#components/admin/data-table-features";
+import { DataTableFrame } from "#components/admin/data-table-frame";
 import { DataTablePagination } from "#components/admin/data-table-pagination";
 import { DataTableToolbar } from "#components/admin/data-table-toolbar";
-
-/**
- * 表格外框 —— 真表格与骨架共用。
- *
- * 骨架以前是手写 `overflow-hidden rounded-md border` 这个盒子的：盒子形状改了
- * 只改一边，两边就不再重合（而加载完那一瞬间会看出来）。
- */
-export function DataTableFrame({ children }: { children: React.ReactNode }) {
-  return <div className="overflow-hidden rounded-md border">{children}</div>;
-}
 
 /**
  * 用户表格（管理员用）。

@@ -1,7 +1,7 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowRight01Icon, Tick01Icon } from "@hugeicons/core-free-icons";
 import * as React from "react";
-import { cn } from "cn";
+import { cn } from "#lib/utils";
 import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui";
 
 function DropdownMenu({

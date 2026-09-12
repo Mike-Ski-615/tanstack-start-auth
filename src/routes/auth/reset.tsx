@@ -2,7 +2,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { UserIcon } from "@hugeicons/core-free-icons";
 import { useForm } from "@tanstack/react-form";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { z } from "zod";
+import * as v from "valibot";
 import { Button } from "#components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "#components/ui/field";
 import { Input } from "#components/ui/input";
@@ -14,8 +14,8 @@ import { LoadingPage } from "#components/status/auth/reset/loading";
 import { ErrorPage } from "#components/status/auth/reset/error";
 import { NotFoundPage } from "#components/status/auth/reset/not-found";
 
-const resetSearchSchema = z.object({
-  email: z.string().catch(""),
+const resetSearchSchema = v.object({
+  email: v.fallback(v.string(), ""),
 });
 
 export const Route = createFileRoute("/auth/reset")({
@@ -36,7 +36,7 @@ function ResetPage() {
       password: "",
     },
     validators: {
-      onSubmit: resetPasswordSchema.pick({ password: true }),
+      onSubmit: v.pick(resetPasswordSchema, ["password"]),
     },
     onSubmit: ({ value }) => {
       resetMutation.mutate(value.password);

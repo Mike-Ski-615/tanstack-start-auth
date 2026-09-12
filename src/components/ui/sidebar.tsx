@@ -4,13 +4,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { PanelLeftIcon } from "@hugeicons/core-free-icons";
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
-import {
-  animate,
-  motion,
-  useMotionValue,
-  type MotionValue,
-} from "motion/react";
-import { cn } from "cn";
+import { cn } from "#lib/utils";
 import { Slot } from "radix-ui";
 
 import { useIsMobile } from "#hooks/use-mobile";
@@ -45,7 +39,10 @@ type SidebarContextProps = {
   setOpenMobile: (open: boolean) => void;
   isMobile: boolean;
   toggleSidebar: () => void;
-  width: MotionValue<number>;
+  width: number;
+  setWidthPx: (width: number) => void;
+  dragging: boolean;
+  setDragging: (dragging: boolean) => void;
 };
 
 const SidebarContext = React.createContext<SidebarContextProps | null>(null);
@@ -88,7 +85,8 @@ function SidebarProvider({
   // We use openProp and setOpenProp for control from outside the component.
   const [_open, _setOpen] = React.useState(defaultOpen);
   const open = openProp ?? _open;
-  const width = useMotionValue(open ? SIDEBAR_WIDTH_PX : 0);
+  const [width, setWidthPx] = React.useState(open ? SIDEBAR_WIDTH_PX : 0);
+  const [dragging, setDragging] = React.useState(false);
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
       const openState = typeof value === "function" ? value(open) : value;
@@ -106,15 +104,12 @@ function SidebarProvider({
     [setOpenProp, open, persist],
   );
 
-  // Animate the sidebar width whenever the settled open state changes
-  // (toggle, keyboard shortcut, or external control).
+  // Settle to the target width whenever the settled open state changes
+  // (toggle, keyboard shortcut, or external control). The <aside> below
+  // animates the change with a CSS transition on width.
   React.useEffect(() => {
-    animate(width, open ? SIDEBAR_WIDTH_PX : 0, {
-      type: "spring",
-      stiffness: 400,
-      damping: 30,
-    });
-  }, [open, width]);
+    setWidthPx(open ? SIDEBAR_WIDTH_PX : 0);
+  }, [open]);
 
   // Helper to toggle the sidebar.
   const toggleSidebar = React.useCallback(() => {
@@ -138,6 +133,9 @@ function SidebarProvider({
       setOpenMobile,
       toggleSidebar,
       width,
+      setWidthPx,
+      dragging,
+      setDragging,
     }),
     [
       state,
@@ -148,6 +146,7 @@ function SidebarProvider({
       setOpenMobile,
       toggleSidebar,
       width,
+      dragging,
     ],
   );
 
@@ -173,21 +172,7 @@ function SidebarProvider({
   );
 }
 
-type SidebarProps = Omit<
-  React.ComponentProps<"div">,
-  // These DOM handlers collide with motion's own handlers, so drop them.
-  | "onAnimationStart"
-  | "onAnimationEnd"
-  | "onAnimationIteration"
-  | "onDrag"
-  | "onDragStart"
-  | "onDragEnd"
-  | "onDragEnter"
-  | "onDragExit"
-  | "onDragLeave"
-  | "onDragOver"
-  | "onDrop"
-> & {
+type SidebarProps = React.ComponentProps<"div"> & {
   side?: "left" | "right";
   variant?: "sidebar" | "floating" | "inset";
   collapsible?: "offcanvas" | "icon" | "none";
@@ -202,7 +187,7 @@ function Sidebar({
   dir,
   ...props
 }: SidebarProps) {
-  const { isMobile, state, openMobile, setOpenMobile, width } = useSidebar();
+  const { isMobile, state, openMobile, setOpenMobile, width, dragging } = useSidebar();
 
   if (collapsible === "none") {
     return (
@@ -246,7 +231,7 @@ function Sidebar({
   }
 
   return (
-    <motion.aside
+    <aside
       className={cn(
         "group hidden shrink-0 overflow-hidden bg-sidebar text-sidebar-foreground lg:block",
         className,
@@ -256,7 +241,12 @@ function Sidebar({
       data-variant={variant}
       data-side={side}
       data-slot="sidebar"
-      style={{ width }}
+      style={{
+        width,
+        transition: dragging
+          ? "none"
+          : "width 280ms cubic-bezier(0.22, 1, 0.36, 1)",
+      }}
       {...props}
     >
       <div
@@ -266,7 +256,7 @@ function Sidebar({
       >
         {children}
       </div>
-    </motion.aside>
+    </aside>
   );
 }
 
