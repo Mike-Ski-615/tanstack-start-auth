@@ -1,6 +1,13 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
-import { Link, Outlet, useNavigate, createFileRoute, useRouter } from "@tanstack/react-router";
+import {
+  Link,
+  Outlet,
+  useNavigate,
+  createFileRoute,
+  useRouter,
+  redirect,
+} from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { SETTINGS_NAV } from "#data/nav";
 import { currentUserQueryOptions } from "#lib/queries/user";
@@ -27,6 +34,11 @@ export const Route = createFileRoute("/authenticated/settings")({
   errorComponent: ErrorPage,
   notFoundComponent: NotFoundPage,
   component: SettingsLayout,
+  beforeLoad: ({ location }) => {
+    if (location.pathname === "/authenticated/settings") {
+      throw redirect({ to: "/authenticated/settings/home" });
+    }
+  },
 });
 
 function SettingsLayout() {
