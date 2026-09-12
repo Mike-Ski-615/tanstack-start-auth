@@ -29,13 +29,14 @@ export const getUserById = createServerFn({
   .handler(async ({ data, context }): Promise<UserProfile | null> => {
     if (!context.user) return null;
 
-    const user = await db.orm.public.User.where({ id: data.userId })
-      .select(...PUBLIC_COLUMNS)
-      .first();
+    const [user, activity] = await Promise.all([
+      db.orm.public.User.where({ id: data.userId })
+        .select(...PUBLIC_COLUMNS)
+        .first(),
+      getActivityForUser(data.userId),
+    ]);
 
     if (!user) return null;
 
-    const { calendar, stats } = await getActivityForUser(data.userId);
-
-    return { user, calendar, stats };
+    return { user, ...activity };
   });
