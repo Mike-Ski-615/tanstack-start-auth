@@ -1,6 +1,7 @@
 import * as React from "react";
 import { cn } from "#lib/utils";
-import { SIDEBAR_WIDTH_PX, useSidebar } from "#components/ui/sidebar";
+import { useSidebar } from "#components/ui/sidebar";
+import { SIDEBAR_WIDTH_BOUNDS, readSidebarWidth } from "#lib/sidebar-width";
 
 const SIDEBAR_COLLAPSE_THRESHOLD_PX = 128;
 const OVERSHOOT_RESISTANCE = 0.35;
@@ -23,12 +24,15 @@ export function SidebarTrigger({ className, ...props }: React.ComponentProps<"di
 
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!dragging.current) return;
+    const { min, max } = SIDEBAR_WIDTH_BOUNDS;
     const raw = startWidth.current + (e.clientX - startX.current);
     const next =
-      raw > SIDEBAR_WIDTH_PX
-        ? SIDEBAR_WIDTH_PX + (raw - SIDEBAR_WIDTH_PX) * OVERSHOOT_RESISTANCE
-        : Math.max(0, raw);
-    setWidthPx(next);
+      raw > max
+        ? max + (raw - max) * OVERSHOOT_RESISTANCE
+        : raw < min
+          ? min - (min - raw) * OVERSHOOT_RESISTANCE
+          : raw;
+    setWidthPx(Math.max(0, next));
   };
 
   const endDrag = () => {
@@ -36,7 +40,7 @@ export function SidebarTrigger({ className, ...props }: React.ComponentProps<"di
     dragging.current = false;
     setDragging(false);
     const next = widthRef.current > SIDEBAR_COLLAPSE_THRESHOLD_PX;
-    setWidthPx(next ? SIDEBAR_WIDTH_PX : 0);
+    setWidthPx(next ? readSidebarWidth() : 0);
     setOpen(next);
   };
 
@@ -44,10 +48,10 @@ export function SidebarTrigger({ className, ...props }: React.ComponentProps<"di
     <div
       role="separator"
       aria-orientation="vertical"
-      aria-label="Resize sidebar"
-      aria-valuemin={0}
-      aria-valuemax={SIDEBAR_WIDTH_PX}
-      aria-valuenow={open ? SIDEBAR_WIDTH_PX : 0}
+      aria-label="调整侧边栏宽度"
+      aria-valuemin={SIDEBAR_WIDTH_BOUNDS.min}
+      aria-valuemax={SIDEBAR_WIDTH_BOUNDS.max}
+      aria-valuenow={open ? Math.round(width) : 0}
       tabIndex={0}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}

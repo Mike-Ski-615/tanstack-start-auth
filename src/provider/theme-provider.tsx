@@ -1,31 +1,11 @@
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { ScriptOnce } from "@tanstack/react-router";
 import { useHotkeys } from "react-hotkeys-hook";
+import { createPreference } from "#provider/preference-provider";
 
 type Theme = "dark" | "light";
 
 type ThemeProviderProps = {
   children: React.ReactNode;
-  defaultTheme?: Theme;
-  storageKey?: string;
 };
-
-type ThemeProviderState = {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
-};
-
-function getThemeScript(storageKey: string, defaultTheme: Theme) {
-  const key = JSON.stringify(storageKey);
-  const fallback = JSON.stringify(defaultTheme);
-
-  return `(function(){try{var t=localStorage.getItem(${key});if(t!=='light'&&t!=='dark'){t=${fallback}}var e=document.documentElement;e.classList.add(t);e.style.colorScheme=t}catch(e){}})();`;
-}
-
-const ThemeProviderContext = createContext<ThemeProviderState>({
-  theme: "light",
-  setTheme: () => {},
-});
 
 function applyTheme(theme: Theme) {
   const root = document.documentElement;
@@ -34,51 +14,41 @@ function applyTheme(theme: Theme) {
   root.style.colorScheme = theme;
 }
 
-export function ThemeProvider({
-  children,
-  defaultTheme = "light",
-  storageKey = "theme",
-}: ThemeProviderProps) {
-  const [theme, setThemeState] = useState<Theme>(defaultTheme);
-  const [mounted, setMounted] = useState(false);
+const THEME_PRE_PAINT =
+  "var r=document.documentElement;r.classList.remove('light','dark');r.classList.add(v);r.style.colorScheme=v;";
 
-  useEffect(() => {
-    const stored = localStorage.getItem(storageKey);
-    setThemeState(stored === "light" || stored === "dark" ? stored : defaultTheme);
-    setMounted(true);
-  }, [defaultTheme, storageKey]);
+const theme = createPreference<Theme>({
+  key: "theme",
+  attribute: "data-theme",
+  values: ["light", "dark"],
+  fallback: "light",
+  apply: applyTheme,
+  prePaint: THEME_PRE_PAINT,
+});
 
-  useEffect(() => {
-    if (!mounted) return;
-    applyTheme(theme);
-  }, [theme, mounted]);
-
-  const setTheme = useCallback(
-    (next: Theme) => {
-      localStorage.setItem(storageKey, next);
-      setThemeState(next);
-    },
-    [storageKey],
-  );
+function ThemeHotkey({ children }: { children: React.ReactNode }) {
+  const { value, setValue } = theme.usePreference();
 
   useHotkeys(
     "ctrl+j",
     () => {
-      setTheme(theme === "dark" ? "light" : "dark");
+      setValue(value === "dark" ? "light" : "dark");
     },
     { preventDefault: true },
   );
 
+  return <>{children}</>;
+}
+
+export function ThemeProvider({ children }: ThemeProviderProps) {
   return (
-    <ThemeProviderContext value={{ theme, setTheme }}>
-      <ScriptOnce>{getThemeScript(storageKey, defaultTheme)}</ScriptOnce>
-      {children}
-    </ThemeProviderContext>
+    <theme.Provider>
+      <ThemeHotkey>{children}</ThemeHotkey>
+    </theme.Provider>
   );
 }
 
 export function useTheme() {
-  const context = useContext(ThemeProviderContext);
-  if (context === undefined) throw new Error("useTheme must be used within a ThemeProvider");
-  return context;
+  const { value, setValue } = theme.usePreference();
+  return { theme: value, setTheme: setValue };
 }

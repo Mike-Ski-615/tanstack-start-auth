@@ -26,12 +26,20 @@ import { Route as AuthenticatedAdminNotificationsRouteImport } from './routes/au
 import { Route as AuthenticatedAdminStudentsRouteImport } from './routes/authenticated/admin/students'
 import { Route as AuthenticatedAdminTeachersRouteImport } from './routes/authenticated/admin/teachers'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/authenticated/settings/account'
+import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/authenticated/settings/appearance'
 import { Route as AuthenticatedSettingsBellRouteImport } from './routes/authenticated/settings/bell'
 import { Route as AuthenticatedSettingsHomeRouteImport } from './routes/authenticated/settings/home'
 import { Route as AuthenticatedSettingsPasswordRouteImport } from './routes/authenticated/settings/password'
 import { Route as AuthenticatedSettingsPrivacySecurityRouteImport } from './routes/authenticated/settings/privacy-security'
 import { Route as AuthenticatedSettingsProfileRouteImport } from './routes/authenticated/settings/profile'
 import { Route as AuthenticatedUsersUserIdRouteImport } from './routes/authenticated/users/$userId'
+import { Route as AuthenticatedSettingsAppearanceAccentRouteImport } from './routes/authenticated/settings/appearance/accent'
+import { Route as AuthenticatedSettingsAppearanceFontRouteImport } from './routes/authenticated/settings/appearance/font'
+import { Route as AuthenticatedSettingsAppearanceMotionRouteImport } from './routes/authenticated/settings/appearance/motion'
+import { Route as AuthenticatedSettingsAppearanceRadiusRouteImport } from './routes/authenticated/settings/appearance/radius'
+import { Route as AuthenticatedSettingsAppearanceSidebarWidthRouteImport } from './routes/authenticated/settings/appearance/sidebar-width'
+import { Route as AuthenticatedSettingsAppearanceThemeRouteImport } from './routes/authenticated/settings/appearance/theme'
+import { Route as AuthenticatedSettingsAppearanceWidthRouteImport } from './routes/authenticated/settings/appearance/width'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -122,6 +130,12 @@ const AuthenticatedSettingsAccountRoute =
     path: '/account',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
+const AuthenticatedSettingsAppearanceRoute =
+  AuthenticatedSettingsAppearanceRouteImport.update({
+    id: '/appearance',
+    path: '/appearance',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
 const AuthenticatedSettingsBellRoute =
   AuthenticatedSettingsBellRouteImport.update({
     id: '/bell',
@@ -158,6 +172,48 @@ const AuthenticatedUsersUserIdRoute =
     path: '/users/$userId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedSettingsAppearanceAccentRoute =
+  AuthenticatedSettingsAppearanceAccentRouteImport.update({
+    id: '/accent',
+    path: '/accent',
+    getParentRoute: () => AuthenticatedSettingsAppearanceRoute,
+  } as any)
+const AuthenticatedSettingsAppearanceFontRoute =
+  AuthenticatedSettingsAppearanceFontRouteImport.update({
+    id: '/font',
+    path: '/font',
+    getParentRoute: () => AuthenticatedSettingsAppearanceRoute,
+  } as any)
+const AuthenticatedSettingsAppearanceMotionRoute =
+  AuthenticatedSettingsAppearanceMotionRouteImport.update({
+    id: '/motion',
+    path: '/motion',
+    getParentRoute: () => AuthenticatedSettingsAppearanceRoute,
+  } as any)
+const AuthenticatedSettingsAppearanceRadiusRoute =
+  AuthenticatedSettingsAppearanceRadiusRouteImport.update({
+    id: '/radius',
+    path: '/radius',
+    getParentRoute: () => AuthenticatedSettingsAppearanceRoute,
+  } as any)
+const AuthenticatedSettingsAppearanceSidebarWidthRoute =
+  AuthenticatedSettingsAppearanceSidebarWidthRouteImport.update({
+    id: '/sidebar-width',
+    path: '/sidebar-width',
+    getParentRoute: () => AuthenticatedSettingsAppearanceRoute,
+  } as any)
+const AuthenticatedSettingsAppearanceThemeRoute =
+  AuthenticatedSettingsAppearanceThemeRouteImport.update({
+    id: '/theme',
+    path: '/theme',
+    getParentRoute: () => AuthenticatedSettingsAppearanceRoute,
+  } as any)
+const AuthenticatedSettingsAppearanceWidthRoute =
+  AuthenticatedSettingsAppearanceWidthRouteImport.update({
+    id: '/width',
+    path: '/width',
+    getParentRoute: () => AuthenticatedSettingsAppearanceRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -177,12 +233,20 @@ export interface FileRoutesByFullPath {
   '/authenticated/admin/students': typeof AuthenticatedAdminStudentsRoute
   '/authenticated/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
+  '/authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRouteWithChildren
   '/authenticated/settings/bell': typeof AuthenticatedSettingsBellRoute
   '/authenticated/settings/home': typeof AuthenticatedSettingsHomeRoute
   '/authenticated/settings/password': typeof AuthenticatedSettingsPasswordRoute
   '/authenticated/settings/privacy-security': typeof AuthenticatedSettingsPrivacySecurityRoute
   '/authenticated/settings/profile': typeof AuthenticatedSettingsProfileRoute
   '/authenticated/users/$userId': typeof AuthenticatedUsersUserIdRoute
+  '/authenticated/settings/appearance/accent': typeof AuthenticatedSettingsAppearanceAccentRoute
+  '/authenticated/settings/appearance/font': typeof AuthenticatedSettingsAppearanceFontRoute
+  '/authenticated/settings/appearance/motion': typeof AuthenticatedSettingsAppearanceMotionRoute
+  '/authenticated/settings/appearance/radius': typeof AuthenticatedSettingsAppearanceRadiusRoute
+  '/authenticated/settings/appearance/sidebar-width': typeof AuthenticatedSettingsAppearanceSidebarWidthRoute
+  '/authenticated/settings/appearance/theme': typeof AuthenticatedSettingsAppearanceThemeRoute
+  '/authenticated/settings/appearance/width': typeof AuthenticatedSettingsAppearanceWidthRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -202,12 +266,20 @@ export interface FileRoutesByTo {
   '/authenticated/admin/students': typeof AuthenticatedAdminStudentsRoute
   '/authenticated/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
+  '/authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRouteWithChildren
   '/authenticated/settings/bell': typeof AuthenticatedSettingsBellRoute
   '/authenticated/settings/home': typeof AuthenticatedSettingsHomeRoute
   '/authenticated/settings/password': typeof AuthenticatedSettingsPasswordRoute
   '/authenticated/settings/privacy-security': typeof AuthenticatedSettingsPrivacySecurityRoute
   '/authenticated/settings/profile': typeof AuthenticatedSettingsProfileRoute
   '/authenticated/users/$userId': typeof AuthenticatedUsersUserIdRoute
+  '/authenticated/settings/appearance/accent': typeof AuthenticatedSettingsAppearanceAccentRoute
+  '/authenticated/settings/appearance/font': typeof AuthenticatedSettingsAppearanceFontRoute
+  '/authenticated/settings/appearance/motion': typeof AuthenticatedSettingsAppearanceMotionRoute
+  '/authenticated/settings/appearance/radius': typeof AuthenticatedSettingsAppearanceRadiusRoute
+  '/authenticated/settings/appearance/sidebar-width': typeof AuthenticatedSettingsAppearanceSidebarWidthRoute
+  '/authenticated/settings/appearance/theme': typeof AuthenticatedSettingsAppearanceThemeRoute
+  '/authenticated/settings/appearance/width': typeof AuthenticatedSettingsAppearanceWidthRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -228,12 +300,20 @@ export interface FileRoutesById {
   '/authenticated/admin/students': typeof AuthenticatedAdminStudentsRoute
   '/authenticated/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
+  '/authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRouteWithChildren
   '/authenticated/settings/bell': typeof AuthenticatedSettingsBellRoute
   '/authenticated/settings/home': typeof AuthenticatedSettingsHomeRoute
   '/authenticated/settings/password': typeof AuthenticatedSettingsPasswordRoute
   '/authenticated/settings/privacy-security': typeof AuthenticatedSettingsPrivacySecurityRoute
   '/authenticated/settings/profile': typeof AuthenticatedSettingsProfileRoute
   '/authenticated/users/$userId': typeof AuthenticatedUsersUserIdRoute
+  '/authenticated/settings/appearance/accent': typeof AuthenticatedSettingsAppearanceAccentRoute
+  '/authenticated/settings/appearance/font': typeof AuthenticatedSettingsAppearanceFontRoute
+  '/authenticated/settings/appearance/motion': typeof AuthenticatedSettingsAppearanceMotionRoute
+  '/authenticated/settings/appearance/radius': typeof AuthenticatedSettingsAppearanceRadiusRoute
+  '/authenticated/settings/appearance/sidebar-width': typeof AuthenticatedSettingsAppearanceSidebarWidthRoute
+  '/authenticated/settings/appearance/theme': typeof AuthenticatedSettingsAppearanceThemeRoute
+  '/authenticated/settings/appearance/width': typeof AuthenticatedSettingsAppearanceWidthRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -255,12 +335,20 @@ export interface FileRouteTypes {
     | '/authenticated/admin/students'
     | '/authenticated/admin/teachers'
     | '/authenticated/settings/account'
+    | '/authenticated/settings/appearance'
     | '/authenticated/settings/bell'
     | '/authenticated/settings/home'
     | '/authenticated/settings/password'
     | '/authenticated/settings/privacy-security'
     | '/authenticated/settings/profile'
     | '/authenticated/users/$userId'
+    | '/authenticated/settings/appearance/accent'
+    | '/authenticated/settings/appearance/font'
+    | '/authenticated/settings/appearance/motion'
+    | '/authenticated/settings/appearance/radius'
+    | '/authenticated/settings/appearance/sidebar-width'
+    | '/authenticated/settings/appearance/theme'
+    | '/authenticated/settings/appearance/width'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -280,12 +368,20 @@ export interface FileRouteTypes {
     | '/authenticated/admin/students'
     | '/authenticated/admin/teachers'
     | '/authenticated/settings/account'
+    | '/authenticated/settings/appearance'
     | '/authenticated/settings/bell'
     | '/authenticated/settings/home'
     | '/authenticated/settings/password'
     | '/authenticated/settings/privacy-security'
     | '/authenticated/settings/profile'
     | '/authenticated/users/$userId'
+    | '/authenticated/settings/appearance/accent'
+    | '/authenticated/settings/appearance/font'
+    | '/authenticated/settings/appearance/motion'
+    | '/authenticated/settings/appearance/radius'
+    | '/authenticated/settings/appearance/sidebar-width'
+    | '/authenticated/settings/appearance/theme'
+    | '/authenticated/settings/appearance/width'
   id:
     | '__root__'
     | '/'
@@ -305,12 +401,20 @@ export interface FileRouteTypes {
     | '/authenticated/admin/students'
     | '/authenticated/admin/teachers'
     | '/authenticated/settings/account'
+    | '/authenticated/settings/appearance'
     | '/authenticated/settings/bell'
     | '/authenticated/settings/home'
     | '/authenticated/settings/password'
     | '/authenticated/settings/privacy-security'
     | '/authenticated/settings/profile'
     | '/authenticated/users/$userId'
+    | '/authenticated/settings/appearance/accent'
+    | '/authenticated/settings/appearance/font'
+    | '/authenticated/settings/appearance/motion'
+    | '/authenticated/settings/appearance/radius'
+    | '/authenticated/settings/appearance/sidebar-width'
+    | '/authenticated/settings/appearance/theme'
+    | '/authenticated/settings/appearance/width'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -440,6 +544,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsAccountRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
+    '/authenticated/settings/appearance': {
+      id: '/authenticated/settings/appearance'
+      path: '/appearance'
+      fullPath: '/authenticated/settings/appearance'
+      preLoaderRoute: typeof AuthenticatedSettingsAppearanceRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
     '/authenticated/settings/bell': {
       id: '/authenticated/settings/bell'
       path: '/bell'
@@ -482,6 +593,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedUsersUserIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/authenticated/settings/appearance/accent': {
+      id: '/authenticated/settings/appearance/accent'
+      path: '/accent'
+      fullPath: '/authenticated/settings/appearance/accent'
+      preLoaderRoute: typeof AuthenticatedSettingsAppearanceAccentRouteImport
+      parentRoute: typeof AuthenticatedSettingsAppearanceRoute
+    }
+    '/authenticated/settings/appearance/font': {
+      id: '/authenticated/settings/appearance/font'
+      path: '/font'
+      fullPath: '/authenticated/settings/appearance/font'
+      preLoaderRoute: typeof AuthenticatedSettingsAppearanceFontRouteImport
+      parentRoute: typeof AuthenticatedSettingsAppearanceRoute
+    }
+    '/authenticated/settings/appearance/motion': {
+      id: '/authenticated/settings/appearance/motion'
+      path: '/motion'
+      fullPath: '/authenticated/settings/appearance/motion'
+      preLoaderRoute: typeof AuthenticatedSettingsAppearanceMotionRouteImport
+      parentRoute: typeof AuthenticatedSettingsAppearanceRoute
+    }
+    '/authenticated/settings/appearance/radius': {
+      id: '/authenticated/settings/appearance/radius'
+      path: '/radius'
+      fullPath: '/authenticated/settings/appearance/radius'
+      preLoaderRoute: typeof AuthenticatedSettingsAppearanceRadiusRouteImport
+      parentRoute: typeof AuthenticatedSettingsAppearanceRoute
+    }
+    '/authenticated/settings/appearance/sidebar-width': {
+      id: '/authenticated/settings/appearance/sidebar-width'
+      path: '/sidebar-width'
+      fullPath: '/authenticated/settings/appearance/sidebar-width'
+      preLoaderRoute: typeof AuthenticatedSettingsAppearanceSidebarWidthRouteImport
+      parentRoute: typeof AuthenticatedSettingsAppearanceRoute
+    }
+    '/authenticated/settings/appearance/theme': {
+      id: '/authenticated/settings/appearance/theme'
+      path: '/theme'
+      fullPath: '/authenticated/settings/appearance/theme'
+      preLoaderRoute: typeof AuthenticatedSettingsAppearanceThemeRouteImport
+      parentRoute: typeof AuthenticatedSettingsAppearanceRoute
+    }
+    '/authenticated/settings/appearance/width': {
+      id: '/authenticated/settings/appearance/width'
+      path: '/width'
+      fullPath: '/authenticated/settings/appearance/width'
+      preLoaderRoute: typeof AuthenticatedSettingsAppearanceWidthRouteImport
+      parentRoute: typeof AuthenticatedSettingsAppearanceRoute
+    }
   }
 }
 
@@ -518,8 +678,42 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
+interface AuthenticatedSettingsAppearanceRouteChildren {
+  AuthenticatedSettingsAppearanceAccentRoute: typeof AuthenticatedSettingsAppearanceAccentRoute
+  AuthenticatedSettingsAppearanceFontRoute: typeof AuthenticatedSettingsAppearanceFontRoute
+  AuthenticatedSettingsAppearanceMotionRoute: typeof AuthenticatedSettingsAppearanceMotionRoute
+  AuthenticatedSettingsAppearanceRadiusRoute: typeof AuthenticatedSettingsAppearanceRadiusRoute
+  AuthenticatedSettingsAppearanceSidebarWidthRoute: typeof AuthenticatedSettingsAppearanceSidebarWidthRoute
+  AuthenticatedSettingsAppearanceThemeRoute: typeof AuthenticatedSettingsAppearanceThemeRoute
+  AuthenticatedSettingsAppearanceWidthRoute: typeof AuthenticatedSettingsAppearanceWidthRoute
+}
+
+const AuthenticatedSettingsAppearanceRouteChildren: AuthenticatedSettingsAppearanceRouteChildren =
+  {
+    AuthenticatedSettingsAppearanceAccentRoute:
+      AuthenticatedSettingsAppearanceAccentRoute,
+    AuthenticatedSettingsAppearanceFontRoute:
+      AuthenticatedSettingsAppearanceFontRoute,
+    AuthenticatedSettingsAppearanceMotionRoute:
+      AuthenticatedSettingsAppearanceMotionRoute,
+    AuthenticatedSettingsAppearanceRadiusRoute:
+      AuthenticatedSettingsAppearanceRadiusRoute,
+    AuthenticatedSettingsAppearanceSidebarWidthRoute:
+      AuthenticatedSettingsAppearanceSidebarWidthRoute,
+    AuthenticatedSettingsAppearanceThemeRoute:
+      AuthenticatedSettingsAppearanceThemeRoute,
+    AuthenticatedSettingsAppearanceWidthRoute:
+      AuthenticatedSettingsAppearanceWidthRoute,
+  }
+
+const AuthenticatedSettingsAppearanceRouteWithChildren =
+  AuthenticatedSettingsAppearanceRoute._addFileChildren(
+    AuthenticatedSettingsAppearanceRouteChildren,
+  )
+
 interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsAccountRoute: typeof AuthenticatedSettingsAccountRoute
+  AuthenticatedSettingsAppearanceRoute: typeof AuthenticatedSettingsAppearanceRouteWithChildren
   AuthenticatedSettingsBellRoute: typeof AuthenticatedSettingsBellRoute
   AuthenticatedSettingsHomeRoute: typeof AuthenticatedSettingsHomeRoute
   AuthenticatedSettingsPasswordRoute: typeof AuthenticatedSettingsPasswordRoute
@@ -529,6 +723,8 @@ interface AuthenticatedSettingsRouteChildren {
 
 const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
   AuthenticatedSettingsAccountRoute: AuthenticatedSettingsAccountRoute,
+  AuthenticatedSettingsAppearanceRoute:
+    AuthenticatedSettingsAppearanceRouteWithChildren,
   AuthenticatedSettingsBellRoute: AuthenticatedSettingsBellRoute,
   AuthenticatedSettingsHomeRoute: AuthenticatedSettingsHomeRoute,
   AuthenticatedSettingsPasswordRoute: AuthenticatedSettingsPasswordRoute,

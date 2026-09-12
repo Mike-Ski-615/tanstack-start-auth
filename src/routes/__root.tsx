@@ -13,6 +13,7 @@ import { ErrorPage } from "#components/status/__root/error";
 import { NotFoundPage } from "#components/status/__root/not-found";
 import { ThemeProvider } from "#provider/theme-provider";
 import { ContentWidthProvider } from "#provider/content-width-provider";
+import { radius, fontScale, accent } from "#provider/appearance-provider";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools";
@@ -62,13 +63,19 @@ function RootComponent() {
         <HeadContent />
       </head>
       <body>
-        <ThemeProvider defaultTheme="light" storageKey="theme">
-          <ContentWidthProvider>
-            <Toaster richColors position="top-center" />
-            <TooltipProvider>
-              <Outlet />
-            </TooltipProvider>
-          </ContentWidthProvider>
+        <ThemeProvider>
+          <radius.Provider>
+            <fontScale.Provider>
+              <accent.Provider>
+                <ContentWidthProvider>
+                  <Toaster richColors position="top-center" />
+                  <TooltipProvider>
+                    <Outlet />
+                  </TooltipProvider>
+                </ContentWidthProvider>
+              </accent.Provider>
+            </fontScale.Provider>
+          </radius.Provider>
           <Scripts />
           <TanStackDevtools
             plugins={[
