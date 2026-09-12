@@ -1,20 +1,11 @@
 import { createPreference } from "#provider/preference-provider";
 
-export type Radius = "sharp" | "default" | "round";
-export type FontScale = "small" | "default" | "large";
 export type Accent = "orange" | "blue" | "green" | "violet" | "rose";
 
-export const RADIUS_LABEL: Record<Radius, string> = {
-  sharp: "直角",
-  default: "默认",
-  round: "圆润",
-};
-
-export const FONT_SCALE_LABEL: Record<FontScale, string> = {
-  small: "小",
-  default: "标准",
-  large: "大",
-};
+// 圆角：0–24px 连续可调，默认 10px（等于 CSS 的 0.625rem）。
+export const RADIUS_RANGE = { min: 0, max: 24, step: 1, fallback: 10 } as const;
+// 字号：90%–115% 连续缩放，默认 100%。
+export const FONT_SCALE_RANGE = { min: 90, max: 115, step: 1, fallback: 100 } as const;
 
 export const ACCENT_LABEL: Record<Accent, string> = {
   orange: "橙",
@@ -32,30 +23,16 @@ export const ACCENT_SWATCH: Record<Accent, string> = {
   rose: "oklch(0.645 0.246 16)",
 };
 
-const RADIUS_VALUES: Record<Radius, string> = {
-  sharp: "0rem",
-  default: "",
-  round: "1.25rem",
-};
-
-const FONT_SCALE_VALUES: Record<FontScale, string> = {
-  small: "93.75%",
-  default: "",
-  large: "112.5%",
-};
-
-function applyRadius(value: Radius) {
-  const root = document.documentElement;
-  const css = RADIUS_VALUES[value];
-  if (css) root.style.setProperty("--radius", css);
-  else root.style.removeProperty("--radius");
+function numericStrings(min: number, max: number) {
+  return Array.from({ length: max - min + 1 }, (_, i) => String(min + i));
 }
 
-function applyFontScale(value: FontScale) {
-  const root = document.documentElement;
-  const css = FONT_SCALE_VALUES[value];
-  if (css) root.style.setProperty("--app-font-scale", css);
-  else root.style.removeProperty("--app-font-scale");
+function applyRadius(value: string) {
+  document.documentElement.style.setProperty("--radius", `${value}px`);
+}
+
+function applyFontScale(value: string) {
+  document.documentElement.style.setProperty("--app-font-scale", `${value}%`);
 }
 
 function applyAccent(value: Accent) {
@@ -84,19 +61,19 @@ export const motion = createPreference<Motion>({
   apply: applyMotion,
 });
 
-export const radius = createPreference<Radius>({
+export const radius = createPreference<string>({
   key: "radius",
   attribute: "data-radius",
-  values: ["sharp", "default", "round"],
-  fallback: "default",
+  values: numericStrings(RADIUS_RANGE.min, RADIUS_RANGE.max),
+  fallback: String(RADIUS_RANGE.fallback),
   apply: applyRadius,
 });
 
-export const fontScale = createPreference<FontScale>({
+export const fontScale = createPreference<string>({
   key: "font-scale",
   attribute: "data-font-scale",
-  values: ["small", "default", "large"],
-  fallback: "default",
+  values: numericStrings(FONT_SCALE_RANGE.min, FONT_SCALE_RANGE.max),
+  fallback: String(FONT_SCALE_RANGE.fallback),
   apply: applyFontScale,
 });
 

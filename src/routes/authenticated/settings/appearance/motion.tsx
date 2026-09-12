@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Motion01Icon } from "@hugeicons/core-free-icons";
 
 import { PreviewBox, SettingPage, SettingRow, Segmented } from "#components/settings/setting-row";
-import { EnumSlider } from "#components/ui/enum-slider";
 import { MOTION_LABEL, motion } from "#provider/appearance-provider";
 
 export const Route = createFileRoute("/authenticated/settings/appearance/motion")({
@@ -22,18 +21,6 @@ function MotionSetting() {
     >
       <SettingRow label="动画效果" desc="跟随系统时会尊重操作系统的「减少动态效果」设置">
         <Segmented value={value} options={MODES} onChange={setValue} labels={MOTION_LABEL} />
-      </SettingRow>
-
-      <SettingRow label="滑块选择" desc="拖动滑块切换动画偏好">
-        <div className="w-72">
-          <EnumSlider
-            label="动画"
-            values={MODES}
-            value={value}
-            onChange={setValue}
-            format={(mode) => MOTION_LABEL[mode]}
-          />
-        </div>
       </SettingRow>
 
       <PreviewBox>

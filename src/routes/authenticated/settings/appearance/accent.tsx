@@ -3,7 +3,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { DropletIcon } from "@hugeicons/core-free-icons";
 
 import { PreviewBox, SettingPage, SettingRow } from "#components/settings/setting-row";
-import { EnumSlider } from "#components/ui/enum-slider";
 import { ACCENT_LABEL, ACCENT_SWATCH, accent } from "#provider/appearance-provider";
 import { cn } from "#lib/utils";
 
@@ -37,18 +36,6 @@ function AccentSetting() {
               )}
             />
           ))}
-        </div>
-      </SettingRow>
-
-      <SettingRow label="滑块选择" desc="拖动滑块逐个切换主题色">
-        <div className="w-64">
-          <EnumSlider
-            label="主题色"
-            values={ACCENTS}
-            value={value}
-            onChange={setValue}
-            format={(option) => ACCENT_LABEL[option]}
-          />
         </div>
       </SettingRow>
 
