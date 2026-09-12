@@ -2,15 +2,6 @@ import type { ErrorComponentProps } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { Button } from "#components/ui/button";
 
-/**
- * 注册页错误（/auth/register）。
- *
- * 渲染在 auth 布局内。
- *
- * 注册出错往往不是网络 —— 可能是邮箱已被占用等业务错误（那种会在
- * 表单里就地提示，不会走到这里）。走到这里说明是布局/加载层面的问题，
- * 所以退路给「去登录」：已有账号的人可以直接绕开注册。
- */
 export function ErrorPage({ reset }: ErrorComponentProps) {
   return (
     <div className="flex flex-col items-center gap-4 text-center">

@@ -27,7 +27,6 @@ export type NavItem = {
   to?: string;
 };
 
-/** 侧边栏的一组菜单（带分组标题）。 */
 export type NavGroup = {
   id: string;
   label: string;
@@ -86,20 +85,6 @@ export const SETTINGS_NAV: NavItem[] = [
   },
 ];
 
-/**
- * 按角色分的导航菜单。
- *
- * 规则：
- * - student：只有「资源」「课例」
- * - teacher：学生那两项 + 「小组合作」「展评」「拓展」（即全部五项）
- * - admin：完全独立 —— 「教师管理」「学生管理」，不与师生共享任何项
- *
- * 用 Record<Role, ...> 而非「基础菜单 + 追加」：将来加角色时漏写
- * 会直接编译报错，而不是默默显示一个空侧边栏。
- *
- * 菜单项目前都指向 /authenticated（占位），点进去会被路由重定向到
- * 各自的默认工作台。真实页面待实现 —— 见 CONTENT.md 的 TODO。
- */
 export const NAV_BY_ROLE: Record<Role, NavGroup[]> = {
   student: [
     {
@@ -211,7 +196,6 @@ export const NAV_BY_ROLE: Record<Role, NavGroup[]> = {
   ],
 };
 
-/** 把某角色的所有菜单项拍平（命令面板等平铺场景用）。 */
 export function navItemsFor(role: Role): NavItem[] {
   return NAV_BY_ROLE[role].flatMap((g) => g.items);
 }

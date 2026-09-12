@@ -43,7 +43,6 @@ function ResetPage() {
     },
   });
 
-  // 缺 email 无从校验验证码（本页由忘记密码→邮件跳转而来）
   if (!email) {
     return (
       <div className="flex flex-col items-center gap-2 text-center">
@@ -80,11 +79,6 @@ function ResetPage() {
 
         <Field>
           <FieldLabel htmlFor="otp">邮箱验证码</FieldLabel>
-          {/*
-            id 必填：FieldLabel 的 htmlFor="otp" 需要一个真实存在的
-            id 才能建立关联。OTP 控件底层是原生 input，id 会透传。
-            缺了它 label 就是个死链 —— 无障碍树里该控件没有名字。
-          */}
           <InputOTP
             id="otp"
             maxLength={6}

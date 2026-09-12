@@ -1,14 +1,5 @@
 import { Link } from "@tanstack/react-router";
 
-/**
- * 设置区未找到（/authenticated/settings）。
- *
- * 弹窗内（h-[min(80vh,500px)]），内容区已有 p-5，所以不重复 padding，
- * 用 h-full 在滚动区内居中。
- *
- * 退路是关闭弹窗回工作台 —— 设置区的"上一层"就是工作台，
- * 指 `/` 会跳过一层，不符合弹窗的心智模型。
- */
 export function NotFoundPage() {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 text-center">

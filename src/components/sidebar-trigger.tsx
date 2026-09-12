@@ -24,7 +24,6 @@ export function SidebarTrigger({ className, ...props }: React.ComponentProps<"di
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!dragging.current) return;
     const raw = startWidth.current + (e.clientX - startX.current);
-    // Rubber band: let the sidebar overshoot past max, with resistance.
     const next =
       raw > SIDEBAR_WIDTH_PX
         ? SIDEBAR_WIDTH_PX + (raw - SIDEBAR_WIDTH_PX) * OVERSHOOT_RESISTANCE
@@ -37,7 +36,6 @@ export function SidebarTrigger({ className, ...props }: React.ComponentProps<"di
     dragging.current = false;
     setDragging(false);
     const next = widthRef.current > SIDEBAR_COLLAPSE_THRESHOLD_PX;
-    // Settle to the collapsed/expanded width (overshoot bounces back here).
     setWidthPx(next ? SIDEBAR_WIDTH_PX : 0);
     setOpen(next);
   };

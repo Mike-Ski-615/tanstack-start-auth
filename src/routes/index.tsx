@@ -11,10 +11,6 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-/**
- * 首页（中性落地页）：标题 + 一句说明 + 主 CTA 去登录/注册。
- * 占位已清理，待产品落地时在此填充真实内容结构。
- */
 function Home() {
   return (
     <main className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6">

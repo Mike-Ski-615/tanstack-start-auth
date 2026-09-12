@@ -7,8 +7,6 @@ import { daysSince } from "#lib/format";
 import { CONTENT_WIDTH_CLASS } from "#provider/content-width-provider";
 
 export function UserView({ user, calendar, stats }: UserProfile) {
-  // 宽度跟随 header 里的设置 —— 具体值由 CSS 从 <html data-content-width> 算，
-  // 所以这里不再读 context（首屏水合前也就能是对的了）。
   return (
     <main className="min-h-full min-w-0">
       <div
@@ -16,11 +14,6 @@ export function UserView({ user, calendar, stats }: UserProfile) {
       >
         <header className=" flex min-w-0 items-center gap-4 rounded-2xl bg-card p-5 lg:flex-col lg:gap-3 lg:bg-transparent lg:py-4">
           <div className="relative shrink-0">
-            {/*
-             * 用 Avatar 而非裸 <img>：用户没设头像时 image 是空串，
-             * 裸 img 会把 alt 文字（「XX 的头像」）当正文显示出来。
-             * AvatarFallback 在这种情况下显示姓名首字，与侧边栏一致。
-             */}
             <Avatar className="size-16 lg:size-24">
               <AvatarImage src={user.image} alt={user.name} />
               <AvatarFallback className="text-xl lg:text-2xl">{user.name.charAt(0)}</AvatarFallback>
@@ -66,14 +59,6 @@ export function UserView({ user, calendar, stats }: UserProfile) {
           </div>
         </dl>
 
-        {/*
-         * 分栏断点按内容定，不按设备预设。
-         *
-         * 实测：原来用 lg:（1024px）分栏时，热力图那栏只剩 408px —— 恰恰
-         * 是它最需要宽度的时候；而 900–1000px 单栏时也只有 596–696px。
-         * 热力图现在自带自适应（按容器宽度决定显示多少周），所以这里
-         * 不需要为它预留固定宽度，用 xl: 在真正宽裕时再分栏即可。
-         */}
         <section className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
           <div className="min-w-0 overflow-hidden rounded-2xl bg-card p-4 sm:p-5">
             <Heatmap data={calendar} />
@@ -85,7 +70,6 @@ export function UserView({ user, calendar, stats }: UserProfile) {
   );
 }
 
-/** 统计区的一格。 */
 function Stat({ value, label }: { value: number; label: string }) {
   return (
     <div className="flex flex-col items-center justify-center gap-1">
@@ -95,13 +79,6 @@ function Stat({ value, label }: { value: number; label: string }) {
   );
 }
 
-/**
- * 最近登录的显示形态。
- *
- * 这里用**本地时区**而非 UTC：统计口径（活跃天数/连续）必须 UTC 一致以防
- * 水合不匹配，但「最近登录」给人看的是「多久以前」，用相对时间反而没有
- * 时区歧义，且不受 SSR/客户端分界影响。
- */
 function formatLastLogin(iso: string | null): string {
   if (!iso) return "从未";
 

@@ -61,7 +61,6 @@ export function ThemeProvider({
     [storageKey],
   );
 
-  // Ctrl + J toggles the theme between light and dark
   useHotkeys(
     "ctrl+j",
     () => {

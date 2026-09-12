@@ -2,18 +2,6 @@ import type { ErrorComponentProps } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { Button } from "#components/ui/button";
 
-/**
- * 学生管理错误（/authenticated/admin/students）。
- *
- * 挂载在 admin 布局的 `<Outlet />` 内（外层已有 padding，不重复）。
- *
- * 这一页的错误多半出在 loader（预取学生列表失败），所以重试是首选动作；
- * 退路给教师管理（管理区入口），而不是 `/`。
- *
- * 两种用法共用这一个组件：路由级 errorComponent（loader 失败），以及页面内
- * 组件级 —— students.tsx 里 useQuery 失败时就地渲染。后者没有路由的 error
- * 对象，所以只取 reset（强行要求 error 会逼调用点编一个假的）。
- */
 export function ErrorPage({ reset }: Pick<ErrorComponentProps, "reset">) {
   return (
     <div className="flex flex-1 flex-col items-start gap-3">

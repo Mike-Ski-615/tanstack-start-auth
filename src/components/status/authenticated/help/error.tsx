@@ -3,14 +3,6 @@ import { Link } from "@tanstack/react-router";
 import { Button } from "#components/ui/button";
 import { SIDEBAR_GUTTER_CLASS } from "#provider/content-width-provider";
 
-/**
- * 帮助文档错误（/authenticated/help）。
- *
- * 挂载在 SidebarInset 内，不用 min-h-svh；让开侧栏手柄（lg:ps-7）。
- *
- * 帮助页是纯静态内容（没有 loader），所以这里能出错基本是渲染层面的 ——
- * 重试通常有效。退路给工作台，让用户能继续干活。
- */
 export function ErrorPage({ reset }: ErrorComponentProps) {
   return (
     <div className={`flex flex-1 flex-col items-start gap-3 p-4 ${SIDEBAR_GUTTER_CLASS}`}>

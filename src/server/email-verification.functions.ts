@@ -9,58 +9,37 @@ import { sendMail } from "#lib/auth/mail";
 import { enforceRateLimit } from "#lib/auth/rate-limiter";
 import { ERROR_MESSAGE, OTP_REASON_MESSAGE } from "#lib/error-messages";
 
-/**
- * 验证邮箱 OTP：校验验证码 → 标记 verifiedAt → createAuthenticatedSession（自动登录）。
- *
- * 以 email 定位用户而非只传 OTP：6 位数字空间只有 100 万，不同用户可能
- * 撞到同一个值，仅凭 OTP 无法确定验证的是谁。
- * 验证通过即创建 Session，用户无需再次登录。
- */
 export const verifyEmailFn = createServerFn({
   method: "POST",
 })
   .validator(verifyEmailOtpSchema)
   .handler(async ({ data: { email, otp } }) => {
-    // 限速：同一邮箱 + IP 组合 1 分钟最多 10 次验证尝试。
-    // OTP 本身已有 5 次错误上限，这里防的是「不断换 OTP 重试」的轰炸。
     const ip = getRequestIP();
     await enforceRateLimit("verify-otp", { email, ip });
 
-    // 防枚举：用户不存在也返回统一的验证码错误
     const user = await db.orm.public.User.where({ email }).first();
     if (!user) throw new Error(ERROR_MESSAGE.OTP_INVALID);
 
     const result = await verifyEmailOtp(user.id, otp);
     if (!result.ok) throw new Error(OTP_REASON_MESSAGE[result.reason]);
 
-    // 验证通过 → 自动登录
     await signIn(result.userId);
 
     return { success: true };
   });
 
-/**
- * 重发验证邮件（无需登录）。
- *
- * 接受 email 而非 session，解决「注册后未登录无法 resend」的矛盾。
- * 防枚举：无论邮箱是否存在，恒返回成功。
- * 防轰炸：IP + email 双维度限速。
- */
 export const resendVerificationEmailFn = createServerFn({
   method: "POST",
 })
   .validator(emailOnlySchema)
   .handler(async ({ data: { email } }) => {
-    // 限速：同一 IP 1 分钟最多 3 次
     const ip = getRequestIP();
     await enforceRateLimit("resend", { ip });
 
-    // 限速：同一邮箱 3 次/分钟（上限取自 LIMITS.resend，与 IP 维度共用）
     await enforceRateLimit("resend", { email });
 
     const user = await db.orm.public.User.where({ email }).first();
 
-    // 防枚举：用户存在且未验证才发邮件
     if (user && !user.emailVerifiedAt) {
       const otp = await createVerificationOtp(user.id);
       await sendMail(

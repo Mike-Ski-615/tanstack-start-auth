@@ -1,13 +1,5 @@
 import { Link } from "@tanstack/react-router";
 
-/**
- * 账号设置未找到（/authenticated/settings/account）。
- *
- * 弹窗内，容器对齐 max-w-3xl。
- *
- * 退路给设置总览（分区列表）—— 用户想找的是某个设置分区，
- * 送到列表让他自己挑，比送出去再重进弹窗少两步。
- */
 export function NotFoundPage() {
   return (
     <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col items-center justify-center gap-4 text-center">

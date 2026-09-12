@@ -1,4 +1,3 @@
-// src/routes/__root.tsx
 import {
   Outlet,
   HeadContent,
@@ -64,21 +63,9 @@ function RootComponent() {
       </head>
       <body>
         <ThemeProvider defaultTheme="light" storageKey="theme">
-          {/* 内容区宽度偏好：三个工作台布局读它，切换按钮在 header 上 */}
           <ContentWidthProvider>
             <Toaster richColors position="top-center" />
             <TooltipProvider>
-              {/*
-                不需要在这里包查询错误边界：框架给**每个 match** 都套了一层
-                CatchBoundary（渲染 route.options.errorComponent，退回
-                defaultErrorComponent），而那层比这里更近 —— 页面组件抛错先被它
-                接住，这里包了也看不到任何东西。原 QueryErrorBoundary 因此删除。
-
-                将来真要用 throwOnError / useSuspenseQuery：路由级 ErrorPage 的
-                「重试」只重置路由边界，**不会**复位 react-query 的查询，
-                查询还停在 error 态就会立刻再抛一次 —— 那时候让那一处的
-                ErrorPage 调 `queryClient.resetQueries()`，别再往外加边界。
-              */}
               <Outlet />
             </TooltipProvider>
           </ContentWidthProvider>

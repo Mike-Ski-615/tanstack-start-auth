@@ -23,23 +23,11 @@ import {
 } from "#components/ui/alert-dialog";
 import { useSentNotifications, useDeleteNotificationBatchMutation } from "#hooks/use-notifications";
 
-/**
- * 已发出的通知列表。
- *
- * 每条显示送达人数与已读人数 —— 管理员最关心的是「有多少人看到了」。
- * 撤回需二次确认：它会把所有收件人的那条通知一并删除，不可恢复。
- */
 export function SentNotificationsList() {
   const { data: items = [], isPending, error } = useSentNotifications();
   const remove = useDeleteNotificationBatchMutation();
   const [pendingId, setPendingId] = useState<string | null>(null);
 
-  /*
-   * 三态同形：居中 + 图标 + 文字。靠图标区分语义，不换容器结构、不加按钮。
-   *
-   * 之前只有 isLoading 与「空」两支，请求失败会被误算成「空」—— 直接渲染
-   * 「还没有发送过通知」，管理员会以为发送记录丢了。
-   */
   if (isPending) {
     return (
       <div className="flex flex-col items-center gap-2 py-6 text-muted-foreground">

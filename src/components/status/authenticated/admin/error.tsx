@@ -3,18 +3,8 @@ import { Link } from "@tanstack/react-router";
 import { Button } from "#components/ui/button";
 import { CONTENT_WIDTH_CLASS, SIDEBAR_GUTTER_CLASS } from "#provider/content-width-provider";
 
-/**
- * 管理区错误（/authenticated/admin）。
- *
- * 挂载点在 `admin.tsx` 的 `<Outlet />` 处 —— 外层已经有
- * `p-4 sm:p-5 + lg:ps-7`，所以这里**不重复 padding**。
- *
- * 退路给「教师管理」而不是首页：这是管理区的入口页（admin 根本身会
- * redirect 到 teachers），管理员的下一步动作几乎总在那里。
- */
 export function ErrorPage({ reset }: ErrorComponentProps) {
   return (
-    // 容器类名用页面那组常数：本状态页会**替换**本路由自己的组件，那层包裹得自己带
     <div
       className={`flex flex-1 flex-col items-start gap-3 p-4 sm:p-5 ${SIDEBAR_GUTTER_CLASS} ${CONTENT_WIDTH_CLASS}`}
     >

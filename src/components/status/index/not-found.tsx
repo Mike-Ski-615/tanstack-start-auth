@@ -1,12 +1,5 @@
 import { Link } from "@tanstack/react-router";
 
-/**
- * 首页未找到（index）。
- *
- * 首页是 `/`，它自己「未找到」的情况其实只有拼错路径时由它兜底 ——
- * 但仍单独给一份：文案不写「你访问的地址」这种泛泛说法，而是直接
- * 把两条真实入口摆出来（首页本来就是干这个的）。
- */
 export function NotFoundPage() {
   return (
     <main className="flex min-h-svh flex-col items-center justify-center gap-4 bg-background p-6">

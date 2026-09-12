@@ -2,15 +2,6 @@ import type { ErrorComponentProps } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { Button } from "#components/ui/button";
 
-/**
- * 通知设置错误（/authenticated/settings/bell）。
- *
- * 弹窗内（外层 p-5 已有，不重复 padding），容器对齐 max-w-3xl。
- *
- * 这一页是「新通知是否弹 toast」的开关，读的是查询缓存里的偏好 ——
- * 读不到时会退回默认值（true，即照弹），所以这里失败的影响是温和的，
- * 文案不必危言耸听。
- */
 export function ErrorPage({ reset }: Pick<ErrorComponentProps, "reset">) {
   return (
     <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col items-center justify-center gap-4 text-center">

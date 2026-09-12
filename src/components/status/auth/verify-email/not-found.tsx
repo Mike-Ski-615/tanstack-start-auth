@@ -1,13 +1,5 @@
 import { Link } from "@tanstack/react-router";
 
-/**
- * 邮箱验证页未找到（/auth/verify-email）。
- *
- * 渲染在 auth 布局内。
- *
- * 这页直接带 `?email=` 参数，参数缺失会让它没意义 ——
- * 退路给登录页（验证的最终目的就是登录）。
- */
 export function NotFoundPage() {
   return (
     <div className="flex flex-col items-center gap-4 text-center">

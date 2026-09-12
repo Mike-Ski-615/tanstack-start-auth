@@ -2,16 +2,6 @@ import type { ErrorComponentProps } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { Button } from "#components/ui/button";
 
-/**
- * 账号设置错误（/authenticated/settings/account）。
- *
- * 弹窗内（外层 p-5 已有，不重复 padding），容器对齐 max-w-3xl。
- *
- * 退路给设置总览：这页是设置的一个分区，打不开时把用户送到分区列表，
- * 他可以换别的分区继续 —— 比直接踢回工作台有用。
- *
- * 两种用法共用（路由级 errorComponent / 页面内组件级），所以只取 reset。
- */
 export function ErrorPage({ reset }: Pick<ErrorComponentProps, "reset">) {
   return (
     <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col items-center justify-center gap-4 text-center">

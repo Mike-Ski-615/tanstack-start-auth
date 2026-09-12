@@ -2,14 +2,6 @@ import type { ErrorComponentProps } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { Button } from "#components/ui/button";
 
-/**
- * 邮箱验证页错误（/auth/verify-email）。
- *
- * 渲染在 auth 布局内。
- *
- * 验证码是**一次性且有时效**的，所以重试之外必须给「重新发送验证码」——
- * 单纯重试一个已失效的验证码永远不会成功。
- */
 export function ErrorPage({ reset }: ErrorComponentProps) {
   return (
     <div className="flex flex-col items-center gap-4 text-center">

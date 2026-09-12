@@ -51,26 +51,11 @@ import type { User } from "#lib/auth/current-user";
 import { adminResetPasswordSchema, adminUpdateProfileSchema } from "#schemas/auth";
 import { issuesToFields } from "#lib/validation";
 
-/**
- * 表格每行的操作菜单（下拉）。
- *
- * 五个操作分两类：
- *   - 无破坏性：踢下线（可逆，重新登录即恢复）
- *   - 破坏性：删账号、重置他人密码 —— 都需二次确认
- *
- * 「管理员不能被操作」这条在服务端强制（admin.functions.ts 的
- * requireManageableTarget）。前端只负责不显示入口 —— 但即便有人绕过来
- * 调接口，也会被服务端拒。
- */
-
 interface DataTableRowActionsProps {
   row: Row<UsersTableFeatures, User>;
 }
 
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
-  // row.original 就是 User —— 参数类型直接写成 User，不再用泛型 + as。
-  // 此前是 <TData extends RowData> 再 `row.original as User`：泛型只被
-  // 实例化成 User 一种，那个 as 纯粹是在给自己遮丑。
   const user = row.original;
   const toTeacher = user.role === "student";
 
@@ -130,7 +115,6 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* 编辑资料 */}
       <EditProfileDialog
         open={editOpen}
         onOpenChange={setEditOpen}
@@ -144,7 +128,6 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
         pending={updateProfile.isPending}
       />
 
-      {/* 重置密码 */}
       <ResetPasswordDialog
         open={resetOpen}
         onOpenChange={setResetOpen}
@@ -158,7 +141,6 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
         pending={resetPassword.isPending}
       />
 
-      {/* 改角色：二次确认 */}
       <AlertDialog open={roleOpen} onOpenChange={setRoleOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -185,7 +167,6 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* 删除：二次确认，最高风险 */}
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -209,17 +190,12 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* kick 是即时操作，不弹窗；pending 时禁用按钮 */}
       <span hidden aria-live="polite">
         {kick.isPending ? "正在踢下线" : ""}
       </span>
     </>
   );
 }
-
-// ============================================================
-// 子对话框
-// ============================================================
 
 function EditProfileDialog({
   open,

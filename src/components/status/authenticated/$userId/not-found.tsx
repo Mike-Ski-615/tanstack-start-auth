@@ -1,16 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { CONTENT_WIDTH_CLASS } from "#provider/content-width-provider";
 
-/**
- * 用户主页未找到（/authenticated/users/$userId）。
- *
- * 这页的 loader 在用户不存在时**主动** `throw notFound()`，所以这个组件
- * 是常态路径而非兜底 —— 文案要写清"这个人不存在"，不是"地址错了"。
- *
- * 挂载在 SidebarInset 内，padding 与 UserView 对齐（p-4 sm:p-6 lg:p-8）。
- * 退路给工作台：找人失败时的下一步通常是回到自己熟悉的地方，
- * 而不是留在别人的 URL 上。
- */
 export function NotFoundPage() {
   return (
     <main className="min-h-full min-w-0">

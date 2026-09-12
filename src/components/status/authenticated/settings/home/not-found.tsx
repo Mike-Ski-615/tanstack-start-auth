@@ -1,14 +1,5 @@
 import { Link } from "@tanstack/react-router";
 
-/**
- * 设置首页未找到（/authenticated/settings/home）。
- *
- * 弹窗内，容器宽度对齐该页的 max-w-3xl；内容区已有 p-5（不重复 padding）。
- *
- * 退路给 `/authenticated/settings`（设置总览）而非工作台：用户本意是
- * 进设置，把他留在设置弹窗内比踢出去更贴心 —— 而 settings 根会给出
- * 全部分区的入口。
- */
 export function NotFoundPage() {
   return (
     <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col items-center justify-center gap-4 text-center">

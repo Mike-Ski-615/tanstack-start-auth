@@ -6,10 +6,6 @@ import { changePasswordSchema, updateProfileSchema } from "#schemas/auth";
 import { requireUser, withUser } from "#lib/auth/middleware";
 import { ERROR_MESSAGE } from "#lib/error-messages";
 
-/**
- * 更新当前登录用户的可编辑资料（name / bio）。
- * 仅能改自己：身份取自会话，不接受 userId 入参。
- */
 export const updateProfileFn = createServerFn({
   method: "POST",
 })
@@ -24,16 +20,6 @@ export const updateProfileFn = createServerFn({
     return { success: true as const };
   });
 
-/**
- * 修改当前登录用户的密码。需先校验当前密码，再写新哈希。
- * 改密后全局失效所有旧 Session → createAuthenticatedSession。
- * 即使攻击者持有旧 token，改密后立即失效。
- * 防枚举：当前密码错误与用户不存在抛同一笼统文案。
- *
- * 这里用 `withUser` 而非 `requireUser`：无会话时抛的是 WRONG_PASSWORD
- * 而不是 UNAUTHENTICATED —— 那个文案是防枚举的一部分，不该被一次
- * 重构顺手改掉。
- */
 export const changePasswordFn = createServerFn({
   method: "POST",
 })

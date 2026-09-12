@@ -9,12 +9,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "#components/ui/tooltip"
 import { cn } from "#lib/utils";
 import { useContentWidth, CONTENT_WIDTH_LABEL } from "#provider/content-width-provider";
 
-/**
- * 内容区宽度切换：窄 → 宽 → 通栏，循环。
- *
- * 只在三个工作台布局（student / teacher / admin）里生效 —— 它们读同一个
- * provider 的宽度。其它页面（设置、帮助等）各有各的宽度，不受影响。
- */
 export function ContentWidthToggle({ className }: { className?: string }) {
   const { width, cycle } = useContentWidth();
 

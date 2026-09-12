@@ -29,7 +29,7 @@ const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = "16rem";
 const SIDEBAR_WIDTH_MOBILE = "18rem";
-export const SIDEBAR_WIDTH_PX = 256; // 16rem, the settled max width
+export const SIDEBAR_WIDTH_PX = 256;
 
 type SidebarContextProps = {
   state: "expanded" | "collapsed";
@@ -63,11 +63,6 @@ function SidebarProvider({
   className,
   style,
   children,
-  /**
-   * 嵌套 provider（如设置弹窗里的导航栏）必须关掉这两项：
-   * 它们与全局 provider 共用同一个 cookie、同绑一个 Ctrl+B，
-   * 不关就会出现「按一下切两层侧栏」和「内层状态写进全局」。
-   */
   persist = true,
   hotkey = true,
   ...props
@@ -81,8 +76,6 @@ function SidebarProvider({
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
 
-  // This is the internal state of the sidebar.
-  // We use openProp and setOpenProp for control from outside the component.
   const [_open, _setOpen] = React.useState(defaultOpen);
   const open = openProp ?? _open;
   const [width, setWidthPx] = React.useState(open ? SIDEBAR_WIDTH_PX : 0);
@@ -96,7 +89,6 @@ function SidebarProvider({
         _setOpen(openState);
       }
 
-      // This sets the cookie to keep the sidebar state.
       if (persist) {
         document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
       }
@@ -104,23 +96,16 @@ function SidebarProvider({
     [setOpenProp, open, persist],
   );
 
-  // Settle to the target width whenever the settled open state changes
-  // (toggle, keyboard shortcut, or external control). The <aside> below
-  // animates the change with a CSS transition on width.
   React.useEffect(() => {
     setWidthPx(open ? SIDEBAR_WIDTH_PX : 0);
   }, [open]);
 
-  // Helper to toggle the sidebar.
   const toggleSidebar = React.useCallback(() => {
     return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
   }, [isMobile, setOpen, setOpenMobile]);
 
-  // Toggle the sidebar with Ctrl + B.
   useHotkeys("ctrl+b", toggleSidebar, { preventDefault: true, enabled: hotkey });
 
-  // We add a state so that we can do data-state="expanded" or "collapsed".
-  // This makes it easier to style the sidebar with Tailwind classes.
   const state = open ? "expanded" : "collapsed";
 
   const contextValue = React.useMemo<SidebarContextProps>(
@@ -597,7 +582,6 @@ function SidebarMenuSkeleton({
 }: React.ComponentProps<"div"> & {
   showIcon?: boolean;
 }) {
-  // Random width between 50 to 90%.
   const [width] = React.useState(() => {
     return `${Math.floor(Math.random() * 40) + 50}%`;
   });

@@ -11,7 +11,6 @@ import { DataTableColumnHeader } from "#components/admin/data-table-column-heade
 import { type UsersTableFeatures } from "#components/admin/data-table-features";
 import { DataTableRowActions } from "#components/admin/data-table-row-actions";
 
-// Use `accessor` for data columns and `display` for columns without one.
 const columnHelper = createColumnHelper<UsersTableFeatures, User>();
 
 export const columns = columnHelper.columns([
@@ -47,7 +46,6 @@ export const columns = columnHelper.columns([
       return (
         <div className="flex gap-2">
           {role && <Badge variant="outline">{role.label}</Badge>}
-          {/* 点人名 → 该用户的主页 */}
           <Link
             to="/authenticated/users/$userId"
             params={{ userId: row.original.id }}
@@ -102,8 +100,6 @@ export const columns = columnHelper.columns([
         </div>
       );
     },
-    // faceted filter 传进来的是 ["verified"] / ["unverified"]，
-    // 而这一列的值是时间戳或 null —— 所以要自己比。
     filterFn: (row, id, value) => {
       const want = value as string[];
       const actual = row.getValue(id) ? "verified" : "unverified";

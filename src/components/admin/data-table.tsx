@@ -22,21 +22,12 @@ import { DataTableFrame } from "#components/admin/data-table-frame";
 import { DataTablePagination } from "#components/admin/data-table-pagination";
 import { DataTableToolbar } from "#components/admin/data-table-toolbar";
 
-/**
- * 用户表格（管理员用）。
- *
- * 结构照 shadcn 的 Tasks 示例（examples/tasks）：
- * toolbar 在表格上方，pagination 在下方，行选择默认开启，初始每页 25 行。
- */
 interface DataTableProps<TData extends RowData> {
   columns: ColumnDef<UsersTableFeatures, TData>[];
   data: TData[];
-  /** 主搜索框绑定的列 id。 */
   searchColumn: string;
   searchPlaceholder?: string;
-  /** 角色 faceted filter 选项（列表本身已按角色分时可不传）。 */
   roleOptions?: { label: string; value: string }[];
-  /** 验证状态 faceted filter 选项。 */
   verifiedOptions?: { label: string; value: string }[];
 }
 

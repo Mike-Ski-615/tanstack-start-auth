@@ -11,12 +11,6 @@ import { NAV_BY_ROLE } from "#data/nav";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { Role } from "#lib/auth/current-user";
 
-/**
- * 侧边栏菜单，按角色渲染。
- *
- * 分组来自数据（NAV_BY_ROLE）而非组件里的 slice 下标 —— 各角色的
- * 分组数量与每组条数都不同，靠下标切会散架。
- */
 export function AppSidebarContent({ role }: { role: Role }) {
   const groups = NAV_BY_ROLE[role];
 

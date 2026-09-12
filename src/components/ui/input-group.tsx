@@ -55,9 +55,6 @@ function InputGroupAddon({
       data-align={align}
       className={cn(inputGroupAddonVariants({ align }), className)}
       onClick={(e) => {
-        // e.target 是 EventTarget，不保证是 Element（可能是文本节点等），
-        // 所以先判形再调 closest —— 比 (e.target as HTMLElement) 稳，
-        // 后者在非 Element 上会直接抛。
         const target = e.target
         if (target instanceof Element && target.closest("button")) {
           return

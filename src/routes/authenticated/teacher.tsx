@@ -12,7 +12,6 @@ export const Route = createFileRoute("/authenticated/teacher")({
   notFoundComponent: NotFoundPage,
   component: TeacherPage,
   beforeLoad: ({ context }) => {
-    // 工作台准入：未登录 → 登录页；角色不符 → 回他自己的工作台
     requireRole(context.queryClient, "teacher");
   },
 });

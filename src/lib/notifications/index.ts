@@ -1,17 +1,3 @@
-/**
- * 通知：查询与创建。
- *
- * 认证模块之外的第一个业务模块。分层同 admin-actions：**查询/写入放这里
- * 当普通函数**，serverFn 只做鉴权与转发。列表/未读数是可复用的业务查询，
- * 与「谁在调用它」无关，所以不塞进 serverFn 的 handler 里。
- *
- * 数据模型是两层：
- *   Notification            管理员发出的一次（批次）
- *   NotificationRecipient   一条通知 × 一个收件人（已读/删除状态在这里）
- *
- * 「撤回一条通知」以批次为单位，「删除一条通知」对用户只影响自己那份。
- */
-
 import { db } from "#prisma/db";
 import { MANAGED_ROLES } from "#lib/auth/current-user";
 import { ERROR_MESSAGE } from "#lib/error-messages";
@@ -21,19 +7,6 @@ import {
   type NotificationTarget,
 } from "#lib/notifications/audience";
 
-// ============================================================
-// 收件人解析
-// ============================================================
-
-/**
- * 取出**可能与目标相关**的用户行。
- *
- * 这里是查询层的窄化，不做任何规则判断：取回来的允许是超集
- * （比如 `userIds` 里混了个 admin，或者 `roles` 里传了非法值），
- * 最终“谁是受众”由 resolveAudience 一处定。
- *
- * 两件事分开的好处：规则只写一份（客户端也用它），而且规则变了不用动 SQL。
- */
 async function fetchCandidates(target: NotificationTarget): Promise<AudienceCandidate[]> {
   if (target.all) {
     return db.orm.public.User.where((u) => u.role.in([...MANAGED_ROLES]))
@@ -58,14 +31,6 @@ async function fetchCandidates(target: NotificationTarget): Promise<AudienceCand
   return [...out.values()];
 }
 
-/**
- * 把发送目标解析成去重后的收件人 id 列表。
- *
- * 这里只负责「取行 + 超限抛错」；受众规则本身在 ./audience.ts，与发送页
- * 的预览人数是同一个函数 —— 所以界面提示的人数不可能与实际收到的不同。
- *
- * 超限直接抛错而不静默截断：宁可让管理员分批发。
- */
 export async function resolveRecipients(
   target: NotificationTarget,
   senderId: string,
@@ -78,10 +43,6 @@ export async function resolveRecipients(
   return recipientIds;
 }
 
-// ============================================================
-// 创建
-// ============================================================
-
 export type CreateNotificationInput = {
   title: string;
   body: string;
@@ -90,14 +51,6 @@ export type CreateNotificationInput = {
   senderId: string;
 };
 
-/**
- * 创建一条通知并展开成收件人行。
- *
- * 没有多语句事务（见 CONTEXT.md 的 Fail-Closed 顺序），所以顺序设计成：
- * 先建批次、再批量建收件行。若后者中途失败，结果是「一条没人收到的通知」
- * —— 干净的空记录，管理员看得见并能删掉；反过来先建收件行则会出现
- * 「收件人指向不存在的通知」。
- */
 export async function createNotification(
   input: CreateNotificationInput,
 ): Promise<{ id: string; recipientCount: number }> {
@@ -112,8 +65,6 @@ export async function createNotification(
 
   const notificationId = created.id;
 
-  // 逐条插入。收件人已限流到 MAX_RECIPIENTS，且个人通知场景不会到那个量级；
-  // 真要一次发几千人再考虑批量插入。
   for (const userId of recipients) {
     await db.orm.public.NotificationRecipient.create({
       notificationId,
@@ -124,13 +75,7 @@ export async function createNotification(
   return { id: notificationId, recipientCount: recipients.length };
 }
 
-// ============================================================
-// 查询（用户侧）
-// ============================================================
-
-/** 一条通知在用户列表里的形态。 */
 export type NotificationItem = {
-  /** 收件人行 id —— 用户操作（已读/删除）用它，不是批次 id。 */
   id: string;
   notificationId: string;
   title: string;
@@ -140,7 +85,6 @@ export type NotificationItem = {
   createdAt: string;
 };
 
-/** 当前用户的通知列表（未删的，按时间倒序）。 */
 export async function listNotificationsForUser(
   userId: string,
   limit = 50,
@@ -153,7 +97,6 @@ export async function listNotificationsForUser(
 
   if (rows.length === 0) return [];
 
-  // 一次取回所有关联批次，再按 id 建索引 —— 避免逐行查批次的 N+1。
   const notifications = await db.orm.public.Notification.where((n) =>
     n.id.in(rows.map((r) => r.notificationId)),
   ).all();
@@ -163,8 +106,6 @@ export async function listNotificationsForUser(
   const items: NotificationItem[] = [];
   for (const r of rows) {
     const n = byId.get(r.notificationId);
-    // 批次被管理员撤回（cascade 删掉了收件行）时不会走到这里，
-    // 但防御一下：跳过孤儿行而不是抛错。
     if (!n) continue;
     items.push({
       id: r.id,
@@ -179,7 +120,6 @@ export async function listNotificationsForUser(
   return items;
 }
 
-/** 未读数（铃铛徽章）。 */
 export async function countUnread(userId: string): Promise<number> {
   const rows = await db.orm.public.NotificationRecipient.where((r) => r.userId.eq(userId))
     .where((r) => r.deletedAt.isNull())
@@ -189,21 +129,12 @@ export async function countUnread(userId: string): Promise<number> {
   return rows.length;
 }
 
-// ============================================================
-// 用户操作
-// ============================================================
-
-/**
- * 标记已读。
- *
- * 必须带 userId 条件 —— 只凭收件行 id 就能改别人那条是权限漏洞。
- */
 export async function markRead(recipientId: string, userId: string): Promise<boolean> {
   const row = await db.orm.public.NotificationRecipient.where({
     id: recipientId,
   }).first();
   if (!row || row.userId !== userId) return false;
-  if (row.readAt) return true; // 已读过，幂等
+  if (row.readAt) return true;
 
   await db.orm.public.NotificationRecipient.where({ id: recipientId }).update({
     readAt: new Date().toISOString(),
@@ -211,7 +142,6 @@ export async function markRead(recipientId: string, userId: string): Promise<boo
   return true;
 }
 
-/** 全部标记已读。返回改动条数。 */
 export async function markAllRead(userId: string): Promise<number> {
   const unread = await db.orm.public.NotificationRecipient.where((r) => r.userId.eq(userId))
     .where((r) => r.deletedAt.isNull())
@@ -227,12 +157,6 @@ export async function markAllRead(userId: string): Promise<number> {
   return unread.length;
 }
 
-/**
- * 用户删除自己的一条通知 —— 打 deletedAt 而非真删。
- *
- * 真删会把「这行属于谁」这个事实也删掉；打标记则保留可审计的痕迹，
- * 且不影响任何别人（每人一行，天然隔离）。
- */
 export async function softDeleteForUser(recipientId: string, userId: string): Promise<boolean> {
   const row = await db.orm.public.NotificationRecipient.where({
     id: recipientId,
@@ -245,11 +169,6 @@ export async function softDeleteForUser(recipientId: string, userId: string): Pr
   return true;
 }
 
-// ============================================================
-// 管理侧
-// ============================================================
-
-/** 管理员看到的一条已发通知（含收件人数与已读数）。 */
 export type SentNotification = {
   id: string;
   title: string;
@@ -260,13 +179,11 @@ export type SentNotification = {
   readCount: number;
 };
 
-/** 列出管理员发出的通知（含统计）。 */
 export async function listSentNotifications(): Promise<SentNotification[]> {
   const batches = await db.orm.public.Notification.orderBy((n) => n.createdAt.desc()).all();
 
   if (batches.length === 0) return [];
 
-  // 一次取回所有批次的收件行，再按批次分组 —— 避免「每批次一次查询」的 N+1。
   const rows = await db.orm.public.NotificationRecipient.where((r) =>
     r.notificationId.in(batches.map((n) => n.id)),
   ).all();
@@ -292,15 +209,6 @@ export async function listSentNotifications(): Promise<SentNotification[]> {
   });
 }
 
-/**
- * 撤回一条通知（真删批次）。
- *
- * 这里用真删而非软删：批次是管理员的发送记录，撤回的语义就是「这些收件行
- * 也该消失」。外键 cascade 会一并清掉 NotificationRecipient —— 用户的已读/
- * 删除标记随之消失，这正是想要的。
- *
- * 注意与用户侧的软删区分：那边是「我不想看」，这边是「这条不该存在」。
- */
 export async function deleteNotificationBatch(notificationId: string): Promise<boolean> {
   const n = await db.orm.public.Notification.where({
     id: notificationId,

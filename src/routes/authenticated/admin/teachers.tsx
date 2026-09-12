@@ -14,13 +14,11 @@ export const Route = createFileRoute("/authenticated/admin/teachers")({
   errorComponent: ErrorPage,
   notFoundComponent: NotFoundPage,
   component: AdminTeachersPage,
-  // SSR 预取：不等客户端 useQuery，管理页首屏就有数据。
   beforeLoad: async ({ context }) => {
     await context.queryClient.query({ ...adminUsersQueryOptions("teacher"), staleTime: "static" });
   },
 });
 
-/** 教师管理。结构与 Tasks 示例的 page.tsx 一致：标题 + 描述 + 表格。 */
 function AdminTeachersPage() {
   const {
     data: teachers = [],
@@ -29,8 +27,6 @@ function AdminTeachersPage() {
     refetch,
   } = useQuery(adminUsersQueryOptions("teacher"));
 
-  // 三态分开写，理由同 students.tsx：只解构 data 会让「查询失败」
-  // 长得跟「真的没有教师」一样（都是「共 0 位」+ 空表）。
   if (isPending) return <LoadingPage />;
   if (error) return <ErrorPage reset={() => void refetch()} />;
 

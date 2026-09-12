@@ -1,13 +1,5 @@
 import { Link } from "@tanstack/react-router";
 
-/**
- * 登录页未找到（/auth/login）。
- *
- * 渲染在 auth 布局的 max-w-sm 内。
- *
- * 「登录页不存在」基本只可能是路由拼接出错 —— 给回到首页，
- * 而不是再指向某个 auth 子页（那可能同样不存在）。
- */
 export function NotFoundPage() {
   return (
     <div className="flex flex-col items-center gap-4 text-center">

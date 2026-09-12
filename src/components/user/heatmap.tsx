@@ -6,20 +6,15 @@ import { useTheme } from "#provider/theme-provider";
 import { CALENDAR_COLORS } from "#components/user/colors";
 import type { ActivityDay } from "#lib/activity";
 
-/** 每天一列。blockSize + blockMargin，与下面的 props 保持一致。 */
 const CELL = 13 + 2;
-/** UTC 日期串，与 lib/activity 的日期口径一致。 */
 function isoDayUTC(d: Date): string {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(
     d.getUTCDate(),
   ).padStart(2, "0")}`;
 }
 
-/** 星期标签占的宽度（"周日" 二字 + 间距），从可用宽度里扣掉。 */
 const WEEKDAY_LABEL_W = 30;
-/** 全年周数（含首尾不完整周）。 */
 const FULL_YEAR_WEEKS = 53;
-/** 再窄也至少显示这么多周，否则不成图表。 */
 const MIN_WEEKS = 8;
 
 function fmtDate(ymd: string) {
@@ -32,14 +27,11 @@ export default function Heatmap({ data }: { data: ActivityDay[] }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState<number | null>(null);
 
-  // 量容器自身宽度而非视口：这一页挨着可折叠侧边栏，视口宽不代表可用宽。
   useEffect(() => {
     const el = hostRef.current;
     if (!el) return;
 
     const ro = new ResizeObserver((entries) => {
-      // entries 至少一条（只 observe 了一个元素），但类型上不保证 ——
-      // 用解构默认挡一下，比 entry! 安全：真的空数组时不会崩。
       const entry = entries[0];
       if (!entry) return;
       setWidth(entry.contentRect.width);
@@ -48,18 +40,6 @@ export default function Heatmap({ data }: { data: ActivityDay[] }) {
     return () => ro.disconnect();
   }, []);
 
-  /*
-   * 窄容器里塞整年 = 格子缩到看不清。
-   *
-   * 实测：把整年（53 周）等比压进手机的 296px，格子只有 4.9×4.9px ——
-   * 色块几乎无法辨认。而 SVG 的宽度就是「周数 × 格子大小」，所以正确
-   * 做法不是缩小格子，而是**减少显示的周数**：格子维持 13px 可读尺寸，
-   * 只展示最近能放下的那几周（GitHub 等产品的窄屏行为也是如此）。
-   *
-   * 宽度未知时（首帧 / SSR）按整年渲染 —— 与原来一致，不闪。
-   */
-  // 星期标签由组件渲染在 SVG 左侧（给它留了 marginLeft），所以可用宽度
-  // 要扣掉标签那一列，否则标签会被 scroll-container 的 maxWidth:100% 裁掉。
   const weeks =
     width === null
       ? FULL_YEAR_WEEKS
@@ -68,13 +48,6 @@ export default function Heatmap({ data }: { data: ActivityDay[] }) {
           Math.min(FULL_YEAR_WEEKS, Math.floor((width - WEEKDAY_LABEL_W) / CELL) + 1),
         );
 
-  /*
-   * 按**今天往前**切，不能按数组尾部切。
-   *
-   * data 是整年 1/1–12/31，尾部是未来的空格子（buildActivityCalendar 会把
-   * 未来日期强制清零）。直接 slice(-weeks*7) 取到的是年底那些空日子 ——
-   * 实测在 1024px 出现过「近 8 周共 0 次记录」而「本周」明明有 34 次。
-   */
   const shown = (() => {
     if (weeks >= FULL_YEAR_WEEKS) return data;
 
@@ -82,7 +55,6 @@ export default function Heatmap({ data }: { data: ActivityDay[] }) {
     const idx = data.findIndex((d) => d.date === todayISO);
     if (idx < 0) return data.slice(-weeks * 7);
 
-    // 含今天在内，往前取 weeks 周
     return data.slice(Math.max(0, idx - weeks * 7 + 1), idx + 1);
   })();
 

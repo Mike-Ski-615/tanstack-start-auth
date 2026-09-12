@@ -2,15 +2,6 @@ import type { ErrorComponentProps } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { Button } from "#components/ui/button";
 
-/**
- * 发送通知错误（/authenticated/admin/notifications）。
- *
- * 挂载在 admin 布局的 `<Outlet />` 内（外层已有 padding，不重复）。
- *
- * 这页要拉「可选用户列表」才可以发送，所以失败多半是那个查询挂了 ——
- * 重试确实有意义（列表变了、网络回来了）。
- * 退路给教师管理（管理区入口），不指 `/`（会离开管理上下文）。
- */
 export function ErrorPage({ reset }: ErrorComponentProps) {
   return (
     <div className="flex flex-1 flex-col items-start gap-3">

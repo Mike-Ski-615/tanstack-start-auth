@@ -2,14 +2,6 @@ import type { ErrorComponentProps } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { Button } from "#components/ui/button";
 
-/**
- * 忘记密码页错误（/auth/forgot-password）。
- *
- * 渲染在 auth 布局内。
- *
- * 退路给登录页：这页的唯一目的是找回访问权限，而登录是同一件事的
- * 另一条路（如果用户其实还记得密码）。回首页则离目标更远。
- */
 export function ErrorPage({ reset }: ErrorComponentProps) {
   return (
     <div className="flex flex-col items-center gap-4 text-center">

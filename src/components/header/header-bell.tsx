@@ -29,14 +29,6 @@ import {
   useDeleteNotificationMutation,
 } from "#hooks/use-notifications";
 
-/**
- * 铃铛：未读徽章 + 通知面板。
- *
- * 数据分两个 query：
- *   - 未读数：30s 轮询（轻，只 count）
- *   - 列表：只在面板打开时才拉（enabled=open）
- * 这样关着面板时不会为一个看不见的列表付查询成本。
- */
 export function HeaderBell() {
   const [open, setOpen] = useState(false);
 
@@ -47,7 +39,6 @@ export function HeaderBell() {
   const markAll = useMarkAllReadMutation();
   const remove = useDeleteNotificationMutation();
 
-  /** 展示未读数：超过 99 显示 99+（避免撑破按钮）。 */
   const badge = unread > 99 ? "99+" : String(unread);
 
   return (
@@ -91,12 +82,6 @@ export function HeaderBell() {
         </PopoverHeader>
 
         <ScrollArea className="max-h-80">
-          {/*
-            三态同形：居中 + 图标 + 文字。靠图标区分语义，不换容器结构。
-
-            之前只有 isLoading 与「空」两支，且都不带图标 —— 请求失败会被
-            误算成「空」，用户看到「暂无通知」分不清是真的没有还是没取到。
-          */}
           {isPending ? (
             <div className="flex flex-col items-center gap-2 px-4 py-8 text-muted-foreground">
               <HugeiconsIcon icon={Loading02Icon} className="size-5 animate-spin" />
@@ -148,8 +133,6 @@ function NotificationRow({
 }) {
   const unread = !item.readAt;
 
-  // 有链接时整块变成可跳转区域；点了顺便标已读。
-  // 用 <Link> 而非 <a>：链接是站内路径（服务端已校验），走客户端路由不刷新页面。
   const inner = (
     <>
       <div className="flex items-start gap-2">
@@ -185,7 +168,6 @@ function NotificationRow({
         </button>
       )}
 
-      {/* 删除按钮：hover 或键盘聚焦时出现（否则每行都挂一个叉很吵） */}
       <Button
         type="button"
         variant="ghost"
@@ -200,7 +182,6 @@ function NotificationRow({
   );
 }
 
-/** 相对时间。列表里「10 分钟前」比时间戳好读。 */
 function formatTime(iso: string): string {
   const then = new Date(iso).getTime();
   const diff = Date.now() - then;

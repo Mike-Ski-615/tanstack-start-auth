@@ -1,8 +1,3 @@
-// Dummy Argon2 hash 用于用户不存在时的恒定时间校验，防止 timing attack 枚举邮箱。
-//
-// 必须是 argon2id 真实产出的哈希（参数与 lib/auth/password.ts 一致）。手写伪哈希
-// 会让 argon2Verify 直接抛异常而不执行任何计算，用户不存在时从“~220ms + 密码错”
-// 变成“0ms + 500”，反而给攻击者一个更清晰的信号。密码不可知，产物无法用于登录。
 const DUMMY_PASSWORD_HASH =
   "$argon2id$v=19$m=65536,t=3,p=1$0IJWluIg0PQoVokT8IL6Yw$I3uYiR6qTsLLo1pq0jfitvOfAOD/QRz+5EaZ1kiGzos";
 
@@ -15,24 +10,16 @@ import { signIn } from "#lib/auth/session-manager";
 import { enforceRateLimit } from "#lib/auth/rate-limiter";
 import { ERROR_MESSAGE } from "#lib/error-messages";
 
-/**
- * 登录用例：校验凭据 → createAuthenticatedSession → 设 cookie。
- *
- * 凭据失败一律 throw（用户不存在与密码错误抛同一文案），防账号枚举；
- * createAuthenticatedSession 内部自动处理单设备冲突。
- */
 export const login = createServerFn({
   method: "POST",
 })
   .validator(loginSchema)
   .handler(async ({ data: { email, password } }) => {
-    // 速率限制：同一邮箱 + IP 组合 1 分钟最多 5 次
     const ip = getRequestIP();
     await enforceRateLimit("login", { email, ip });
 
     const user = await db.orm.public.User.where({ email }).first();
 
-    // 防枚举：即使用户不存在也执行 Argon2 verify，消除 timing leak
     const passwordHash = user?.passwordHash ?? DUMMY_PASSWORD_HASH;
     const valid = await verifyPassword(passwordHash, password);
 

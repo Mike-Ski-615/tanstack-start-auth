@@ -33,7 +33,6 @@ export const Route = createFileRoute("/authenticated/settings/privacy-security")
   pendingComponent: LoadingPage,
   errorComponent: ErrorPage,
   notFoundComponent: NotFoundPage,
-  // SSR 预取：首屏 HTML 直接带内容，不等客户端渲染期再取。
   beforeLoad: async ({ context }) => {
     await context.queryClient.query({ ...securityInfoQueryOptions, staleTime: "static" });
   },
@@ -67,7 +66,6 @@ function SettingsPrivacySecurityPage() {
     mutationFn: () => revokeAllSessionsFn(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: securityInfoQueryOptions.queryKey });
-      // 撤销全部 → 当前会话也失效 → 跳转首页
       router.navigate({ to: "/" });
     },
   });
@@ -76,13 +74,6 @@ function SettingsPrivacySecurityPage() {
   const session: Session | null = data?.session ?? null;
   const emailVerifiedAt: string | null = data?.emailVerifiedAt ?? null;
 
-  /*
-   * 错误分支。以前只有 isLoading，没有 error —— 请求失败时 data 是 undefined，
-   * 下面所有的 ?? null 都会静默变成「没设备 / 没会话」，用户看不出取数失败。
-   *
-   * 整页替换在这里是合理的：这一页的全部内容都来自这一个查询，
-   * 没有可保留的旧内容。
-   */
   if (error) return <ErrorPage reset={() => void refetch()} />;
 
   return (
@@ -97,7 +88,6 @@ function SettingsPrivacySecurityPage() {
         </p>
       </header>
 
-      {/* 邮箱验证状态 */}
       <section className="rounded-xl border bg-card">
         <div className="flex items-center gap-2 border-b p-4">
           <HugeiconsIcon icon={CheckCircle} className="size-5 text-muted-foreground" />
@@ -133,7 +123,6 @@ function SettingsPrivacySecurityPage() {
         </div>
       </section>
 
-      {/* 当前设备 */}
       <section className="rounded-xl border bg-card">
         <div className="flex items-center gap-2 border-b p-4">
           <HugeiconsIcon icon={DeviceAccessIcon} className="size-5 text-muted-foreground" />
@@ -169,7 +158,6 @@ function SettingsPrivacySecurityPage() {
         )}
       </section>
 
-      {/* 当前会话 */}
       <section className="rounded-xl border bg-card">
         <div className="flex items-center gap-2 border-b p-4">
           <HugeiconsIcon icon={Key01Icon} className="size-5 text-muted-foreground" />
@@ -218,7 +206,6 @@ function SettingsPrivacySecurityPage() {
         )}
       </section>
 
-      {/* 撤销全部会话 */}
       <section className="rounded-xl border bg-card">
         <div className="flex items-center gap-2 border-b p-4">
           <HugeiconsIcon icon={Logout01Icon} className="size-5 text-muted-foreground" />
@@ -228,15 +215,6 @@ function SettingsPrivacySecurityPage() {
           <p className="mb-3 text-sm text-muted-foreground">
             撤销后所有设备都将需要重新登录。此操作会递增会话版本号，使所有旧会话立即失效。
           </p>
-          {/*
-            危险操作加确认：点一下就会把所有设备踢下线，且不可撤销。
-
-            文案遵循两条：确认按钮重复后果（「撤销全部会话」而非「确定」），
-            这样不看正文也能回答；按钮文字带动词（「取消」而非「否」）。
-
-            确认按钮用 destructive 变体，与页面上的触发按钮保持一致 ——
-            用户在弹窗里看到的仍然是同一个危险色。
-          */}
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button type="button" variant="destructive" disabled={revokeAllMutation.isPending}>

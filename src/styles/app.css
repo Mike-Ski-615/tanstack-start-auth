@@ -1,31 +1,11 @@
-/* src/styles/app.css */
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@font-face {
-  font-family: "Geist Variable";
-  font-style: normal;
-  font-display: swap;
-  font-weight: 100 900;
-  src: url("@fontsource-variable/geist/files/geist-latin-wght-normal.woff2")
-    format("woff2-variations");
-}
-
-@font-face {
-  font-family: "Geist Mono Variable";
-  font-style: normal;
-  font-display: swap;
-  font-weight: 100 900;
-  src: url("@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2")
-    format("woff2-variations");
-}
 @import "./typeset.css";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-geist: "Geist Variable", sans-serif;
-  --font-geist-mono: "Geist Mono Variable", monospace;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -68,8 +48,6 @@
 }
 
 :root {
-  --font-geist: "Geist Variable", sans-serif;
-  --font-geist-mono: "Geist Mono Variable", monospace;
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 60);
   --card: oklch(1 0 0);
@@ -85,8 +63,6 @@
   --accent: oklch(0.926 0 0);
   --accent-foreground: oklch(0.205 0.006 60);
   --destructive: oklch(0.577 0.245 27.325);
-  /* 成功态（如「已验证」）。色相 162 沿用 --chart-2 的绿，
-     两个主题各降一档明度以保证在各自背景上对比度足够。 */
   --success: oklch(0.58 0.15 162);
   --border: oklch(0.923 0.003 48);
   --input: oklch(0.923 0.003 48);
@@ -148,7 +124,7 @@
   }
 
   html {
-    @apply font-geist;
+    @apply font-sans;
   }
 
   body {
@@ -158,25 +134,14 @@
 
 @layer components {
   .typeset-docs {
-    --typeset-font-body: var(--font-geist);
-    --typeset-font-heading: var(--font-geist);
-    --typeset-font-mono: var(--font-geist-mono);
+    --typeset-font-body: var(--font-sans);
+    --typeset-font-heading: var(--font-sans);
+    --typeset-font-mono: var(--font-mono);
     --typeset-size: 16px;
     --typeset-leading: 1.75;
     --typeset-flow: 1em;
   }
 
-  /*
-   * 内容区宽度。
-   *
-   * 由 <html data-content-width> 决定，而不是 React 直接给类名 —— 这样
-   * 首屏脚本能在绘制前把偏好写到 <html> 上，SSR 出的 HTML 就已经是正确
-   * 宽度，水合不再引起回流（详见 content-width-provider 的注释）。
-   *
-   * 三个值对应原来的 max-w-3xl / max-w-5xl / w-full：
-   *   narrow 48rem(768px) / wide 64rem(1024px) / full 不限
-   * Tailwind 默认 max-w-5xl 是 64rem、max-w-3xl 是 48rem。
-   */
   .content-region {
     width: 100%;
   }

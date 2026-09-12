@@ -2,14 +2,6 @@ import type { ErrorComponentProps } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { Button } from "#components/ui/button";
 
-/**
- * 隐私与安全错误（/authenticated/settings/privacy-security）。
- *
- * 弹窗内（外层 p-5 已有，不重复 padding），容器对齐 max-w-3xl。
- *
- * 这页会列出活跃会话，所以它的错误直接涉及"安全信息读不到" ——
- * 文案要明确告诉用户这不代表账号出事，避免引起恐慌。
- */
 export function ErrorPage({ reset }: Pick<ErrorComponentProps, "reset">) {
   return (
     <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col items-center justify-center gap-4 text-center">

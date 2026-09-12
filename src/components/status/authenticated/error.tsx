@@ -6,21 +6,6 @@ import { ROLE_HOME } from "#lib/auth/current-user";
 import { currentUserQueryOptions } from "#lib/queries/user";
 import { SIDEBAR_GUTTER_CLASS } from "#provider/content-width-provider";
 
-/**
- * 已登录区错误（/authenticated）。
- *
- * ### 与 __root 那版的区别
- *
- * 挂载点在 `SidebarInset` 内 —— 侧栏和 header 仍在，所以：
- *   1. 不用 `min-h-svh`（会顶出滚动条），用 `flex-1` 填剩余高度；
- *   2. 让开侧栏手柄（`lg:ps-7`），与真实页面一致。
- *
- * 退路按**角色**给：`ROLE_HOME[user.role]` 是这个人自己的落地页。
- * 原来的实现一律指 `/`，在校验过的区域里点下去会被重定向回来 —— 死胡同。
- *
- * 角色从 currentUser 查询缓存读（父布局 beforeLoad 已 prefetch 过同一份）。
- * 缓存尚未就绪时兜底退回 `/`，而不是崩掉。
- */
 export function ErrorPage({ reset }: ErrorComponentProps) {
   const { data: user } = useQuery(currentUserQueryOptions);
 

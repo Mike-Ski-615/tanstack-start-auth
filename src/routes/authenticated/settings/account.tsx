@@ -21,7 +21,6 @@ export const Route = createFileRoute("/authenticated/settings/account")({
   pendingComponent: LoadingPage,
   errorComponent: ErrorPage,
   notFoundComponent: NotFoundPage,
-  // SSR 预取：首屏 HTML 直接带内容，不等客户端渲染期再取。
   beforeLoad: async ({ context }) => {
     await context.queryClient.query({ ...securityInfoQueryOptions, staleTime: "static" });
   },
@@ -33,14 +32,8 @@ function SettingsAccountPage() {
 
   const { data, isPending, error, refetch } = useQuery(securityInfoQueryOptions);
 
-  /*
-   * 这一页全是「只读的真值」：邮箱验证状态、设备信息。
-   * 以前全用 data?. 可选链，失败/加载中就渲染成空值 —— 用户看到一片空白，
-   * 无法区分「没绑定设备」与「请求挂了」。所以这里先拦状态再渲染。
-   */
   if (isPending) return <LoadingPage />;
   if (error) return <ErrorPage reset={() => void refetch()} />;
-  // 父布局已 prefetch，理论不为空；会话失效时守卫会跳登录，这里兑底。
   if (!user) return null;
 
   const emailVerifiedAt: string | null = data?.emailVerifiedAt ?? null;
@@ -56,7 +49,6 @@ function SettingsAccountPage() {
         <p className="mt-1 text-sm text-muted-foreground">查看账户基本信息、验证状态和登录状态。</p>
       </header>
 
-      {/* 基本信息 */}
       <section className="rounded-xl border bg-card">
         <div className="flex items-center gap-2 border-b p-4">
           <HugeiconsIcon icon={IdIcon} className="size-5 text-muted-foreground" />
@@ -88,7 +80,6 @@ function SettingsAccountPage() {
         </div>
       </section>
 
-      {/* 验证状态 */}
       <section className="rounded-xl border bg-card">
         <div className="flex items-center gap-2 border-b p-4">
           <HugeiconsIcon icon={CheckCircle} className="size-5 text-muted-foreground" />
@@ -127,7 +118,6 @@ function SettingsAccountPage() {
         </div>
       </section>
 
-      {/* 登录状态 */}
       <section className="rounded-xl border bg-card">
         <div className="flex items-center gap-2 border-b p-4">
           <HugeiconsIcon icon={DeviceAccessIcon} className="size-5 text-muted-foreground" />

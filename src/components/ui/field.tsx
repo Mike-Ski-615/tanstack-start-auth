@@ -133,9 +133,6 @@ function FieldDescription({ className, ...props }: React.ComponentProps<"p">) {
       className={cn(
         "text-left text-sm leading-normal font-normal text-muted-foreground group-has-data-horizontal/field:text-balance [[data-variant=legend]+&]:-mt-1.5",
         "last:mt-0 nth-last-2:-mt-1",
-        // 链接加纵向内边距：裸 text-sm 行高约 18px，低于 WCAG 2.5.8 的
-        // 24×24 点击区基线。py-1 把它抬到 26px，同时不改变文字位置
-        // （负外边距抵消），视觉完全不变。
         "[&>a]:-my-1 [&>a]:inline-block [&>a]:py-1",
         "[&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-primary",
         className,

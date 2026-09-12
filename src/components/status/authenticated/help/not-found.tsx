@@ -1,14 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { SIDEBAR_GUTTER_CLASS } from "#provider/content-width-provider";
 
-/**
- * 帮助文档未找到（/authenticated/help）。
- *
- * 挂载在 SidebarInset 内，让开侧栏手柄（lg:ps-7）。
- *
- * 这页是固定路径，所以"未找到"只可能是地址错了 —— 文案承认这点，
- * 并给回工作台的出路。指 `/` 会离开已登录上下文，绕远路。
- */
 export function NotFoundPage() {
   return (
     <div className={`flex flex-1 flex-col items-start gap-3 p-4 ${SIDEBAR_GUTTER_CLASS}`}>

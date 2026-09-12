@@ -34,13 +34,11 @@ function VerifyEmailPage() {
   const verifyMutation = useMutation({
     mutationFn: (code: string) => verifyEmailFn({ data: { email, otp: code } }),
     onSuccess: async () => {
-      // 验证成功即建立会话，同步缓存后跳转（细节见 useAuthCacheSync）
       await authSync.onSignedIn();
       setTimeout(() => router.navigate({ to: "/authenticated" }), 1500);
     },
   });
 
-  // 重发：用户没收到邮件时重新生成 OTP（旧 OTP 作废）
   const resendMutation = useMutation({
     mutationFn: () => resendVerificationEmailFn({ data: { email } }),
     onSuccess: () => {
@@ -49,7 +47,6 @@ function VerifyEmailPage() {
     },
   });
 
-  // 缺 email 无从验证（本页由注册/重发邮件跳转而来，正常不会缺）
   if (!email) {
     return (
       <div className="flex flex-col items-center gap-4 text-center">
@@ -85,15 +82,9 @@ function VerifyEmailPage() {
         className="flex flex-col items-center gap-4"
         onSubmit={(e) => {
           e.preventDefault();
-          // 只在填满 6 位时才提交，避免半截输入打满错误次数
           if (otp.length === 6) verifyMutation.mutate(otp);
         }}
       >
-        {/*
-          sr-only label + htmlFor：OTP 控件的底层是原生 input，id 会透传。
-          视觉上已有 h1 与上方说明文字，不必重复显示，但屏幕阅读器需要
-          一个真实的可访问名（否则只听到“编辑框”）。
-        */}
         <label htmlFor="otp" className="sr-only">
           邮箱验证码
         </label>

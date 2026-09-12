@@ -11,12 +11,9 @@ import { type UsersTableFeatures } from "#components/admin/data-table-features";
 
 interface DataTableToolbarProps<TData extends RowData> {
   table: ReactTable<UsersTableFeatures, TData>;
-  /** 主搜索框对应的列 id（一般是 name 或 email）。 */
   searchColumn: string;
   searchPlaceholder?: string;
-  /** 角色筛选项（列表已按角色分页时不传）。 */
   roleOptions?: { label: string; value: string }[];
-  /** 验证状态筛选项。 */
   verifiedOptions?: { label: string; value: string }[];
 }
 
@@ -30,8 +27,6 @@ export function DataTableToolbar<TData extends RowData>({
   const isFiltered = table.state.columnFilters.length > 0;
 
   return (
-    // 表格区的宽度由 ContentWidthToggle 控制，所以断点看**容器**而非视口：
-    // 视口 lg: 在 narrow 档下会把搜索框拉宽、却把「视图」按钮隐藏。
     <div className="@container flex items-center justify-between">
       <div className="flex flex-1 items-center gap-2">
         <Input

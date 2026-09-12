@@ -21,8 +21,6 @@ const hrefOf = (item: HookSidebarItem) => (typeof item === "string" ? undefined 
 
 const labelOf = (item: HookSidebarItem) => (typeof item === "string" ? item : item.label);
 
-// Hydration-safe: first render is false (matches SSR), then syncs to the OS
-// preference in an effect. Replaces motion's useReducedMotion().
 function useReducedMotion() {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
@@ -48,8 +46,6 @@ const Rail = ({
   dashed: boolean;
   className?: string;
 }) => {
-  // CSS approximates the original spring (stiffness 420 / damping 34 / mass 0.7),
-  // which is near critically damped, so a plain ease-out matches its feel.
   const travel = reduced
     ? "none"
     : "top 320ms cubic-bezier(0.22, 1, 0.36, 1), height 320ms cubic-bezier(0.22, 1, 0.36, 1)";
@@ -131,7 +127,6 @@ export function HookSidebar({
   const activeY = activeIndex < 0 ? null : (centers[activeIndex] ?? null);
   const hoverY = hoverIndex === null ? null : (centers[hoverIndex] ?? null);
 
-  // above the active row the accent line already covers the span, so draw only the corner
   const hoverFrom =
     activeY !== null && hoverY !== null && hoverY <= activeY
       ? Math.max(0, hoverY - CORNER)

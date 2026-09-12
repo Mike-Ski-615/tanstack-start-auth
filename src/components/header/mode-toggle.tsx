@@ -28,7 +28,6 @@ export function ModeToggle() {
           <span className="sr-only">切换主题</span>
         </Button>
       </TooltipTrigger>
-      {/* 说「切到浅色」而非「深色模式」—— 后者要用户自己判断当前是哪档 */}
       <TooltipContent>切到{next}主题</TooltipContent>
     </Tooltip>
   );

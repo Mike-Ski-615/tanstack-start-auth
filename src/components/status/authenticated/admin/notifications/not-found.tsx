@@ -1,14 +1,5 @@
 import { Link } from "@tanstack/react-router";
 
-/**
- * 发送通知未找到（/authenticated/admin/notifications）。
- *
- * 挂载在 admin 布局的 `<Outlet />` 内，外层已有 padding，不重复。
- *
- * 这页是固定路径，所以"未找到"意味着地址错了或管理区被调整过 ——
- * 文案说明去哪找它（在教师/学生管理同一个管理区里），
- * 退路给教师管理。
- */
 export function NotFoundPage() {
   return (
     <div className="flex flex-1 flex-col items-start gap-3">

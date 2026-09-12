@@ -12,15 +12,6 @@ function ScrollArea({
   return (
     <ScrollAreaPrimitive.Root
       data-slot="scroll-area"
-      // flex + min-h-0：让 Viewport 真正被 Root 的高度约束住。
-      //
-      // 原来只用 `relative`，Viewport 是 `size-full`（h-full）。而调用方习惯
-      // 写 <ScrollArea className="max-h-80"> —— `height:100%` 在父元素只有
-      // max-height 时解析为 auto，Viewport 会按内容撑开，于是整个容器溢出
-      // （表现为「通知一多就撑破 popover」）。
-      //
-      // 改成 flex 列布局后，Viewport 的 flex-1 + min-h-0 会老实受 Root 约束。
-      // 外层没设高度时（纯内容高度）行为不变。
       className={cn("relative flex min-h-0 flex-col", className)}
       {...props}
     >

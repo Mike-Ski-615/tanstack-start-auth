@@ -1,13 +1,5 @@
 import { Link } from "@tanstack/react-router";
 
-/**
- * 个人资料未找到（/authenticated/settings/profile）。
- *
- * 弹窗内，容器对齐 max-w-3xl。
- *
- * 退路给设置总览：用户想改的是自己的资料，送到分区列表即可，
- * 无需离开弹窗。文案点明「个人资料」在哪个位置，便于下次直接找到。
- */
 export function NotFoundPage() {
   return (
     <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col items-center justify-center gap-4 text-center">

@@ -1,15 +1,3 @@
-/**
- * Google 品牌标志（内联 SVG）。
- *
- * 为什么不用图标库：`@hugeicons/core-free-icons` 不含品牌图标，
- * 而 Google 的 G 标是官方四色图形，不适合用单色图标近似 ——
- * 用户靠这个图形识别「用 Google 登录」，换形状或改色就不是它了。
- *
- * 内联而非引第三方包：这是唯一的品牌图标需求，为它加依赖不划算。
- * 图形取自 Google 官方的登录按钮资源（四段 path，各自固定颜色）。
- *
- * 颜色不跟随主题，也不跟随 currentColor —— 官方规范要求四色原样呈现。
- */
 export function GoogleIcon({ className }: { className?: string }) {
   return (
     <svg

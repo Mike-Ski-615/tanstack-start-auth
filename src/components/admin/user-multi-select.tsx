@@ -17,18 +17,10 @@ import { Separator } from "#components/ui/separator";
 import { MANAGED_ROLES, ROLE_LABEL, type ManagedRole } from "#lib/auth/current-user";
 import { cn } from "#lib/utils";
 
-/**
- * 指定收件人：搜索 + 多选。
- *
- * 只列学生与教师（管理员不是受众 —— 接口层也会再挡一道）。
- * 选中项以 Badge 形式显示，超过两个折叠成「已选 N 人」。
- */
-
 export type SelectableUser = {
   id: string;
   name: string;
   email: string;
-  /** 只能是受管角色 —— 选择器只列受管角色（见 listManagedUsersForPicker）。 */
   role: ManagedRole;
 };
 
@@ -131,7 +123,6 @@ export function UserMultiSelect({
   );
 }
 
-/** 角色多选（学生 / 教师）。 */
 export function RoleMultiSelect({
   value,
   onChange,
@@ -146,7 +137,6 @@ export function RoleMultiSelect({
     const next = new Set(selected);
     if (next.has(role)) next.delete(role);
     else next.add(role);
-    // 展开 Set<ManagedRole> 已经是那个联合类型的数组，无需断言。
     onChange([...next]);
   };
 

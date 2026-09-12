@@ -4,15 +4,6 @@ import { Button } from "#components/ui/button";
 import { ROLE_HOME, type Role } from "#lib/auth/current-user";
 import { CONTENT_WIDTH_CLASS, SIDEBAR_GUTTER_CLASS } from "#provider/content-width-provider";
 
-/**
- * 学生工作台错误（/authenticated/student）。
- *
- * 挂载点在 SidebarInset 内，所以不用 min-h-svh（避免多余滚动条），
- * 并沿用该页自己的 `p-4` 与手柄留白 —— 与 loading 保持同一套边距。
- *
- * 退路指向 ROLE_HOME（学生即本页），而不是写死字符串：新增角色时不用改。
- * 角色从 router state 读，避免 import 路由文件造成循环依赖。
- */
 export function ErrorPage({ reset }: ErrorComponentProps) {
   const role = useRouterState({
     select: (s) =>
@@ -25,7 +16,6 @@ export function ErrorPage({ reset }: ErrorComponentProps) {
   const fallback: string = role ? ROLE_HOME[role] : "/";
 
   return (
-    // 容器类名用页面那组常数：本状态页会**替换**本路由自己的组件，那层包裹得自己带
     <section
       className={`flex flex-col items-start gap-3 p-4 ${SIDEBAR_GUTTER_CLASS} ${CONTENT_WIDTH_CLASS}`}
     >

@@ -1,30 +1,15 @@
-/**
- * 邮箱验证 OTP 管理。
- *
- * 验证状态存于 User.emailVerifiedAt（账户状态），OTP 只负责验证操作。
- * 15 分钟有效，一次性（原子消费），错误次数超限即作废。
- */
-
 import { db } from "#prisma/db";
 import { generateOtp, hashOtp } from "#lib/auth/otp";
 import { consumeOtp, type OtpResult } from "#lib/auth/otp-store";
 
-/** OTP 有效期：6 位数字空间有限，不宜长时间暴露。 */
-const VERIFICATION_OTP_TTL_MS = 15 * 60 * 1000; // 15 分钟
+const VERIFICATION_OTP_TTL_MS = 15 * 60 * 1000;
 
-/**
- * 创建邮箱验证 OTP：先作废该用户所有未验证的旧 OTP，再生成一个新的。
- * 保证一个用户同一时刻只有一个可用 OTP。
- *
- * @returns 6 位数字 OTP（应通过邮件发送给用户）
- */
 export async function createVerificationOtp(userId: string): Promise<string> {
   const otp = generateOtp();
   const tokenHash = hashOtp(otp);
   const expiresAt = new Date(Date.now() + VERIFICATION_OTP_TTL_MS).toISOString();
   const now = new Date().toISOString();
 
-  // 令该用户所有未验证的旧 OTP 失效
   const unverified = await db.orm.public.EmailVerificationToken.where((t) => t.userId.eq(userId))
     .where((t) => t.verifiedAt.isNull())
     .all();
@@ -35,7 +20,6 @@ export async function createVerificationOtp(userId: string): Promise<string> {
     });
   }
 
-  // 创建新 OTP
   await db.orm.public.EmailVerificationToken.create({
     userId,
     tokenHash,
@@ -45,13 +29,6 @@ export async function createVerificationOtp(userId: string): Promise<string> {
   return otp;
 }
 
-/**
- * 校验邮箱验证 OTP。
- *
- * 规则（过期判定、错误次数上限、作废时机）在 otp-store.consumeOtp 里，
- * 这里只声明本流程的表长什么样：查 EmailVerificationToken、以 verifiedAt
- * 作废、成功后额外同步 User.emailVerifiedAt。
- */
 export async function verifyEmailOtp(userId: string, otp: string): Promise<OtpResult> {
   return consumeOtp(
     {
@@ -72,11 +49,6 @@ export async function verifyEmailOtp(userId: string, otp: string): Promise<OtpRe
         });
       },
 
-      // 邮箱验证特有：验证通过要同步账户级状态。
-      //
-      // 这里是 emailVerifiedAt 的**唯一**写入点。密码重置刻意不写它 ——
-      // 「能收到重置邮件」不等于「用户确认了这个邮箱」，见 ADR-0001。
-      // 在别处看到写 emailVerifiedAt 时，先怀疑是不是引入了第二条语义。
       onSuccess: async (uid) => {
         await db.orm.public.User.where({ id: uid }).update({
           emailVerifiedAt: new Date().toISOString(),

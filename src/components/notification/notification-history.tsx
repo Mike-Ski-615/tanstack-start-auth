@@ -18,26 +18,12 @@ import {
   useDeleteNotificationMutation,
 } from "#hooks/use-notifications";
 
-/**
- * 完整通知历史。
- *
- * 与铃铛里的列表不同：这里显示**全部**（含已读），铃铛那里是最近 50 条。
- * 一条通知在两边都能标已读 / 删除 —— 数据是同一份（同一个 query key），
- * 任一处操作后另一处立刻同步。
- */
 export function NotificationHistory() {
   const { data: items = [], isPending, error } = useNotifications(true);
 
   const markRead = useMarkReadMutation();
   const remove = useDeleteNotificationMutation();
 
-  /*
-   * 三态同形：同一张卡片（rounded-xl border bg-card p-6）、居中、图标 + 文字。
-   * 靠图标区分语义，不换容器结构、不加按钮。
-   *
-   * 之前只有 isLoading 与「空」两支，请求失败会被误算成「空」—— 渲染成
-   * 「还没有收到过通知」，用户会以为真的没消息。
-   */
   if (isPending) {
     return (
       <div className="flex flex-col items-center gap-2 rounded-xl border bg-card p-6 text-muted-foreground">
@@ -66,8 +52,6 @@ export function NotificationHistory() {
   }
 
   return (
-    // 每条一张独立卡片（不是一个大卡片里切分）—— 条目之间有间距，
-    // 视觉上能一眼看出「这是几条各自独立的通知」。
     <div className="flex flex-col gap-3">
       {items.map((n) => (
         <div key={n.id} className="flex items-start gap-3 rounded-xl border bg-card p-4">
@@ -118,8 +102,6 @@ export function NotificationHistory() {
             </div>
           </div>
 
-          {/* 操作区：放在内容之后 —— DOM 顺序即 Tab 顺序，先读正文再到按钮。
-              左右分布由前面那个 flex-1 撑开，不靠 ml-auto。 */}
           <div className="flex shrink-0 items-center gap-1">
             {!n.readAt && (
               <Button

@@ -38,8 +38,6 @@ export const Route = createFileRoute("/authenticated/admin/notifications")({
   errorComponent: ErrorPage,
   notFoundComponent: NotFoundPage,
   component: AdminNotificationsPage,
-  // SSR 预取：可选名单与已发列表首屏就带出，不等客户端渲染期再取。
-  // 两个查询互不依赖，并行取而非串行 await —— 服务端总耗时取两者较大值。
   beforeLoad: ({ context }) =>
     Promise.all([
       context.queryClient.query({ ...selectableUsersQueryOptions, staleTime: "static" }),
@@ -47,13 +45,6 @@ export const Route = createFileRoute("/authenticated/admin/notifications")({
     ]).then(() => undefined),
 });
 
-/**
- * 发送通知。
- *
- * 三种目标可混选（角色 + 指定人取并集），但勾了「全体」时另外两项禁用 ——
- * 那时它们已无意义（全体已包含一切），留着只会让人以为能组合出别的结果。
- * 接口层也会在 all=true 时忽略另外两项，两边一致。
- */
 function AdminNotificationsPage() {
   const { data: users = [], isPending, error } = useSelectableUsers();
   const send = useSendNotificationMutation();
@@ -62,24 +53,11 @@ function AdminNotificationsPage() {
   const [roles, setRoles] = useState<ManagedRole[]>([]);
   const [userIds, setUserIds] = useState<string[]>([]);
 
-  /**
-   * 发送者自己 —— 布局已把 currentUser 放进缓存，这里不会多一次请求。
-   *
-   * 传它是为了那个边角：管理员角色被改成师生后，他会出现在候选名单里，
-   * 而服务端会把他剔掉（见 lib/notifications/audience.ts）。
-   */
   const { data: currentUser } = useQuery(currentUserQueryOptions);
 
-  /*
-   * 人数与「是否超限」都来自与接口层**同一个函数**（lib/notifications/audience），
-   * 不再在这里手写一份并集。以前那个写法算不出上限、也算不出「排除发送者」——
-   * 界面会显示「将发送给 6000 人」，点下去直接抛 TOO_MANY_RECIPIENTS。
-   */
   const audience = resolveAudience(users, { all, roles, userIds }, currentUser?.id);
   const targetCount = audience.recipientIds.length;
 
-  // 勾选框上那个「N 人」也走同一条规则 —— 否则会出现
-  // 「全部师生（6000 人）」旁边写着「将发送给 5999 人」这种看上去像 bug 的组合
   const allCount = resolveAudience(users, { all: true }, currentUser?.id).recipientIds.length;
 
   const form = useForm({
@@ -115,14 +93,6 @@ function AdminNotificationsPage() {
     },
   });
 
-  /*
-   * 收件人名单直接决定发送目标（下面 targetCount 就算在它上）。
-   * 以前 data 默认 []：名单挂了会渲染成「全部师生（0 人）」、发送按钮看似
-   * 无目标 —— 用户会以为系统里真的没师生。
-   *
-   * 整个发信表单都依赖这份名单，所以加载/错误就替掉表单区（不是只换一行），
-   * 三态同形：居中 + 图标 + 文字，靠图标区分语义，不加按钮。
-   */
   if (isPending || error) {
     return (
       <div className="flex flex-col gap-8">
@@ -161,11 +131,6 @@ function AdminNotificationsPage() {
         <p className="text-muted-foreground">通知会出现在收件人的铃铛里，并计入未读数。</p>
       </div>
 
-      {/*
-        分栏按**容器**宽度而非视口：父级宽度由 header 上的 ContentWidthToggle
-        控制，narrow 档（max-w-3xl ≈768px）时视口 lg: 照样触发，把两个面板
-        各压到 ~370px。容器查询让断点跟着实际可用宽度走。
-      */}
       <div className="@container grid gap-6 @3xl:grid-cols-2">
         <Card>
           <CardHeader>

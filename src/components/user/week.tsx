@@ -4,8 +4,6 @@ import { levelPalette } from "#components/user/colors";
 const DAY_MS = 86_400_000;
 const DAY_LABELS = ["日", "一", "二", "三", "四", "五", "六"];
 
-// UTC helpers so the card agrees with activity.ts (same day boundary on the
-// server and the browser → no hydration mismatch on the week total).
 const now = new Date();
 const todayStartUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
 function isoUTC(ms: number) {
@@ -14,15 +12,12 @@ function isoUTC(ms: number) {
 }
 const todayISO = isoUTC(todayStartUTC);
 
-// Each rendered color maps to the day's level via levelPalette, i.e. the SAME
-// colors + source the heatmap uses, so both stay in lock-step.
 import type { ActivityDay } from "#lib/activity";
 
 export default function ThisWeek({ data }: { data: ActivityDay[] }) {
   const { theme } = useTheme();
   const palette = levelPalette(theme);
 
-  // Sunday-start week (matches the heatmap's weekStart=0), in UTC days.
   const sundayStartUTC = todayStartUTC - now.getUTCDay() * DAY_MS;
   const by = new Map(data.map((a) => [a.date, a]));
 
@@ -41,7 +36,6 @@ export default function ThisWeek({ data }: { data: ActivityDay[] }) {
   const weekTotal = days.reduce((sum, d) => sum + d.count, 0);
 
   return (
-    // self-start：分栏时不被拉伸到与热力图同高（否则卡片下方留一大块空白）
     <div className="flex w-full flex-col gap-3 self-start rounded-2xl bg-card px-5 py-4">
       <div className="flex items-baseline justify-between">
         <h2 className="font-semibold tracking-tight">本周</h2>

@@ -30,8 +30,6 @@ function SettingsProfilePage() {
     mutationFn: (v: UpdateProfileValues) => updateProfileFn({ data: v }),
     onSuccess: () => {
       toast.success("资料已保存");
-      // 只失效当前用户：改名前 router.invalidate() 会重跑整棵路由树
-      // （含 beforeLoad 里的 getUser 查询），为了刷新侧边栏用户名太重。
       queryClient.invalidateQueries({ queryKey: currentUserQueryOptions.queryKey });
     },
   });

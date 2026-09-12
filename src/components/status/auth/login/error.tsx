@@ -2,14 +2,6 @@ import type { ErrorComponentProps } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { Button } from "#components/ui/button";
 
-/**
- * 登录页错误（/auth/login）。
- *
- * 渲染在 auth 布局内，不加 min-h-svh。
- *
- * 这里文案是**针对登录**写的：登录失败最常见的原因是凭据不对或
- * 服务端会话出错，所以先建议重试，再给「重新登录」的明确出口。
- */
 export function ErrorPage({ reset }: ErrorComponentProps) {
   return (
     <div className="flex flex-col items-center gap-4 text-center">
