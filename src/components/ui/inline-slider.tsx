@@ -1,7 +1,10 @@
 import * as React from "react";
 
 import { cn } from "#lib/utils";
+import { SPRING_BOUNCY, SPRING_GLIDE } from "#lib/ease";
+import { createSpringSolution } from "#lib/spring";
 import { type SliderOptions, snapSliderValue, useSlider } from "#lib/hooks/use-slider";
+import { useSpringValue } from "#lib/hooks/use-spring";
 import { capturePointer, releasePointer, TOUCH_GESTURE_CLASS } from "#lib/touch";
 import { useReducedMotion } from "#hooks/use-reduced-motion";
 
@@ -9,8 +12,6 @@ const STOP_COUNT = 10;
 const HANDLE_START = 8;
 const HANDLE_END_INSET = 12;
 const TEXT_INSET = 20;
-const GRAB_RADIUS = 12;
-const SPLIT_DISTANCE = 6;
 
 type Stop = { value: number; x: number };
 
@@ -19,10 +20,7 @@ function mapBetweenStops(stops: Stop[], point: number, from: keyof Stop, to: key
   const upper = stops[upperIndex < 0 ? stops.length - 1 : upperIndex]!;
   const lower = stops[Math.max(0, upperIndex - 1)]!;
   if (lower[from] === upper[from]) return upper[to];
-  return (
-    lower[to] +
-    ((point - lower[from]) / (upper[from] - lower[from])) * (upper[to] - lower[to])
-  );
+  return lower[to] + ((point - lower[from]) / (upper[from] - lower[from])) * (upper[to] - lower[to]);
 }
 
 function nearestStop(stops: Stop[], x: number) {
@@ -71,7 +69,6 @@ export function InlineSlider({
     left: number;
     offset: number;
     x: number;
-    moved: boolean;
   } | null>(null);
 
   React.useLayoutEffect(() => {
@@ -103,6 +100,7 @@ export function InlineSlider({
     return () => observer.disconnect();
   }, [trackProps.ref]);
 
+  // Each stop owns both a value and a physical position.
   const endX = Math.max(HANDLE_START, geometry.width - HANDLE_END_INSET);
   const stops = React.useMemo(() => {
     const values = [
@@ -123,73 +121,77 @@ export function InlineSlider({
 
   const restingX = mapBetweenStops(stops, current, "value", "x");
 
-  // 原生弹簧: 用 rAF 逐步逼近目标, 曲线与 motion 的 SPRING_GLIDE 一致。
+  // One value owns the thumb for the entire gesture. Pointer movement writes
+  // pixels directly; only release/click/keyboard changes use a spring.
   const [handleX, setHandleX] = React.useState(restingX);
   const handleXRef = React.useRef(restingX);
-  handleXRef.current = handleX;
-  const springFrame = React.useRef<number | null>(null);
-  const springVelocity = React.useRef(0);
+  const restingTarget = React.useRef(restingX);
+  const frameRef = React.useRef<number | null>(null);
+
+  const applyX = React.useCallback((next: number) => {
+    handleXRef.current = next;
+    setHandleX(next);
+  }, []);
+
+  const stopSpring = React.useCallback(() => {
+    if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
+    frameRef.current = null;
+  }, []);
 
   const settleTo = React.useCallback(
-    (target: number) => {
-      if (springFrame.current !== null) cancelAnimationFrame(springFrame.current);
-      springFrame.current = null;
-      springVelocity.current = 0;
-
+    (x: number) => {
+      restingTarget.current = x;
+      stopSpring();
       if (reduce) {
-        setHandleX(target);
+        applyX(x);
         return;
       }
-
-      let last = performance.now();
-      const tick = (now: number) => {
-        const dt = Math.min(0.064, (now - last) / 1000);
-        last = now;
-        const currentX = handleXRef.current;
-        const delta = target - currentX;
-        if (Math.abs(delta) < 0.5 && Math.abs(springVelocity.current) < 8) {
-          setHandleX(target);
-          springFrame.current = null;
+      const from = handleXRef.current;
+      if (from === x) return;
+      const solution = createSpringSolution(SPRING_GLIDE, from, x);
+      const start = performance.now();
+      const tickStep = (now: number) => {
+        const elapsed = (now - start) / 1000;
+        if (elapsed >= solution.duration) {
+          applyX(x);
+          frameRef.current = null;
           return;
         }
-        // stiffness 500 / damping 14 / mass 0.7 的弹簧参数等价形式
-        const stiffness = 1700 / 0.7;
-        const damping = 26 / 0.7;
-        springVelocity.current += (-stiffness * delta - damping * springVelocity.current) * dt;
-        const next = currentX + springVelocity.current * dt;
-        setHandleX(next);
-        springFrame.current = requestAnimationFrame(tick);
+        applyX(solution.at(elapsed).value);
+        frameRef.current = requestAnimationFrame(tickStep);
       };
-      springFrame.current = requestAnimationFrame(tick);
+      frameRef.current = requestAnimationFrame(tickStep);
     },
-    [reduce],
+    [applyX, reduce, stopSpring],
   );
 
-  React.useEffect(() => {
-    if (gesture.current) return;
+  React.useLayoutEffect(() => {
+    if (gesture.current || restingTarget.current === restingX) return;
     settleTo(restingX);
   }, [restingX, settleTo]);
 
   React.useEffect(
     () => () => {
-      if (springFrame.current !== null) cancelAnimationFrame(springFrame.current);
+      stopSpring();
       if (dragFrame.current !== null) cancelAnimationFrame(dragFrame.current);
     },
-    [],
+    [stopSpring],
   );
 
   const FILL_INSET_X = 0;
   const FILL_INSET_Y = 3;
-
   const fillRight = handleX >= endX ? geometry.width - 2 : handleX + 8;
   const fillWidth = Math.max(0, fillRight - FILL_INSET_X);
 
-  const overlap = (start: number, end: number) =>
-    Math.max(0, Math.min(1, (handleX + 4 - start) / SPLIT_DISTANCE, (end - handleX) / SPLIT_DISTANCE));
-  const split = Math.max(
-    overlap(TEXT_INSET, TEXT_INSET + geometry.labelWidth),
-    overlap(geometry.width - TEXT_INSET - geometry.readoutWidth, geometry.width - TEXT_INSET),
-  );
+  // Part progressively over six pixels at each text edge.
+  const split = React.useMemo(() => {
+    const overlap = (start: number, end: number) =>
+      Math.max(0, Math.min(1, (handleX + 4 - start) / 6, (end - handleX) / 6));
+    return Math.max(
+      overlap(TEXT_INSET, TEXT_INSET + geometry.labelWidth),
+      overlap(geometry.width - TEXT_INSET - geometry.readoutWidth, geometry.width - TEXT_INSET),
+    );
+  }, [handleX, geometry.labelWidth, geometry.readoutWidth, geometry.width]);
 
   const labelBounds = { start: TEXT_INSET, end: TEXT_INSET + geometry.labelWidth };
   const readoutBounds = {
@@ -199,12 +201,12 @@ export function InlineSlider({
   const overlapsText = (x: number, bounds: { start: number; end: number }) =>
     x + 2 >= bounds.start && x - 2 <= bounds.end;
   const ticks = showTicks
-    ? stops
-        .map((stop) => stop.x)
-        .filter(
-          (x) => !overlapsText(x, labelBounds) && !overlapsText(x, readoutBounds),
-        )
+    ? stops.map((stop) => stop.x).filter((x) => !overlapsText(x, labelBounds) && !overlapsText(x, readoutBounds))
     : [];
+
+  const { value: scaleY } = useSpringValue(dragging ? 1.35 : 1, SPRING_BOUNCY, {
+    enabled: !reduce,
+  });
 
   const queueDragCommit = (value: number) => {
     pendingDragValue.current = value;
@@ -225,6 +227,7 @@ export function InlineSlider({
   const endGesture = (event: React.PointerEvent<HTMLDivElement>) => {
     const active = gesture.current;
     if (!active || active.id !== event.pointerId) return;
+    // Clear before releasing capture: its lost-capture event must not commit twice.
     gesture.current = null;
     cancelDragCommit();
     setDragging(false);
@@ -240,16 +243,6 @@ export function InlineSlider({
     releasePointer(event.currentTarget, event.pointerId);
   };
 
-  const previousStop = (from: number) => {
-    for (let i = stops.length - 1; i >= 0; i--) {
-      if (stops[i]!.value < from) return stops[i]!.value;
-    }
-    return min;
-  };
-
-  const transition = dragging ? "none" : "transform 320ms cubic-bezier(0.34, 1.56, 0.64, 1)";
-  const splitTransition = "transform 200ms ease-out, opacity 200ms ease-out";
-
   return (
     <div
       ref={trackProps.ref}
@@ -260,12 +253,12 @@ export function InlineSlider({
         event.preventDefault();
         const pointerX = event.clientX - rect.left;
         const thumbX = handleXRef.current;
-        const offset =
-          Math.abs(pointerX - thumbX - 2) <= GRAB_RADIUS ? pointerX - thumbX : 2;
-        gesture.current = { id: event.pointerId, left: rect.left, offset, x: thumbX, moved: false };
+        // Grabbing the thumb preserves the exact grab point. A track click
+        // waits for release, so it glides to a dot without an intermediate jump.
+        const offset = Math.abs(pointerX - thumbX - 2) <= 12 ? pointerX - thumbX : 2;
+        gesture.current = { id: event.pointerId, left: rect.left, offset, x: thumbX };
         setDragging(true);
-        if (springFrame.current !== null) cancelAnimationFrame(springFrame.current);
-        springFrame.current = null;
+        stopSpring();
         cancelDragCommit();
         capturePointer(event.currentTarget, event.pointerId);
         event.currentTarget
@@ -275,13 +268,12 @@ export function InlineSlider({
       onPointerMove={(event) => {
         const active = gesture.current;
         if (!active || active.id !== event.pointerId || options.disabled) return;
-        active.moved = true;
         const x = Math.min(
           endX,
           Math.max(HANDLE_START, event.clientX - active.left - active.offset),
         );
         active.x = x;
-        setHandleX(x);
+        applyX(x);
         queueDragCommit(mapBetweenStops(stops, x, "x", "value"));
       }}
       onPointerUp={endGesture}
@@ -290,9 +282,7 @@ export function InlineSlider({
       className={cn(
         "relative h-10 w-full touch-none select-none overflow-hidden rounded-lg bg-muted",
         TOUCH_GESTURE_CLASS,
-        options.disabled
-          ? "pointer-events-none opacity-50"
-          : "cursor-grab active:cursor-grabbing",
+        options.disabled ? "pointer-events-none opacity-50" : "cursor-grab active:cursor-grabbing",
         className,
       )}
     >
@@ -301,10 +291,7 @@ export function InlineSlider({
         className="pointer-events-none absolute overflow-hidden rounded-lg"
         style={{ left: FILL_INSET_X, top: FILL_INSET_Y, width: fillWidth, bottom: FILL_INSET_Y }}
       >
-        <div
-          className="absolute inset-0 rounded-md bg-foreground/15"
-          style={{ transition }}
-        />
+        <div className="absolute inset-0 rounded-md bg-foreground/15" />
       </div>
 
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 text-foreground">
@@ -332,22 +319,16 @@ export function InlineSlider({
       <div
         aria-hidden="true"
         className="pointer-events-none absolute top-2 left-0 h-6 w-1 text-foreground"
-        style={{
-          transform: `translateX(${handleX}px) scaleY(${dragging ? 1.35 : 1})`,
-          transition: dragging ? "transform 160ms cubic-bezier(0.34, 1.56, 0.64, 1)" : transition,
-        }}
+        style={{ transform: `translateX(${handleX}px) scaleY(${scaleY})` }}
       >
         <span
           className="absolute top-0 size-1 rounded-full bg-current"
-          style={{ transform: `translateY(${reduce ? 0 : -split}px)`, transition: splitTransition }}
+          style={{ transform: `translateY(${reduce ? 0 : -split}px)` }}
         />
-        <span
-          className="absolute inset-y-0 w-1 rounded-full bg-current"
-          style={{ opacity: 1 - split, transition: splitTransition }}
-        />
+        <span className="absolute inset-y-0 w-1 rounded-full bg-current" style={{ opacity: 1 - split }} />
         <span
           className="absolute bottom-0 size-1 rounded-full bg-current"
-          style={{ transform: `translateY(${reduce ? 0 : split}px)`, transition: splitTransition }}
+          style={{ transform: `translateY(${reduce ? 0 : split}px)` }}
         />
       </div>
 
@@ -359,8 +340,8 @@ export function InlineSlider({
           const next = {
             ArrowRight: stops.find((stop) => stop.value > current)?.value ?? max,
             ArrowUp: stops.find((stop) => stop.value > current)?.value ?? max,
-            ArrowLeft: previousStop(current),
-            ArrowDown: previousStop(current),
+            ArrowLeft: [...stops].reverse().find((stop) => stop.value < current)?.value ?? min,
+            ArrowDown: [...stops].reverse().find((stop) => stop.value < current)?.value ?? min,
             Home: min,
             End: max,
             PageUp: max,
