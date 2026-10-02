@@ -1,5 +1,7 @@
 # 主键改用原生 uuid，并声明关系恢复外键完整性
 
+> **已过时（2026-10）**：本项目数据层已换成 Prisma ORM 7，主键仍为原生 `uuid` 列（`@db.Uuid`），但契约写法与会话/设备模型已变。见 [ADR-0007](./0007-better-auth-migration.md)。
+
 **Status**: 已接受
 
 契约里主键用 `field.id.uuidv7String()`（codec `sql/char@1` → `character(36)`，TS 类型 `Char<36>`），

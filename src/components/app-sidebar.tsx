@@ -2,15 +2,13 @@ import { Sidebar } from "#components/ui/sidebar";
 import { AppSidebarHeader } from "#components/sidebar/sidebar-header/index";
 import { AppSidebarContent } from "#components/sidebar/sidebar-content/index";
 import { AppSidebarFooter } from "#components/sidebar/sidebar-footer/index";
-import type { User } from "#server/user.functions";
+import type { User } from "better-auth";
 
 export function AppSidebar({ user }: { user: User }) {
   return (
     <Sidebar>
       <AppSidebarHeader />
-
-      <AppSidebarContent role={user.role} />
-
+      <AppSidebarContent />
       <AppSidebarFooter user={user} />
     </Sidebar>
   );

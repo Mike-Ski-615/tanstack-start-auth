@@ -5,7 +5,7 @@ export default {
 
   ignore: ["src/components/ui/**"],
 
-  ignoreDependencies: ["cookie-es"],
+  ignoreDependencies: ["@better-auth/prisma-adapter"],
 
   ignoreExportsUsedInFile: true,
 

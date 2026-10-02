@@ -1,5 +1,7 @@
 # OTP 的 tokenHash 不加全局唯一约束
 
+> **已过时（2026-10）**：自研 OTP 表已删除；OTP 现在存在 better-auth 的 `verification` 表。见 [ADR-0007](./0007-better-auth-migration.md)。
+
 **Status**: 已采纳（2026-09-11）
 
 `EmailVerificationToken.tokenHash` 与 `ResetToken.tokenHash` 去掉 `UNIQUE`。

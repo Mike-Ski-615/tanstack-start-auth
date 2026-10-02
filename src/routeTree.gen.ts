@@ -17,22 +17,13 @@ import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthResetRouteImport } from './routes/auth/reset'
 import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
-import { Route as AuthenticatedAdminRouteImport } from './routes/authenticated/admin'
-import { Route as AuthenticatedHelpRouteImport } from './routes/authenticated/help'
+import { Route as AuthenticatedIndexRouteImport } from './routes/authenticated/index'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/authenticated/settings'
-import { Route as AuthenticatedStudentRouteImport } from './routes/authenticated/student'
-import { Route as AuthenticatedTeacherRouteImport } from './routes/authenticated/teacher'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
-import { Route as AuthenticatedAdminNotificationsRouteImport } from './routes/authenticated/admin/notifications'
-import { Route as AuthenticatedAdminStudentsRouteImport } from './routes/authenticated/admin/students'
-import { Route as AuthenticatedAdminTeachersRouteImport } from './routes/authenticated/admin/teachers'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/authenticated/settings/account'
-import { Route as AuthenticatedSettingsBellRouteImport } from './routes/authenticated/settings/bell'
 import { Route as AuthenticatedSettingsHomeRouteImport } from './routes/authenticated/settings/home'
 import { Route as AuthenticatedSettingsPasswordRouteImport } from './routes/authenticated/settings/password'
-import { Route as AuthenticatedSettingsPrivacySecurityRouteImport } from './routes/authenticated/settings/privacy-security'
 import { Route as AuthenticatedSettingsProfileRouteImport } from './routes/authenticated/settings/profile'
-import { Route as AuthenticatedUsersUserIdRouteImport } from './routes/authenticated/users/$userId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -74,14 +65,9 @@ const AuthVerifyEmailRoute = AuthVerifyEmailRouteImport.update({
   path: '/verify-email',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedHelpRoute = AuthenticatedHelpRouteImport.update({
-  id: '/help',
-  path: '/help',
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
@@ -89,49 +75,15 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedStudentRoute = AuthenticatedStudentRouteImport.update({
-  id: '/student',
-  path: '/student',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedTeacherRoute = AuthenticatedTeacherRouteImport.update({
-  id: '/teacher',
-  path: '/teacher',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedAdminNotificationsRoute =
-  AuthenticatedAdminNotificationsRouteImport.update({
-    id: '/notifications',
-    path: '/notifications',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminStudentsRoute =
-  AuthenticatedAdminStudentsRouteImport.update({
-    id: '/students',
-    path: '/students',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminTeachersRoute =
-  AuthenticatedAdminTeachersRouteImport.update({
-    id: '/teachers',
-    path: '/teachers',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
 const AuthenticatedSettingsAccountRoute =
   AuthenticatedSettingsAccountRouteImport.update({
     id: '/account',
     path: '/account',
-    getParentRoute: () => AuthenticatedSettingsRoute,
-  } as any)
-const AuthenticatedSettingsBellRoute =
-  AuthenticatedSettingsBellRouteImport.update({
-    id: '/bell',
-    path: '/bell',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
 const AuthenticatedSettingsHomeRoute =
@@ -146,23 +98,11 @@ const AuthenticatedSettingsPasswordRoute =
     path: '/password',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
-const AuthenticatedSettingsPrivacySecurityRoute =
-  AuthenticatedSettingsPrivacySecurityRouteImport.update({
-    id: '/privacy-security',
-    path: '/privacy-security',
-    getParentRoute: () => AuthenticatedSettingsRoute,
-  } as any)
 const AuthenticatedSettingsProfileRoute =
   AuthenticatedSettingsProfileRouteImport.update({
     id: '/profile',
     path: '/profile',
     getParentRoute: () => AuthenticatedSettingsRoute,
-  } as any)
-const AuthenticatedUsersUserIdRoute =
-  AuthenticatedUsersUserIdRouteImport.update({
-    id: '/users/$userId',
-    path: '/users/$userId',
-    getParentRoute: () => AuthenticatedRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -174,48 +114,29 @@ export interface FileRoutesByFullPath {
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset': typeof AuthResetRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
-  '/authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
-  '/authenticated/help': typeof AuthenticatedHelpRoute
   '/authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
-  '/authenticated/student': typeof AuthenticatedStudentRoute
-  '/authenticated/teacher': typeof AuthenticatedTeacherRoute
+  '/authenticated/': typeof AuthenticatedIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/authenticated/admin/notifications': typeof AuthenticatedAdminNotificationsRoute
-  '/authenticated/admin/students': typeof AuthenticatedAdminStudentsRoute
-  '/authenticated/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
-  '/authenticated/settings/bell': typeof AuthenticatedSettingsBellRoute
   '/authenticated/settings/home': typeof AuthenticatedSettingsHomeRoute
   '/authenticated/settings/password': typeof AuthenticatedSettingsPasswordRoute
-  '/authenticated/settings/privacy-security': typeof AuthenticatedSettingsPrivacySecurityRoute
   '/authenticated/settings/profile': typeof AuthenticatedSettingsProfileRoute
-  '/authenticated/users/$userId': typeof AuthenticatedUsersUserIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
-  '/authenticated': typeof AuthenticatedRouteWithChildren
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset': typeof AuthResetRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
-  '/authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
-  '/authenticated/help': typeof AuthenticatedHelpRoute
   '/authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
-  '/authenticated/student': typeof AuthenticatedStudentRoute
-  '/authenticated/teacher': typeof AuthenticatedTeacherRoute
+  '/authenticated': typeof AuthenticatedIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/authenticated/admin/notifications': typeof AuthenticatedAdminNotificationsRoute
-  '/authenticated/admin/students': typeof AuthenticatedAdminStudentsRoute
-  '/authenticated/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
-  '/authenticated/settings/bell': typeof AuthenticatedSettingsBellRoute
   '/authenticated/settings/home': typeof AuthenticatedSettingsHomeRoute
   '/authenticated/settings/password': typeof AuthenticatedSettingsPasswordRoute
-  '/authenticated/settings/privacy-security': typeof AuthenticatedSettingsPrivacySecurityRoute
   '/authenticated/settings/profile': typeof AuthenticatedSettingsProfileRoute
-  '/authenticated/users/$userId': typeof AuthenticatedUsersUserIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -227,22 +148,13 @@ export interface FileRoutesById {
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset': typeof AuthResetRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
-  '/authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
-  '/authenticated/help': typeof AuthenticatedHelpRoute
   '/authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
-  '/authenticated/student': typeof AuthenticatedStudentRoute
-  '/authenticated/teacher': typeof AuthenticatedTeacherRoute
+  '/authenticated/': typeof AuthenticatedIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/authenticated/admin/notifications': typeof AuthenticatedAdminNotificationsRoute
-  '/authenticated/admin/students': typeof AuthenticatedAdminStudentsRoute
-  '/authenticated/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
-  '/authenticated/settings/bell': typeof AuthenticatedSettingsBellRoute
   '/authenticated/settings/home': typeof AuthenticatedSettingsHomeRoute
   '/authenticated/settings/password': typeof AuthenticatedSettingsPasswordRoute
-  '/authenticated/settings/privacy-security': typeof AuthenticatedSettingsPrivacySecurityRoute
   '/authenticated/settings/profile': typeof AuthenticatedSettingsProfileRoute
-  '/authenticated/users/$userId': typeof AuthenticatedUsersUserIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -255,48 +167,29 @@ export interface FileRouteTypes {
     | '/auth/register'
     | '/auth/reset'
     | '/auth/verify-email'
-    | '/authenticated/admin'
-    | '/authenticated/help'
     | '/authenticated/settings'
-    | '/authenticated/student'
-    | '/authenticated/teacher'
+    | '/authenticated/'
     | '/api/auth/$'
-    | '/authenticated/admin/notifications'
-    | '/authenticated/admin/students'
-    | '/authenticated/admin/teachers'
     | '/authenticated/settings/account'
-    | '/authenticated/settings/bell'
     | '/authenticated/settings/home'
     | '/authenticated/settings/password'
-    | '/authenticated/settings/privacy-security'
     | '/authenticated/settings/profile'
-    | '/authenticated/users/$userId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
-    | '/authenticated'
     | '/auth/forgot-password'
     | '/auth/login'
     | '/auth/register'
     | '/auth/reset'
     | '/auth/verify-email'
-    | '/authenticated/admin'
-    | '/authenticated/help'
     | '/authenticated/settings'
-    | '/authenticated/student'
-    | '/authenticated/teacher'
+    | '/authenticated'
     | '/api/auth/$'
-    | '/authenticated/admin/notifications'
-    | '/authenticated/admin/students'
-    | '/authenticated/admin/teachers'
     | '/authenticated/settings/account'
-    | '/authenticated/settings/bell'
     | '/authenticated/settings/home'
     | '/authenticated/settings/password'
-    | '/authenticated/settings/privacy-security'
     | '/authenticated/settings/profile'
-    | '/authenticated/users/$userId'
   id:
     | '__root__'
     | '/'
@@ -307,22 +200,13 @@ export interface FileRouteTypes {
     | '/auth/register'
     | '/auth/reset'
     | '/auth/verify-email'
-    | '/authenticated/admin'
-    | '/authenticated/help'
     | '/authenticated/settings'
-    | '/authenticated/student'
-    | '/authenticated/teacher'
+    | '/authenticated/'
     | '/api/auth/$'
-    | '/authenticated/admin/notifications'
-    | '/authenticated/admin/students'
-    | '/authenticated/admin/teachers'
     | '/authenticated/settings/account'
-    | '/authenticated/settings/bell'
     | '/authenticated/settings/home'
     | '/authenticated/settings/password'
-    | '/authenticated/settings/privacy-security'
     | '/authenticated/settings/profile'
-    | '/authenticated/users/$userId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -390,18 +274,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthVerifyEmailRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/authenticated/admin': {
-      id: '/authenticated/admin'
-      path: '/admin'
-      fullPath: '/authenticated/admin'
-      preLoaderRoute: typeof AuthenticatedAdminRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/authenticated/help': {
-      id: '/authenticated/help'
-      path: '/help'
-      fullPath: '/authenticated/help'
-      preLoaderRoute: typeof AuthenticatedHelpRouteImport
+    '/authenticated/': {
+      id: '/authenticated/'
+      path: '/'
+      fullPath: '/authenticated/'
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/authenticated/settings': {
@@ -411,20 +288,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/authenticated/student': {
-      id: '/authenticated/student'
-      path: '/student'
-      fullPath: '/authenticated/student'
-      preLoaderRoute: typeof AuthenticatedStudentRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/authenticated/teacher': {
-      id: '/authenticated/teacher'
-      path: '/teacher'
-      fullPath: '/authenticated/teacher'
-      preLoaderRoute: typeof AuthenticatedTeacherRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -432,39 +295,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/authenticated/admin/notifications': {
-      id: '/authenticated/admin/notifications'
-      path: '/notifications'
-      fullPath: '/authenticated/admin/notifications'
-      preLoaderRoute: typeof AuthenticatedAdminNotificationsRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/authenticated/admin/students': {
-      id: '/authenticated/admin/students'
-      path: '/students'
-      fullPath: '/authenticated/admin/students'
-      preLoaderRoute: typeof AuthenticatedAdminStudentsRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/authenticated/admin/teachers': {
-      id: '/authenticated/admin/teachers'
-      path: '/teachers'
-      fullPath: '/authenticated/admin/teachers'
-      preLoaderRoute: typeof AuthenticatedAdminTeachersRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
     '/authenticated/settings/account': {
       id: '/authenticated/settings/account'
       path: '/account'
       fullPath: '/authenticated/settings/account'
       preLoaderRoute: typeof AuthenticatedSettingsAccountRouteImport
-      parentRoute: typeof AuthenticatedSettingsRoute
-    }
-    '/authenticated/settings/bell': {
-      id: '/authenticated/settings/bell'
-      path: '/bell'
-      fullPath: '/authenticated/settings/bell'
-      preLoaderRoute: typeof AuthenticatedSettingsBellRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
     '/authenticated/settings/home': {
@@ -481,26 +316,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsPasswordRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
-    '/authenticated/settings/privacy-security': {
-      id: '/authenticated/settings/privacy-security'
-      path: '/privacy-security'
-      fullPath: '/authenticated/settings/privacy-security'
-      preLoaderRoute: typeof AuthenticatedSettingsPrivacySecurityRouteImport
-      parentRoute: typeof AuthenticatedSettingsRoute
-    }
     '/authenticated/settings/profile': {
       id: '/authenticated/settings/profile'
       path: '/profile'
       fullPath: '/authenticated/settings/profile'
       preLoaderRoute: typeof AuthenticatedSettingsProfileRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
-    }
-    '/authenticated/users/$userId': {
-      id: '/authenticated/users/$userId'
-      path: '/users/$userId'
-      fullPath: '/authenticated/users/$userId'
-      preLoaderRoute: typeof AuthenticatedUsersUserIdRouteImport
-      parentRoute: typeof AuthenticatedRoute
     }
   }
 }
@@ -523,37 +344,17 @@ const AuthRouteChildren: AuthRouteChildren = {
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
-interface AuthenticatedAdminRouteChildren {
-  AuthenticatedAdminNotificationsRoute: typeof AuthenticatedAdminNotificationsRoute
-  AuthenticatedAdminStudentsRoute: typeof AuthenticatedAdminStudentsRoute
-  AuthenticatedAdminTeachersRoute: typeof AuthenticatedAdminTeachersRoute
-}
-
-const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
-  AuthenticatedAdminNotificationsRoute: AuthenticatedAdminNotificationsRoute,
-  AuthenticatedAdminStudentsRoute: AuthenticatedAdminStudentsRoute,
-  AuthenticatedAdminTeachersRoute: AuthenticatedAdminTeachersRoute,
-}
-
-const AuthenticatedAdminRouteWithChildren =
-  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
-
 interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsAccountRoute: typeof AuthenticatedSettingsAccountRoute
-  AuthenticatedSettingsBellRoute: typeof AuthenticatedSettingsBellRoute
   AuthenticatedSettingsHomeRoute: typeof AuthenticatedSettingsHomeRoute
   AuthenticatedSettingsPasswordRoute: typeof AuthenticatedSettingsPasswordRoute
-  AuthenticatedSettingsPrivacySecurityRoute: typeof AuthenticatedSettingsPrivacySecurityRoute
   AuthenticatedSettingsProfileRoute: typeof AuthenticatedSettingsProfileRoute
 }
 
 const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
   AuthenticatedSettingsAccountRoute: AuthenticatedSettingsAccountRoute,
-  AuthenticatedSettingsBellRoute: AuthenticatedSettingsBellRoute,
   AuthenticatedSettingsHomeRoute: AuthenticatedSettingsHomeRoute,
   AuthenticatedSettingsPasswordRoute: AuthenticatedSettingsPasswordRoute,
-  AuthenticatedSettingsPrivacySecurityRoute:
-    AuthenticatedSettingsPrivacySecurityRoute,
   AuthenticatedSettingsProfileRoute: AuthenticatedSettingsProfileRoute,
 }
 
@@ -563,21 +364,13 @@ const AuthenticatedSettingsRouteWithChildren =
   )
 
 interface AuthenticatedRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
-  AuthenticatedHelpRoute: typeof AuthenticatedHelpRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
-  AuthenticatedStudentRoute: typeof AuthenticatedStudentRoute
-  AuthenticatedTeacherRoute: typeof AuthenticatedTeacherRoute
-  AuthenticatedUsersUserIdRoute: typeof AuthenticatedUsersUserIdRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
-  AuthenticatedHelpRoute: AuthenticatedHelpRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
-  AuthenticatedStudentRoute: AuthenticatedStudentRoute,
-  AuthenticatedTeacherRoute: AuthenticatedTeacherRoute,
-  AuthenticatedUsersUserIdRoute: AuthenticatedUsersUserIdRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

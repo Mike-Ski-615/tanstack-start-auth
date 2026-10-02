@@ -1,5 +1,7 @@
 # 邮箱验证与密码重置改用 6 位数字 OTP
 
+> **仍成立（2026-10）**：6 位数字 OTP 的做法保留，改由 better-auth `emailOTP` 插件承载。见 [ADR-0007](./0007-better-auth-migration.md)。
+
 **Status**: 已接受
 
 原实现把令牌放在邮件链接里（`/auth/verify-email?token=<64 位 hex>`、

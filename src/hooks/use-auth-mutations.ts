@@ -1,101 +1,100 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { currentUserQueryOptions } from "#lib/queries/user";
+import { authClient } from "#lib/auth-client";
 import type { EmailOnlyValues, LoginValues, RegisterValues } from "#schemas/auth";
-import { login } from "#server/login.functions";
-import { register } from "#server/register.functions";
-import { logout } from "#server/logout.functions";
-import { requestPasswordResetFn, resetPasswordFn } from "#server/reset.functions";
-
-export function useAuthCacheSync() {
-  const queryClient = useQueryClient();
-
-  return {
-    async onSignedIn() {
-      queryClient.removeQueries({ queryKey: currentUserQueryOptions.queryKey });
-      await queryClient.query({ ...currentUserQueryOptions, staleTime: "static" });
-    },
-
-    onSignedOut() {
-      queryClient.setQueryData(currentUserQueryOptions.queryKey, null);
-    },
-  };
-}
 
 export function useLoginMutation() {
   const navigate = useNavigate();
-  const authSync = useAuthCacheSync();
+
   return useMutation({
-    mutationFn: (data: LoginValues) => login({ data }),
-    onSuccess: async () => {
-      await authSync.onSignedIn();
+    mutationFn: async (data: LoginValues) => {
+      const { error } = await authClient.signIn.email({
+        email: data.email,
+        password: data.password,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
       toast.success("登录成功，欢迎回来");
       navigate({ to: "/authenticated" });
     },
-    onError: () => {
-      toast.error("登录失败，请检查邮箱或密码");
+    onError: (error, variables) => {
+      if ("code" in error && error.code === "EMAIL_NOT_VERIFIED") {
+        toast.info(error.message);
+        navigate({ to: "/auth/verify-email", search: { email: variables.email } });
+        return;
+      }
+
+      toast.error(error.message);
     },
   });
 }
 
 export function useRegisterMutation() {
   const navigate = useNavigate();
+
   return useMutation({
-    mutationFn: (data: RegisterValues) => register({ data }),
-    onSuccess: (data) => {
-      toast.success("验证码已发送，请查收邮箱");
-      navigate({
-        to: "/auth/verify-email",
-        search: { email: data.user.email },
+    mutationFn: async (data: RegisterValues) => {
+      const { error } = await authClient.signUp.email({
+        name: data.name,
+        email: data.email,
+        password: data.password,
       });
+      if (error) throw error;
     },
-    onError: (error: Error) => toast.error(error.message),
+    onSuccess: (_data, variables) => {
+      toast.success("验证码已发送，请查收邮箱");
+      navigate({ to: "/auth/verify-email", search: { email: variables.email } });
+    },
+    onError: (error) => toast.error(error.message),
   });
 }
 
 export function useRequestPasswordResetMutation() {
   const navigate = useNavigate();
+
   return useMutation({
-    mutationFn: (data: EmailOnlyValues) => requestPasswordResetFn({ data }),
+    mutationFn: async (data: EmailOnlyValues) => {
+      const { error } = await authClient.emailOtp.requestPasswordReset({ email: data.email });
+      if (error) throw error;
+    },
     onSuccess: (_data, variables) => {
       toast.info("若该邮箱已注册，重置验证码已发送，请查收");
       navigate({ to: "/auth/reset", search: { email: variables.email } });
     },
-    onError: () => {
-      toast.error("请求失败，请稍后重试");
-    },
+    onError: () => toast.error("请求失败，请稍后重试"),
   });
 }
 
 export function useResetPasswordMutation(email: string, otp: string) {
   const navigate = useNavigate();
-  const authSync = useAuthCacheSync();
+
   return useMutation({
-    mutationFn: (password: string) => resetPasswordFn({ data: { email, otp, password } }),
-    onSuccess: async () => {
-      await authSync.onSignedIn();
-      toast.success("密码重置成功，欢迎回来");
-      navigate({ to: "/authenticated" });
+    mutationFn: async (password: string) => {
+      const { error } = await authClient.emailOtp.resetPassword({ email, otp, password });
+      if (error) throw error;
     },
-    onError: () => {
-      toast.error("重置失败，请稍后重试");
+    onSuccess: () => {
+      toast.success("密码重置成功，请登录");
+      navigate({ to: "/auth/login" });
     },
+    onError: (error) => toast.error(error.message),
   });
 }
 
 export function useLogoutMutation() {
   const navigate = useNavigate();
-  const authSync = useAuthCacheSync();
+
   return useMutation({
-    mutationFn: () => logout(),
+    mutationFn: async () => {
+      const { error } = await authClient.signOut();
+      if (error) throw error;
+    },
     onSuccess: () => {
-      authSync.onSignedOut();
       toast.success("已退出登录");
       navigate({ to: "/" });
     },
-    onError: () => {
-      toast.error("退出失败，请稍后重试");
-    },
+    onError: () => toast.error("退出失败，请稍后重试"),
   });
 }

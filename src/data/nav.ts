@@ -1,37 +1,13 @@
-import {
-  Award01Icon,
-  BookBookmark01Icon,
-  CompassIcon,
-  HelpCircleIcon,
-  Home01Icon,
-  Key01Icon,
-  KeyboardIcon,
-  LibraryIcon,
-  Notification01Icon,
-  PaintBoardIcon,
-  Shield01Icon,
-  SidebarLeft01Icon,
-  UserCircleIcon,
-  UserIcon,
-  UserGroupIcon,
-} from "@hugeicons/core-free-icons";
+import { Home01Icon, Key01Icon, UserCircleIcon, UserIcon } from "@hugeicons/core-free-icons";
 
 import type { IconSvgElement } from "@hugeicons/react";
-
-import type { Role } from "#lib/auth/current-user";
 
 export type NavItem = {
   id: string;
   title: string;
   desc: string;
   icon: IconSvgElement;
-  to?: string;
-};
-
-export type NavGroup = {
-  id: string;
-  label: string;
-  items: NavItem[];
+  to: string;
 };
 
 type Intro = {
@@ -52,14 +28,14 @@ export const SETTINGS_NAV: NavItem[] = [
   {
     id: "account",
     title: "账户",
-    desc: "账户信息、验证与登录状态",
+    desc: "账户信息与验证状态",
     icon: UserCircleIcon,
     to: "/authenticated/settings/account",
   },
   {
     id: "profile",
     title: "个人信息",
-    desc: "编辑头像、用户名与个人介绍",
+    desc: "编辑头像与用户名",
     icon: UserIcon,
     to: "/authenticated/settings/profile",
   },
@@ -70,192 +46,6 @@ export const SETTINGS_NAV: NavItem[] = [
     icon: Key01Icon,
     to: "/authenticated/settings/password",
   },
-  {
-    id: "bell",
-    title: "通知",
-    desc: "管理站内消息与各类提醒偏好",
-    icon: Notification01Icon,
-    to: "/authenticated/settings/bell",
-  },
-  {
-    id: "privacy-security",
-    title: "隐私与安全",
-    desc: "设备管理、会话详情与撤销",
-    icon: Shield01Icon,
-    to: "/authenticated/settings/privacy-security",
-  },
-];
-
-export const NAV_BY_ROLE: Record<Role, NavGroup[]> = {
-  student: [
-    {
-      id: "learning",
-      label: "学习资源",
-      items: [
-        {
-          id: "resources",
-          title: "资源",
-          desc: "",
-          icon: LibraryIcon,
-          to: "/authenticated",
-        },
-        {
-          id: "lessons",
-          title: "课例",
-          desc: "",
-          icon: BookBookmark01Icon,
-          to: "/authenticated",
-        },
-      ],
-    },
-  ],
-
-  teacher: [
-    {
-      id: "learning",
-      label: "教学资源",
-      items: [
-        {
-          id: "resources",
-          title: "资源",
-          desc: "",
-          icon: LibraryIcon,
-          to: "/authenticated",
-        },
-        {
-          id: "lessons",
-          title: "课例",
-          desc: "",
-          icon: BookBookmark01Icon,
-          to: "/authenticated",
-        },
-      ],
-    },
-    {
-      id: "classroom",
-      label: "课堂活动",
-      items: [
-        {
-          id: "collaboration",
-          title: "小组合作",
-          desc: "",
-          icon: UserGroupIcon,
-          to: "/authenticated",
-        },
-        {
-          id: "exhibition",
-          title: "展评",
-          desc: "",
-          icon: Award01Icon,
-          to: "/authenticated",
-        },
-        {
-          id: "extension",
-          title: "拓展",
-          desc: "",
-          icon: CompassIcon,
-          to: "/authenticated",
-        },
-      ],
-    },
-  ],
-
-  admin: [
-    {
-      id: "management",
-      label: "管理",
-      items: [
-        {
-          id: "manage-teachers",
-          title: "教师管理",
-          desc: "",
-          icon: UserGroupIcon,
-          to: "/authenticated/admin/teachers",
-        },
-        {
-          id: "manage-students",
-          title: "学生管理",
-          desc: "",
-          icon: UserIcon,
-          to: "/authenticated/admin/students",
-        },
-      ],
-    },
-    {
-      id: "communication",
-      label: "沟通",
-      items: [
-        {
-          id: "notifications",
-          title: "发送通知",
-          desc: "",
-          icon: Notification01Icon,
-          to: "/authenticated/admin/notifications",
-        },
-      ],
-    },
-  ],
-};
-
-export function navItemsFor(role: Role): NavItem[] {
-  return NAV_BY_ROLE[role].flatMap((g) => g.items);
-}
-
-export const HELP_SECTIONS: NavItem[] = [
-  {
-    id: "quick-start",
-    title: "快速开始",
-    desc: "",
-    icon: CompassIcon,
-  },
-  {
-    id: "auth",
-    title: "账号与认证",
-    desc: "",
-    icon: UserIcon,
-  },
-  {
-    id: "workspace",
-    title: "角色与工作台",
-    desc: "",
-    icon: UserGroupIcon,
-  },
-  {
-    id: "navigation",
-    title: "导航与命令面板",
-    desc: "",
-    icon: SidebarLeft01Icon,
-  },
-  {
-    id: "appearance",
-    title: "外观与偏好",
-    desc: "",
-    icon: PaintBoardIcon,
-  },
-  {
-    id: "account",
-    title: "账户与安全",
-    desc: "",
-    icon: Shield01Icon,
-  },
-  {
-    id: "notifications",
-    title: "通知与消息",
-    desc: "",
-    icon: Notification01Icon,
-  },
-  {
-    id: "shortcuts",
-    title: "键盘快捷键",
-    desc: "",
-    icon: KeyboardIcon,
-  },
-  {
-    id: "faq",
-    title: "常见问题",
-    desc: "",
-    icon: HelpCircleIcon,
-  },
 ];
 
 export const INTRO: Intro[] = [
@@ -263,30 +53,18 @@ export const INTRO: Intro[] = [
     title: "账户",
     icon: UserCircleIcon,
     to: "/authenticated/settings/account",
-    desc: "查看账户基本信息、验证状态和登录状态。",
+    desc: "查看账户基本信息与验证状态。",
   },
   {
     title: "个人信息",
     icon: UserIcon,
     to: "/authenticated/settings/profile",
-    desc: "编辑头像、用户名与个人介绍。",
+    desc: "编辑头像与用户名。",
   },
   {
     title: "修改密码",
     icon: Key01Icon,
     to: "/authenticated/settings/password",
     desc: "更新登录密码，需验证当前密码。",
-  },
-  {
-    title: "通知",
-    icon: Notification01Icon,
-    to: "/authenticated/settings/bell",
-    desc: "管理站内消息与各类提醒偏好。",
-  },
-  {
-    title: "隐私与安全",
-    icon: Shield01Icon,
-    to: "/authenticated/settings/privacy-security",
-    desc: "查看设备与会话详情，撤销全部会话。",
   },
 ];

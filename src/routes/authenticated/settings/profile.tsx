@@ -1,16 +1,14 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { UserIcon } from "@hugeicons/core-free-icons";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { currentUserQueryOptions } from "#lib/queries/user";
+import { authClient } from "#lib/auth-client";
 import { Button } from "#components/ui/button";
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "#components/ui/field";
+import { Field, FieldError, FieldGroup, FieldLabel } from "#components/ui/field";
 import { Input } from "#components/ui/input";
-import { Textarea } from "#components/ui/textarea";
 import { updateProfileSchema, type UpdateProfileValues } from "#schemas/auth";
-import { updateProfileFn } from "#server/profile.functions";
 import { LoadingPage } from "#components/status/authenticated/settings/profile/loading";
 import { ErrorPage } from "#components/status/authenticated/settings/profile/error";
 import { NotFoundPage } from "#components/status/authenticated/settings/profile/not-found";
@@ -23,22 +21,27 @@ export const Route = createFileRoute("/authenticated/settings/profile")({
 });
 
 function SettingsProfilePage() {
-  const { data: user } = useQuery(currentUserQueryOptions);
-  const queryClient = useQueryClient();
+  const { session } = getRouteApi("/authenticated").useRouteContext();
+  const user = session.user;
 
   const infoMutation = useMutation({
-    mutationFn: (v: UpdateProfileValues) => updateProfileFn({ data: v }),
-    onSuccess: () => {
-      toast.success("资料已保存");
-      queryClient.invalidateQueries({ queryKey: currentUserQueryOptions.queryKey });
+    mutationFn: async (value: UpdateProfileValues) => {
+      const { error } = await authClient.updateUser({ name: value.name });
+      if (error) throw error;
     },
+    onSuccess: () => toast.success("资料已保存"),
+    onError: (error) => toast.error(error.message),
   });
 
   const infoForm = useForm({
-    defaultValues: { name: user?.name ?? "", bio: user?.bio ?? "" },
+    defaultValues: { name: user?.name ?? "" },
     validators: { onSubmit: updateProfileSchema },
     onSubmit: ({ value }) => infoMutation.mutate(value),
   });
+
+  if (!user) return null;
+
+  if (!user) return null;
 
   return (
     <form
@@ -53,7 +56,7 @@ function SettingsProfilePage() {
           <HugeiconsIcon icon={UserIcon} className="size-5 text-muted-foreground" />
           <h1 className="text-xl font-semibold">个人信息</h1>
         </div>
-        <p className="mt-1 text-sm text-muted-foreground">编辑头像、用户名与个人介绍。</p>
+        <p className="mt-1 text-sm text-muted-foreground">编辑用户名。</p>
       </header>
 
       <FieldGroup>
@@ -75,28 +78,6 @@ function SettingsProfilePage() {
                   autoComplete="username"
                   className="flex-1"
                 />
-                {invalid && <FieldError errors={f.state.meta.errors} />}
-              </Field>
-            );
-          }}
-        </infoForm.Field>
-
-        <infoForm.Field name="bio">
-          {(f) => {
-            const invalid = f.state.meta.isTouched && !f.state.meta.isValid;
-            return (
-              <Field data-invalid={invalid}>
-                <FieldLabel htmlFor={f.name}>个人介绍</FieldLabel>
-                <Textarea
-                  id={f.name}
-                  rows={4}
-                  value={f.state.value}
-                  onBlur={f.handleBlur}
-                  onChange={(e) => f.handleChange(e.target.value)}
-                  aria-invalid={invalid}
-                  placeholder="介绍一下自己"
-                />
-                <FieldDescription>最多 200 个字符</FieldDescription>
                 {invalid && <FieldError errors={f.state.meta.errors} />}
               </Field>
             );

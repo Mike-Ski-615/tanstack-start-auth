@@ -1,5 +1,7 @@
 # 密码重置蕴含邮箱验证（已否决）
 
+> **已过时（2026-10）**：本项目认证已迁移到 better-auth + Prisma ORM 7，见 [ADR-0007](./0007-better-auth-migration.md)。本 ADR 仅作历史记录保留。
+
 **Status**: 已废弃 → **已明确否决**（2026-09-10）
 
 本 ADR 曾提议：密码重置成功时顺带把 `emailVerifiedAt` 标记上。该行为从未落地，

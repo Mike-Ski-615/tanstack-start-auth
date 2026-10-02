@@ -7,6 +7,9 @@ out/
 build/
 *.tgz
 .output/
+
+# Prisma 生成的客户端（由 `bun run db:generate` 重建）
+src/generated/prisma/
 stats-client.html
 stats-ssr.html
 

@@ -24,7 +24,7 @@ function SettingsHomePage() {
         </div>
 
         <p className="mt-1 text-sm text-muted-foreground">
-          在这里管理你的个人资料、登录密码、账号与安全和通知偏好。右侧或顶栏可随时在各设置页间切换。
+          在这里管理你的个人资料、登录密码与账号安全。右侧或顶栏可随时在各设置页间切换。
         </p>
       </header>
 
@@ -45,13 +45,7 @@ function SettingsHomePage() {
         ))}
       </div>
 
-      <p className="mt-auto text-xs text-muted-foreground">
-        需要帮助？了解账号登录、各角色权限与快捷键，可前往
-        <Link to="/authenticated/help" className="mx-1 text-primary underline underline-offset-4">
-          帮助文档
-        </Link>
-        。
-      </p>
+      <p className="mt-auto text-xs text-muted-foreground">需要帮助？请联系站点管理员。</p>
     </div>
   );
 }

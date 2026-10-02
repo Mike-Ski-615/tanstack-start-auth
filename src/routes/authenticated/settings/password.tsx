@@ -2,15 +2,15 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Key02Icon } from "@hugeicons/core-free-icons";
 import { createFileRoute } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ShieldCheckIcon } from "@hugeicons/core-free-icons";
 import { Button } from "#components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "#components/ui/field";
 import { Input } from "#components/ui/input";
 import { changePasswordSchema, type ChangePasswordValues } from "#schemas/auth";
-import { changePasswordFn } from "#server/profile.functions";
-import { currentUserQueryOptions } from "#lib/queries/user";
+import { authClient } from "#lib/auth-client";
+import { useLogoutMutation } from "#hooks/use-auth-mutations";
 import { LoadingPage } from "#components/status/authenticated/settings/password/loading";
 import { ErrorPage } from "#components/status/authenticated/settings/password/error";
 import { NotFoundPage } from "#components/status/authenticated/settings/password/not-found";
@@ -23,19 +23,29 @@ export const Route = createFileRoute("/authenticated/settings/password")({
 });
 
 function SettingsPasswordPage() {
-  const { data: user } = useQuery(currentUserQueryOptions);
-  const pwdMutation = useMutation({
-    mutationFn: (v: ChangePasswordValues) => changePasswordFn({ data: v }),
-    onSuccess: () => {
-      toast.success("密码已修改");
-      pwdForm.reset();
-    },
-  });
+  const logoutMutation = useLogoutMutation();
 
   const pwdForm = useForm({
     defaultValues: { currentPassword: "", newPassword: "" },
     validators: { onSubmit: changePasswordSchema },
     onSubmit: ({ value }) => pwdMutation.mutate(value),
+  });
+
+  const pwdMutation = useMutation({
+    mutationFn: async (value: ChangePasswordValues) => {
+      const { error } = await authClient.changePassword({
+        currentPassword: value.currentPassword,
+        newPassword: value.newPassword,
+        revokeOtherSessions: true,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("密码已修改，请重新登录");
+      pwdForm.reset();
+      logoutMutation.mutate();
+    },
+    onError: (error) => toast.error(error.message),
   });
 
   return (
@@ -46,16 +56,6 @@ function SettingsPasswordPage() {
         pwdForm.handleSubmit();
       }}
     >
-      <input
-        type="text"
-        name="username"
-        autoComplete="username"
-        value={user?.name ?? ""}
-        readOnly
-        className="sr-only"
-        aria-hidden="true"
-        tabIndex={-1}
-      />
       <header>
         <div className="flex items-center gap-2">
           <HugeiconsIcon icon={Key02Icon} className="size-5 text-muted-foreground" />
@@ -99,7 +99,7 @@ function SettingsPasswordPage() {
                   onBlur={f.handleBlur}
                   onChange={(e) => f.handleChange(e.target.value)}
                   aria-invalid={invalid}
-                  placeholder="6~32 位"
+                  placeholder="至少 8 位"
                   autoComplete="new-password"
                 />
                 <FieldDescription>
@@ -107,7 +107,7 @@ function SettingsPasswordPage() {
                     icon={ShieldCheckIcon}
                     className="mr-1 inline size-4 align-[-3px]"
                   />
-                  修改密码需要验证当前密码
+                  修改密码会退出其他设备
                 </FieldDescription>
                 {invalid && <FieldError errors={f.state.meta.errors} />}
               </Field>

@@ -5,12 +5,11 @@ import {
   Outlet,
   useNavigate,
   createFileRoute,
+  getRouteApi,
   useRouter,
   redirect,
 } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
 import { SETTINGS_NAV } from "#data/nav";
-import { currentUserQueryOptions } from "#lib/queries/user";
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "#components/ui/dialog";
 import {
@@ -45,7 +44,8 @@ export const Route = createFileRoute("/authenticated/settings")({
 function SettingsLayout() {
   const navigate = useNavigate();
   const router = useRouter();
-  const { data: user } = useQuery(currentUserQueryOptions);
+  const { session } = getRouteApi("/authenticated").useRouteContext();
+  const user = session.user;
 
   if (!user) return null;
 
@@ -74,25 +74,19 @@ function SettingsLayout() {
             <SidebarHeader>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild className="h-auto">
-                    <Link
-                      className="flex min-w-0 flex-1 items-center gap-3"
-                      to="/authenticated/users/$userId"
-                      params={{ userId: user.id }}
-                    >
-                      <Avatar>
-                        <AvatarImage src={user.image} alt={user.name} />
-                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
+                  <SidebarMenuButton className="h-auto">
+                    <Avatar>
+                      <AvatarImage src={user.image ?? undefined} alt={user.name} />
+                      <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
 
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-medium leading-5">{user.name}</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-medium leading-5">{user.name}</div>
 
-                        <div className="truncate text-xs leading-4 text-muted-foreground">
-                          {user.email}
-                        </div>
+                      <div className="truncate text-xs leading-4 text-muted-foreground">
+                        {user.email}
                       </div>
-                    </Link>
+                    </div>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>

@@ -7,8 +7,7 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "#components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "#components/ui/input-otp";
-import { verifyEmailFn, resendVerificationEmailFn } from "#server/email-verification.functions";
-import { useAuthCacheSync } from "#hooks/use-auth-mutations";
+import { authClient } from "#lib/auth-client";
 import { LoadingPage } from "#components/status/auth/verify-email/loading";
 import { ErrorPage } from "#components/status/auth/verify-email/error";
 import { NotFoundPage } from "#components/status/auth/verify-email/not-found";
@@ -28,23 +27,33 @@ export const Route = createFileRoute("/auth/verify-email")({
 function VerifyEmailPage() {
   const { email } = Route.useSearch();
   const router = useRouter();
-  const authSync = useAuthCacheSync();
   const [otp, setOtp] = useState("");
 
   const verifyMutation = useMutation({
-    mutationFn: (code: string) => verifyEmailFn({ data: { email, otp: code } }),
-    onSuccess: async () => {
-      await authSync.onSignedIn();
-      setTimeout(() => router.navigate({ to: "/authenticated" }), 1500);
+    mutationFn: async (code: string) => {
+      const { error } = await authClient.emailOtp.verifyEmail({ email, otp: code });
+      if (error) throw error;
     },
+    onSuccess: () => {
+      toast.success("邮箱验证成功，请登录");
+      setTimeout(() => router.navigate({ to: "/auth/login" }), 1200);
+    },
+    onError: (error) => toast.error(error.message),
   });
 
   const resendMutation = useMutation({
-    mutationFn: () => resendVerificationEmailFn({ data: { email } }),
+    mutationFn: async () => {
+      const { error } = await authClient.emailOtp.sendVerificationOtp({
+        email,
+        type: "email-verification",
+      });
+      if (error) throw error;
+    },
     onSuccess: () => {
       setOtp("");
       toast.success("验证码已重新发送");
     },
+    onError: (error) => toast.error(error.message),
   });
 
   if (!email) {
@@ -65,7 +74,7 @@ function VerifyEmailPage() {
       <div className="flex flex-col items-center gap-4 text-center">
         <HugeiconsIcon icon={CheckCircle} className="size-12 text-success" />
         <h1 className="text-xl font-bold">邮箱验证成功</h1>
-        <p className="text-sm text-muted-foreground">即将跳转到首页...</p>
+        <p className="text-sm text-muted-foreground">即将跳转到登录页...</p>
       </div>
     );
   }

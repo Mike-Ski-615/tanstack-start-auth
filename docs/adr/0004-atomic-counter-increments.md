@@ -1,5 +1,7 @@
 # 计数值改用原子 UPDATE/UPSERT，不再 read-modify-write
 
+> **已过时（2026-10）**：`sessionVersion` 与自研 `RateLimit` 表已随认证迁移删除。见 [ADR-0007](./0007-better-auth-migration.md)。
+
 **Status**: 已接受
 
 `sessionVersion` 和 `RateLimit.count` 原先都是 `SELECT → JS +1 → UPDATE 绝对值`。
