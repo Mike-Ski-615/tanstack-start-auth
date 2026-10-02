@@ -2,13 +2,9 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ArrowUpDownIcon,
   ColorPickerIcon,
-  Home01Icon,
-  Key02Icon,
   Logout01Icon,
   MoonIcon,
-  Notification01Icon,
-  Settings01Icon,
-  Shield01Icon,
+  PaintBoardIcon,
   Sun01Icon,
 } from "@hugeicons/core-free-icons";
 import { Avatar, AvatarFallback, AvatarImage } from "#components/ui/avatar";
@@ -34,6 +30,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "#components/ui/sidebar";
+import { SETTINGS_NAV } from "#data/nav";
 import { useLogoutMutation } from "#hooks/use-auth-mutations";
 import { useNavigate } from "@tanstack/react-router";
 import type { User } from "#server/user.functions";
@@ -83,6 +80,18 @@ export function UserNav({ user }: { user: User }) {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
+                {SETTINGS_NAV.filter((item) => !item.group).map((item) => (
+                  <DropdownMenuItem
+                    key={item.id}
+                    onSelect={() => item.to && navigate({ to: item.to })}
+                  >
+                    <HugeiconsIcon icon={item.icon} />
+                    {item.title}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>
                     <HugeiconsIcon icon={ColorPickerIcon} />
@@ -90,74 +99,38 @@ export function UserNav({ user }: { user: User }) {
                   </DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
                     <DropdownMenuSubContent>
-                      <DropdownMenuGroup>
-                        <DropdownMenuLabel>主题切换</DropdownMenuLabel>
-                        <DropdownMenuRadioGroup
-                          value={theme}
-                          onValueChange={(value) => setTheme(value === "dark" ? "dark" : "light")}
-                        >
-                          <DropdownMenuRadioItem value="light">
-                            <HugeiconsIcon icon={Sun01Icon} />
-                            亮色主题
-                          </DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="dark">
-                            <HugeiconsIcon icon={MoonIcon} />
-                            暗色主题
-                          </DropdownMenuRadioItem>
-                        </DropdownMenuRadioGroup>
-                      </DropdownMenuGroup>
+                      <DropdownMenuRadioGroup
+                        value={theme}
+                        onValueChange={(value) => setTheme(value === "dark" ? "dark" : "light")}
+                      >
+                        <DropdownMenuRadioItem value="light">
+                          <HugeiconsIcon icon={Sun01Icon} />
+                          亮色
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="dark">
+                          <HugeiconsIcon icon={MoonIcon} />
+                          暗色
+                        </DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
                     </DropdownMenuSubContent>
                   </DropdownMenuPortal>
                 </DropdownMenuSub>
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>
-                    <HugeiconsIcon icon={Settings01Icon} />
-                    设置
+                    <HugeiconsIcon icon={PaintBoardIcon} />
+                    外观
                   </DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
                     <DropdownMenuSubContent>
-                      <DropdownMenuGroup>
-                        <DropdownMenuLabel>设置</DropdownMenuLabel>
+                      {SETTINGS_NAV.filter((item) => item.group === "外观").map((item) => (
                         <DropdownMenuItem
-                          onSelect={() =>
-                            navigate({
-                              to: "/authenticated/settings/home",
-                            })
-                          }
+                          key={item.id}
+                          onSelect={() => item.to && navigate({ to: item.to })}
                         >
-                          <HugeiconsIcon icon={Home01Icon} />
-                          设置主页
+                          <HugeiconsIcon icon={item.icon} />
+                          {item.title}
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onSelect={() => navigate({ to: "/authenticated/settings/bell" })}
-                        >
-                          <HugeiconsIcon icon={Notification01Icon} />
-                          通知
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onSelect={() => navigate({ to: "/authenticated/settings/password" })}
-                        >
-                          <HugeiconsIcon icon={Key02Icon} />
-                          修改密码
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onSelect={() => navigate({ to: "/authenticated/settings/profile" })}
-                        >
-                          <HugeiconsIcon icon={Key02Icon} />
-                          修改个人信息
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onSelect={() =>
-                            navigate({
-                              to: "/authenticated/settings/privacy-security",
-                            })
-                          }
-                        >
-                          <HugeiconsIcon icon={Shield01Icon} />
-                          隐私和安全
-                        </DropdownMenuItem>
-                      </DropdownMenuGroup>
+                      ))}
                     </DropdownMenuSubContent>
                   </DropdownMenuPortal>
                 </DropdownMenuSub>

@@ -3,12 +3,13 @@ import {
   BookBookmark01Icon,
   CompassIcon,
   DropletIcon,
+  HelpCircleIcon,
   Home01Icon,
   Key01Icon,
   KeyboardIcon,
   LibraryIcon,
-  Logout01Icon,
   Notification01Icon,
+  PaintBoardIcon,
   RulerIcon,
   Shield01Icon,
   SidebarLeft01Icon,
@@ -230,22 +231,46 @@ export function navItemsFor(role: Role): NavItem[] {
 
 export const HELP_SECTIONS: NavItem[] = [
   {
-    id: "account",
-    title: "账号与登录",
+    id: "quick-start",
+    title: "快速开始",
+    desc: "",
+    icon: CompassIcon,
+  },
+  {
+    id: "auth",
+    title: "账号与认证",
     desc: "",
     icon: UserIcon,
   },
   {
-    id: "roles",
-    title: "学生与教师角色",
+    id: "workspace",
+    title: "角色与工作台",
     desc: "",
     icon: UserGroupIcon,
   },
   {
-    id: "sidebar",
-    title: "侧边栏操作",
+    id: "navigation",
+    title: "导航与命令面板",
     desc: "",
     icon: SidebarLeft01Icon,
+  },
+  {
+    id: "appearance",
+    title: "外观与偏好",
+    desc: "",
+    icon: PaintBoardIcon,
+  },
+  {
+    id: "account",
+    title: "账户与安全",
+    desc: "",
+    icon: Shield01Icon,
+  },
+  {
+    id: "notifications",
+    title: "通知与消息",
+    desc: "",
+    icon: Notification01Icon,
   },
   {
     id: "shortcuts",
@@ -254,16 +279,10 @@ export const HELP_SECTIONS: NavItem[] = [
     icon: KeyboardIcon,
   },
   {
-    id: "account-menu",
-    title: "账户菜单",
+    id: "faq",
+    title: "常见问题",
     desc: "",
-    icon: UserCircleIcon,
-  },
-  {
-    id: "logout",
-    title: "退出登录",
-    desc: "",
-    icon: Logout01Icon,
+    icon: HelpCircleIcon,
   },
 ];
 

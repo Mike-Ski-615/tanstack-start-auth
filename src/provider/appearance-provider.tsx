@@ -2,8 +2,9 @@ import { createPreference } from "#provider/preference-provider";
 
 export type Accent = "orange" | "blue" | "green" | "violet" | "rose";
 
-// 圆角：0–24px 连续可调，默认 10px（等于 CSS 的 0.625rem）。
-export const RADIUS_RANGE = { min: 0, max: 24, step: 1, fallback: 10 } as const;
+// 圆角锚点：直角 → 圆润（直接写入 --radius）。
+export const RADIUS_OPTIONS = ["0rem", "0.45rem", "0.625rem", "0.875rem"] as const;
+export const RADIUS_DEFAULT: (typeof RADIUS_OPTIONS)[number] = "0.625rem";
 // 字号：90%–115% 连续缩放，默认 100%。
 export const FONT_SCALE_RANGE = { min: 90, max: 115, step: 1, fallback: 100 } as const;
 
@@ -28,7 +29,7 @@ function numericStrings(min: number, max: number) {
 }
 
 function applyRadius(value: string) {
-  document.documentElement.style.setProperty("--radius", `${value}px`);
+  document.documentElement.style.setProperty("--radius", value);
 }
 
 function applyFontScale(value: string) {
@@ -42,8 +43,8 @@ function applyAccent(value: Accent) {
 export const radius = createPreference<string>({
   key: "radius",
   attribute: "data-radius",
-  values: numericStrings(RADIUS_RANGE.min, RADIUS_RANGE.max),
-  fallback: String(RADIUS_RANGE.fallback),
+  values: RADIUS_OPTIONS,
+  fallback: "0.625rem",
   apply: applyRadius,
 });
 
