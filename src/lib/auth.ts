@@ -45,17 +45,32 @@ export const auth = betterAuth({
       overrideDefaultEmailVerification: true,
       sendVerificationOnSignUp: true,
       async sendVerificationOTP({ email, otp, type }) {
-        const variables = {
-          otpCode: otp,
-          userEmail: email,
-          appName: APP_NAME,
-          expirationMinutes: "15",
-        };
+        if (type === "forget-password") {
+          return sendResetPasswordEmail(email, {
+            otpCode: otp,
+            userEmail: email,
+            appName: APP_NAME,
+            expirationMinutes: "15",
+          });
+        }
 
-        if (type === "forget-password") return sendResetPasswordEmail(email, variables);
-        if (type === "sign-in") return sendSignInEmail(email, variables);
-        // email-verification（以及未启用的 change-email）走注册模板
-        return sendRegisterEmail(email, variables);
+        if (type === "sign-in") {
+          return sendSignInEmail(email, {
+            otpCode: otp,
+            userEmail: email,
+            appName: APP_NAME,
+            expirationMinutes: "15",
+          });
+        }
+
+        if (type === "email-verification") {
+          return sendRegisterEmail(email, {
+            otpCode: otp,
+            userEmail: email,
+            appName: APP_NAME,
+            expirationMinutes: "15",
+          });
+        }
       },
     }),
     // 官方 i18n：把错误码翻译成中文，客户端直接展示 error.message。

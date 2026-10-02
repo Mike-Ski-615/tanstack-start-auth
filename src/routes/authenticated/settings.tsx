@@ -76,7 +76,7 @@ function SettingsLayout() {
                 <SidebarMenuItem>
                   <SidebarMenuButton className="h-auto">
                     <Avatar>
-                      <AvatarImage src={user.image ?? undefined} alt={user.name} />
+                      <AvatarImage src={user.image!} alt={user.name} />
                       <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                     </Avatar>
 
