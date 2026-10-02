@@ -29,13 +29,11 @@ export const auth = betterAuth({
     minPasswordLength: 8,
   },
 
-  // 内存限流：单实例 Bun 常驻服务，默认仅在 production 生效（显式开启）。
   rateLimit: {
     enabled: true,
   },
 
   plugins: [
-    tanstackStartCookies(),
     emailOTP({
       otpLength: 6,
       expiresIn: 900,
@@ -73,8 +71,6 @@ export const auth = betterAuth({
         }
       },
     }),
-    // 官方 i18n：把错误码翻译成中文，客户端直接展示 error.message。
-    // 内置 locales.zh 不含 emailOTP 的插件错误码，这里补上。
     i18n({
       translations: {
         zh: {
@@ -87,5 +83,6 @@ export const auth = betterAuth({
       defaultLocale: "zh",
       detection: ["header", "cookie"],
     }),
+    tanstackStartCookies(),
   ],
 });

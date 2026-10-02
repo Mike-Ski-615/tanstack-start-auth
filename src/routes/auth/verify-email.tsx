@@ -84,7 +84,7 @@ function VerifyEmailPage() {
   if (verified) {
     return (
       <div className="flex flex-col items-center gap-4 text-center">
-        <HugeiconsIcon icon={CheckCircle} className="size-12 text-success" />
+        <HugeiconsIcon icon={CheckCircle} className="size-12 text-green-500" />
         <h1 className="text-xl font-bold">邮箱验证成功</h1>
         <p className="text-sm text-muted-foreground">即将跳转到登录页...</p>
       </div>
