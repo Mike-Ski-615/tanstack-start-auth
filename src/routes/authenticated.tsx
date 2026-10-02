@@ -1,7 +1,8 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { useHotkeys } from "react-hotkeys-hook";
+import { toast } from "sonner";
 import { getSessionFn } from "#server/session.functions";
-import { useLogoutMutation } from "#hooks/use-auth-mutations";
+import { authClient } from "#lib/auth-client";
 import { AppSidebar } from "#components/app-sidebar";
 import { SidebarTrigger } from "#components/sidebar-trigger";
 import { Header } from "#components/header/index";
@@ -26,9 +27,23 @@ export const Route = createFileRoute("/authenticated")({
 
 function AuthenticatedLayout() {
   const { session } = Route.useRouteContext();
-  const logoutMutation = useLogoutMutation();
+  const navigate = useNavigate();
 
-  useHotkeys("ctrl+shift+l", () => logoutMutation.mutate(), {
+  function logout() {
+    authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          toast.success("已退出登录");
+          navigate({ to: "/" });
+        },
+        onError: (ctx) => {
+          toast.error(ctx.error.message);
+        },
+      },
+    });
+  }
+
+  useHotkeys("ctrl+shift+l", () => logout(), {
     preventDefault: true,
   });
 

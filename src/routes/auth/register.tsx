@@ -2,7 +2,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { AppleIcon, UserIcon } from "@hugeicons/core-free-icons";
 import { GoogleIcon } from "#components/ui/google-icon";
 import { useForm } from "@tanstack/react-form";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button } from "#components/ui/button";
 import {
   Field,
@@ -14,7 +14,8 @@ import {
 } from "#components/ui/field";
 import { Input } from "#components/ui/input";
 import { registerSchema } from "#schemas/auth";
-import { useRegisterMutation } from "#hooks/use-auth-mutations";
+import { toast } from "sonner";
+import { authClient } from "#lib/auth-client";
 import { LoadingPage } from "#components/status/auth/register/loading";
 import { ErrorPage } from "#components/status/auth/register/error";
 import { NotFoundPage } from "#components/status/auth/register/not-found";
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/auth/register")({
 });
 
 function RegisterPage() {
-  const registerMutation = useRegisterMutation();
+  const navigate = useNavigate();
 
   const form = useForm({
     defaultValues: {
@@ -38,8 +39,19 @@ function RegisterPage() {
     validators: {
       onSubmit: registerSchema,
     },
-    onSubmit: ({ value }) => {
-      registerMutation.mutate(value);
+    onSubmit: async ({ value }) => {
+      await authClient.signUp.email(
+        { name: value.name, email: value.email, password: value.password },
+        {
+          onSuccess: () => {
+            toast.success("验证码已发送，请查收邮箱");
+            navigate({ to: "/auth/verify-email", search: { email: value.email } });
+          },
+          onError: (ctx) => {
+            toast.error(ctx.error.message);
+          },
+        },
+      );
     },
   });
 
@@ -136,9 +148,13 @@ function RegisterPage() {
         </form.Field>
 
         <Field>
-          <Button type="submit" disabled={registerMutation.isPending}>
-            {registerMutation.isPending ? "注册中..." : "注册"}
-          </Button>
+          <form.Subscribe selector={(s) => s.isSubmitting}>
+            {(isSubmitting) => (
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "注册中..." : "注册"}
+              </Button>
+            )}
+          </form.Subscribe>
         </Field>
 
         <FieldSeparator>或</FieldSeparator>

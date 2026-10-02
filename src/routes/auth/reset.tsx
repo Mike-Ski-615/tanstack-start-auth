@@ -1,14 +1,15 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { UserIcon } from "@hugeicons/core-free-icons";
 import { useForm } from "@tanstack/react-form";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import * as v from "valibot";
 import { Button } from "#components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "#components/ui/field";
 import { Input } from "#components/ui/input";
 import { useState } from "react";
 import { resetPasswordSchema } from "#schemas/auth";
-import { useResetPasswordMutation } from "#hooks/use-auth-mutations";
+import { toast } from "sonner";
+import { authClient } from "#lib/auth-client";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "#components/ui/input-otp";
 import { LoadingPage } from "#components/status/auth/reset/loading";
 import { ErrorPage } from "#components/status/auth/reset/error";
@@ -29,7 +30,7 @@ export const Route = createFileRoute("/auth/reset")({
 function ResetPage() {
   const { email } = Route.useSearch();
   const [otp, setOtp] = useState("");
-  const resetMutation = useResetPasswordMutation(email, otp);
+  const navigate = useNavigate();
 
   const form = useForm({
     defaultValues: {
@@ -38,8 +39,19 @@ function ResetPage() {
     validators: {
       onSubmit: v.pick(resetPasswordSchema, ["password"]),
     },
-    onSubmit: ({ value }) => {
-      resetMutation.mutate(value.password);
+    onSubmit: async ({ value }) => {
+      await authClient.emailOtp.resetPassword(
+        { email, otp, password: value.password },
+        {
+          onSuccess: () => {
+            toast.success("密码重置成功，请登录");
+            navigate({ to: "/auth/login" });
+          },
+          onError: (ctx) => {
+            toast.error(ctx.error.message);
+          },
+        },
+      );
     },
   });
 
@@ -79,13 +91,7 @@ function ResetPage() {
 
         <Field>
           <FieldLabel htmlFor="otp">邮箱验证码</FieldLabel>
-          <InputOTP
-            id="otp"
-            maxLength={6}
-            value={otp}
-            onChange={setOtp}
-            disabled={resetMutation.isPending}
-          >
+          <InputOTP id="otp" maxLength={6} value={otp} onChange={setOtp}>
             <InputOTPGroup>
               {Array.from({ length: 6 }, (_, i) => (
                 <InputOTPSlot key={i} index={i} />
@@ -119,12 +125,13 @@ function ResetPage() {
         </form.Field>
 
         <Field>
-          <Button type="submit" disabled={otp.length !== 6 || resetMutation.isPending}>
-            {resetMutation.isPending ? "重置中..." : "重置密码"}
-          </Button>
-          {resetMutation.isError && (
-            <p className="text-sm text-destructive">验证码不正确或已过期，请重试</p>
-          )}
+          <form.Subscribe selector={(s) => s.isSubmitting}>
+            {(isSubmitting) => (
+              <Button type="submit" disabled={otp.length !== 6 || isSubmitting}>
+                {isSubmitting ? "重置中..." : "重置密码"}
+              </Button>
+            )}
+          </form.Subscribe>
         </Field>
       </FieldGroup>
     </form>

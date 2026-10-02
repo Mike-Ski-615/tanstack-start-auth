@@ -2,13 +2,12 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { UserIcon } from "@hugeicons/core-free-icons";
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
-import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { authClient } from "#lib/auth-client";
 import { Button } from "#components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "#components/ui/field";
 import { Input } from "#components/ui/input";
-import { updateProfileSchema, type UpdateProfileValues } from "#schemas/auth";
+import { updateProfileSchema } from "#schemas/auth";
 import { LoadingPage } from "#components/status/authenticated/settings/profile/loading";
 import { ErrorPage } from "#components/status/authenticated/settings/profile/error";
 import { NotFoundPage } from "#components/status/authenticated/settings/profile/not-found";
@@ -24,24 +23,23 @@ function SettingsProfilePage() {
   const { session } = getRouteApi("/authenticated").useRouteContext();
   const user = session.user;
 
-  const infoMutation = useMutation({
-    mutationFn: async (value: UpdateProfileValues) => {
-      const { error } = await authClient.updateUser({ name: value.name });
-      if (error) throw error;
-    },
-    onSuccess: () => toast.success("资料已保存"),
-    onError: (error) => toast.error(error.message),
-  });
-
   const infoForm = useForm({
-    defaultValues: { name: user?.name ?? "" },
+    defaultValues: { name: user.name },
     validators: { onSubmit: updateProfileSchema },
-    onSubmit: ({ value }) => infoMutation.mutate(value),
+    onSubmit: async ({ value }) => {
+      await authClient.updateUser(
+        { name: value.name },
+        {
+          onSuccess: () => {
+            toast.success("资料已保存");
+          },
+          onError: (ctx) => {
+            toast.error(ctx.error.message);
+          },
+        },
+      );
+    },
   });
-
-  if (!user) return null;
-
-  if (!user) return null;
 
   return (
     <form
@@ -86,9 +84,13 @@ function SettingsProfilePage() {
       </FieldGroup>
 
       <div className="flex justify-end">
-        <Button type="submit" disabled={infoMutation.isPending}>
-          {infoMutation.isPending ? "保存中..." : "保存资料"}
-        </Button>
+        <infoForm.Subscribe selector={(s) => s.isSubmitting}>
+          {(isSubmitting) => (
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "保存中..." : "保存资料"}
+            </Button>
+          )}
+        </infoForm.Subscribe>
       </div>
     </form>
   );

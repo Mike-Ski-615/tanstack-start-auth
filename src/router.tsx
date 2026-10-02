@@ -22,11 +22,6 @@ export function getRouter() {
         retry: 1,
         refetchOnWindowFocus: true,
       },
-      mutations: {
-        onError: (error) => {
-          if (!isServer) toast.error(error.message);
-        },
-      },
     },
   });
 

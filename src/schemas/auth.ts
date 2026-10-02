@@ -43,9 +43,3 @@ export const resetPasswordSchema = v.object({
   otp: otpField,
   password: passwordField,
 });
-
-export type LoginValues = v.InferOutput<typeof loginSchema>;
-export type RegisterValues = v.InferOutput<typeof registerSchema>;
-export type EmailOnlyValues = v.InferOutput<typeof emailOnlySchema>;
-export type UpdateProfileValues = v.InferOutput<typeof updateProfileSchema>;
-export type ChangePasswordValues = v.InferOutput<typeof changePasswordSchema>;

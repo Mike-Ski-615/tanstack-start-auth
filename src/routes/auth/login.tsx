@@ -2,7 +2,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { AppleIcon, UserIcon } from "@hugeicons/core-free-icons";
 import { GoogleIcon } from "#components/ui/google-icon";
 import { useForm } from "@tanstack/react-form";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button } from "#components/ui/button";
 import {
   Field,
@@ -14,7 +14,8 @@ import {
 } from "#components/ui/field";
 import { Input } from "#components/ui/input";
 import { loginSchema } from "#schemas/auth";
-import { useLoginMutation } from "#hooks/use-auth-mutations";
+import { toast } from "sonner";
+import { authClient } from "#lib/auth-client";
 import { LoadingPage } from "#components/status/auth/login/loading";
 import { ErrorPage } from "#components/status/auth/login/error";
 import { NotFoundPage } from "#components/status/auth/login/not-found";
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/auth/login")({
 });
 
 function LoginPage() {
-  const loginMutation = useLoginMutation();
+  const navigate = useNavigate();
 
   const form = useForm({
     defaultValues: {
@@ -37,8 +38,24 @@ function LoginPage() {
     validators: {
       onSubmit: loginSchema,
     },
-    onSubmit: ({ value }) => {
-      loginMutation.mutate(value);
+    onSubmit: async ({ value }) => {
+      await authClient.signIn.email(
+        { email: value.email, password: value.password },
+        {
+          onSuccess: () => {
+            toast.success("登录成功，欢迎回来");
+            navigate({ to: "/authenticated" });
+          },
+          onError: (ctx) => {
+            if ("code" in ctx.error && ctx.error.code === "EMAIL_NOT_VERIFIED") {
+              toast.info(ctx.error.message);
+              navigate({ to: "/auth/verify-email", search: { email: value.email } });
+              return;
+            }
+            toast.error(ctx.error.message);
+          },
+        },
+      );
     },
   });
 
@@ -112,9 +129,13 @@ function LoginPage() {
         </form.Field>
 
         <Field>
-          <Button type="submit" disabled={loginMutation.isPending}>
-            {loginMutation.isPending ? "登录中..." : "登录"}
-          </Button>
+          <form.Subscribe selector={(s) => s.isSubmitting}>
+            {(isSubmitting) => (
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "登录中..." : "登录"}
+              </Button>
+            )}
+          </form.Subscribe>
         </Field>
 
         <FieldDescription className="text-center">

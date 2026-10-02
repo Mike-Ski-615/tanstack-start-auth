@@ -1,12 +1,13 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { UserIcon } from "@hugeicons/core-free-icons";
 import { useForm } from "@tanstack/react-form";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button } from "#components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "#components/ui/field";
 import { Input } from "#components/ui/input";
 import { emailOnlySchema } from "#schemas/auth";
-import { useRequestPasswordResetMutation } from "#hooks/use-auth-mutations";
+import { toast } from "sonner";
+import { authClient } from "#lib/auth-client";
 import { LoadingPage } from "#components/status/auth/forgot-password/loading";
 import { ErrorPage } from "#components/status/auth/forgot-password/error";
 import { NotFoundPage } from "#components/status/auth/forgot-password/not-found";
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/auth/forgot-password")({
 });
 
 function ForgotPasswordPage() {
-  const resetMutation = useRequestPasswordResetMutation();
+  const navigate = useNavigate();
 
   const form = useForm({
     defaultValues: {
@@ -28,8 +29,19 @@ function ForgotPasswordPage() {
     validators: {
       onSubmit: emailOnlySchema,
     },
-    onSubmit: ({ value }) => {
-      resetMutation.mutate(value);
+    onSubmit: async ({ value }) => {
+      await authClient.emailOtp.requestPasswordReset(
+        { email: value.email },
+        {
+          onSuccess: () => {
+            toast.info("若该邮箱已注册，重置验证码已发送，请查收");
+            navigate({ to: "/auth/reset", search: { email: value.email } });
+          },
+          onError: (ctx) => {
+            toast.error(ctx.error.message);
+          },
+        },
+      );
     },
   });
 
@@ -81,9 +93,13 @@ function ForgotPasswordPage() {
         </form.Field>
 
         <Field>
-          <Button type="submit" disabled={resetMutation.isPending}>
-            {resetMutation.isPending ? "发送中..." : "发送重置邮件"}
-          </Button>
+          <form.Subscribe selector={(s) => s.isSubmitting}>
+            {(isSubmitting) => (
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "发送中..." : "发送重置邮件"}
+              </Button>
+            )}
+          </form.Subscribe>
         </Field>
       </FieldGroup>
     </form>

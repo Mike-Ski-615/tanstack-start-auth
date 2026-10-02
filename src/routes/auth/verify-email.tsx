@@ -3,7 +3,6 @@ import { Mail01Icon, CheckCircle } from "@hugeicons/core-free-icons";
 import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
 import * as v from "valibot";
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "#components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "#components/ui/input-otp";
@@ -28,33 +27,46 @@ function VerifyEmailPage() {
   const { email } = Route.useSearch();
   const router = useRouter();
   const [otp, setOtp] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [verified, setVerified] = useState(false);
 
-  const verifyMutation = useMutation({
-    mutationFn: async (code: string) => {
-      const { error } = await authClient.emailOtp.verifyEmail({ email, otp: code });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("邮箱验证成功，请登录");
-      setTimeout(() => router.navigate({ to: "/auth/login" }), 1200);
-    },
-    onError: (error) => toast.error(error.message),
-  });
+  async function verify(code: string) {
+    await authClient.emailOtp.verifyEmail(
+      { email, otp: code },
+      {
+        onRequest: () => setVerifying(true),
+        onSuccess: () => {
+          setVerifying(false);
+          setVerified(true);
+          toast.success("邮箱验证成功，请登录");
+          setTimeout(() => router.navigate({ to: "/auth/login" }), 1200);
+        },
+        onError: (ctx) => {
+          setVerifying(false);
+          toast.error(ctx.error.message);
+        },
+      },
+    );
+  }
 
-  const resendMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await authClient.emailOtp.sendVerificationOtp({
-        email,
-        type: "email-verification",
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      setOtp("");
-      toast.success("验证码已重新发送");
-    },
-    onError: (error) => toast.error(error.message),
-  });
+  async function resend() {
+    await authClient.emailOtp.sendVerificationOtp(
+      { email, type: "email-verification" },
+      {
+        onRequest: () => setResending(true),
+        onSuccess: () => {
+          setResending(false);
+          setOtp("");
+          toast.success("验证码已重新发送");
+        },
+        onError: (ctx) => {
+          setResending(false);
+          toast.error(ctx.error.message);
+        },
+      },
+    );
+  }
 
   if (!email) {
     return (
@@ -69,7 +81,7 @@ function VerifyEmailPage() {
     );
   }
 
-  if (verifyMutation.isSuccess) {
+  if (verified) {
     return (
       <div className="flex flex-col items-center gap-4 text-center">
         <HugeiconsIcon icon={CheckCircle} className="size-12 text-success" />
@@ -91,7 +103,7 @@ function VerifyEmailPage() {
         className="flex flex-col items-center gap-4"
         onSubmit={(e) => {
           e.preventDefault();
-          if (otp.length === 6) verifyMutation.mutate(otp);
+          if (otp.length === 6) verify(otp);
         }}
       >
         <label htmlFor="otp" className="sr-only">
@@ -103,7 +115,7 @@ function VerifyEmailPage() {
           maxLength={6}
           value={otp}
           onChange={setOtp}
-          disabled={verifyMutation.isPending}
+          disabled={verifying}
           autoFocus
         >
           <InputOTPGroup>
@@ -113,12 +125,8 @@ function VerifyEmailPage() {
           </InputOTPGroup>
         </InputOTP>
 
-        {verifyMutation.isError && (
-          <p className="text-sm text-destructive">验证码不正确或已过期，请重试</p>
-        )}
-
-        <Button type="submit" disabled={otp.length !== 6 || verifyMutation.isPending}>
-          {verifyMutation.isPending ? "验证中..." : "验证"}
+        <Button type="submit" disabled={otp.length !== 6 || verifying}>
+          {verifying ? "验证中..." : "验证"}
         </Button>
       </form>
 
@@ -130,10 +138,10 @@ function VerifyEmailPage() {
           type="button"
           variant="link"
           size="sm"
-          disabled={resendMutation.isPending}
-          onClick={() => resendMutation.mutate()}
+          disabled={resending}
+          onClick={() => resend()}
         >
-          {resendMutation.isPending ? "发送中..." : "重新发送验证码"}
+          {resending ? "发送中..." : "重新发送验证码"}
         </Button>
       </div>
     </div>

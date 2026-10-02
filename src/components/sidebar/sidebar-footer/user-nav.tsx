@@ -30,7 +30,8 @@ import {
   useSidebar,
 } from "#components/ui/sidebar";
 import { SETTINGS_NAV } from "#data/nav";
-import { useLogoutMutation } from "#hooks/use-auth-mutations";
+import { toast } from "sonner";
+import { authClient } from "#lib/auth-client";
 import { useNavigate } from "@tanstack/react-router";
 import type { User } from "better-auth";
 import { useTheme } from "#provider/theme-provider";
@@ -39,7 +40,20 @@ export function UserNav({ user }: { user: User }) {
   const { isMobile } = useSidebar();
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
-  const logoutMutation = useLogoutMutation();
+
+  function logout() {
+    authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          toast.success("已退出登录");
+          navigate({ to: "/" });
+        },
+        onError: (ctx) => {
+          toast.error(ctx.error.message);
+        },
+      },
+    });
+  }
 
   return (
     <>
@@ -116,7 +130,7 @@ export function UserNav({ user }: { user: User }) {
                 </DropdownMenuSub>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem variant="destructive" onSelect={() => logoutMutation.mutate()}>
+              <DropdownMenuItem variant="destructive" onSelect={() => logout()}>
                 <HugeiconsIcon icon={Logout01Icon} />
                 登出
                 <DropdownMenuShortcut>Ctrl+Shift+L</DropdownMenuShortcut>
