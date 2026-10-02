@@ -108,7 +108,7 @@ guard 只做转发。理由：会话校验反正要读 User 比对 sessionVersio
 ### Role（角色）
 
 三个值：`student` / `teacher` / `admin`，默认 `student`。两处定义必须同步：
-`prisma/contract.ts` 的 Role enum（数据库 CHECK 约束）与
+`src/prisma/schema.prisma` 的 Role enum（数据库 CHECK 约束）与
 `lib/auth/current-user.ts` 的 `ROLES`（应用层类型 + `ROLE_HOME` 路由表）。
 
 **其余角色词汇全部从 `ROLES` 派生，只有这一个 home**（都在 `current-user.ts`）：

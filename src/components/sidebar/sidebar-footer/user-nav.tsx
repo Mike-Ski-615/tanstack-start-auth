@@ -4,7 +4,6 @@ import {
   ColorPickerIcon,
   Logout01Icon,
   MoonIcon,
-  PaintBoardIcon,
   Sun01Icon,
 } from "@hugeicons/core-free-icons";
 import { Avatar, AvatarFallback, AvatarImage } from "#components/ui/avatar";
@@ -80,7 +79,7 @@ export function UserNav({ user }: { user: User }) {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                {SETTINGS_NAV.filter((item) => !item.group).map((item) => (
+                {SETTINGS_NAV.map((item) => (
                   <DropdownMenuItem
                     key={item.id}
                     onSelect={() => item.to && navigate({ to: item.to })}
@@ -112,25 +111,6 @@ export function UserNav({ user }: { user: User }) {
                           暗色
                         </DropdownMenuRadioItem>
                       </DropdownMenuRadioGroup>
-                    </DropdownMenuSubContent>
-                  </DropdownMenuPortal>
-                </DropdownMenuSub>
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
-                    <HugeiconsIcon icon={PaintBoardIcon} />
-                    外观
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuPortal>
-                    <DropdownMenuSubContent>
-                      {SETTINGS_NAV.filter((item) => item.group === "外观").map((item) => (
-                        <DropdownMenuItem
-                          key={item.id}
-                          onSelect={() => item.to && navigate({ to: item.to })}
-                        >
-                          <HugeiconsIcon icon={item.icon} />
-                          {item.title}
-                        </DropdownMenuItem>
-                      ))}
                     </DropdownMenuSubContent>
                   </DropdownMenuPortal>
                 </DropdownMenuSub>

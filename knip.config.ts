@@ -1,7 +1,7 @@
 export default {
   project: ["src/**/*.{ts,tsx}", "src/styles/*.css"],
 
-  entry: ["src/routes/**/*.tsx", "src/prisma/contract.ts"],
+  entry: ["src/routes/**/*.tsx"],
 
   ignore: ["src/components/ui/**"],
 

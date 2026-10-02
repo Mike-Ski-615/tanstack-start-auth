@@ -55,13 +55,13 @@ bun run dev
 
 ## 可用脚本
 
-| 命令                    | 说明                                                                              |
-| ----------------------- | --------------------------------------------------------------------------------- |
-| `bun run dev`           | 启动开发服务器（端口 3000）                                                       |
-| `bun run build`         | 生产构建                                                                          |
-| `bun run start`         | 预览生产构建                                                                      |
-| `bun run typecheck`     | 类型检查                                                                          |
-| `bun run contract:emit` | 修改 `src/prisma/contract.ts` 后重新生成契约（`contract.json` / `contract.d.ts`） |
+| 命令                    | 说明                                                                            |
+| ----------------------- | ------------------------------------------------------------------------------- |
+| `bun run dev`           | 启动开发服务器（端口 3000）                                                     |
+| `bun run build`         | 生产构建                                                                        |
+| `bun run start`         | 预览生产构建                                                                    |
+| `bun run typecheck`     | 类型检查                                                                        |
+| `bun run contract:emit` | 修改 `src/prisma/schema.prisma` 后重新生成契约（`schema.json` / `schema.d.ts`） |
 
 ## 测试
 
@@ -113,7 +113,7 @@ src/
 │   └── utils.ts                # cn() 等
 ├── schemas/
 │   └── auth.ts                 # zod 校验 schema（登录 / 注册 / 重置 / OTP 验证）
-├── prisma/                     # Prisma 契约与生成产物（contract.ts / contract.json / contract.d.ts / db.ts）
+├── prisma/                     # Prisma 契约与生成产物（schema.prisma / schema.json / schema.d.ts / db.ts）
 ├── provider/
 │   └── theme-provider.tsx      # 主题（暗色模式）
 ├── components/

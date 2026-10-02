@@ -22,20 +22,17 @@ import { Route as AuthenticatedHelpRouteImport } from './routes/authenticated/he
 import { Route as AuthenticatedSettingsRouteImport } from './routes/authenticated/settings'
 import { Route as AuthenticatedStudentRouteImport } from './routes/authenticated/student'
 import { Route as AuthenticatedTeacherRouteImport } from './routes/authenticated/teacher'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AuthenticatedAdminNotificationsRouteImport } from './routes/authenticated/admin/notifications'
 import { Route as AuthenticatedAdminStudentsRouteImport } from './routes/authenticated/admin/students'
 import { Route as AuthenticatedAdminTeachersRouteImport } from './routes/authenticated/admin/teachers'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/authenticated/settings/account'
-import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/authenticated/settings/appearance'
 import { Route as AuthenticatedSettingsBellRouteImport } from './routes/authenticated/settings/bell'
 import { Route as AuthenticatedSettingsHomeRouteImport } from './routes/authenticated/settings/home'
 import { Route as AuthenticatedSettingsPasswordRouteImport } from './routes/authenticated/settings/password'
 import { Route as AuthenticatedSettingsPrivacySecurityRouteImport } from './routes/authenticated/settings/privacy-security'
 import { Route as AuthenticatedSettingsProfileRouteImport } from './routes/authenticated/settings/profile'
 import { Route as AuthenticatedUsersUserIdRouteImport } from './routes/authenticated/users/$userId'
-import { Route as AuthenticatedSettingsAppearanceAccentRouteImport } from './routes/authenticated/settings/appearance/accent'
-import { Route as AuthenticatedSettingsAppearanceFontRouteImport } from './routes/authenticated/settings/appearance/font'
-import { Route as AuthenticatedSettingsAppearanceRadiusRouteImport } from './routes/authenticated/settings/appearance/radius'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -102,6 +99,11 @@ const AuthenticatedTeacherRoute = AuthenticatedTeacherRouteImport.update({
   path: '/teacher',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminNotificationsRoute =
   AuthenticatedAdminNotificationsRouteImport.update({
     id: '/notifications',
@@ -124,12 +126,6 @@ const AuthenticatedSettingsAccountRoute =
   AuthenticatedSettingsAccountRouteImport.update({
     id: '/account',
     path: '/account',
-    getParentRoute: () => AuthenticatedSettingsRoute,
-  } as any)
-const AuthenticatedSettingsAppearanceRoute =
-  AuthenticatedSettingsAppearanceRouteImport.update({
-    id: '/appearance',
-    path: '/appearance',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
 const AuthenticatedSettingsBellRoute =
@@ -168,24 +164,6 @@ const AuthenticatedUsersUserIdRoute =
     path: '/users/$userId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedSettingsAppearanceAccentRoute =
-  AuthenticatedSettingsAppearanceAccentRouteImport.update({
-    id: '/accent',
-    path: '/accent',
-    getParentRoute: () => AuthenticatedSettingsAppearanceRoute,
-  } as any)
-const AuthenticatedSettingsAppearanceFontRoute =
-  AuthenticatedSettingsAppearanceFontRouteImport.update({
-    id: '/font',
-    path: '/font',
-    getParentRoute: () => AuthenticatedSettingsAppearanceRoute,
-  } as any)
-const AuthenticatedSettingsAppearanceRadiusRoute =
-  AuthenticatedSettingsAppearanceRadiusRouteImport.update({
-    id: '/radius',
-    path: '/radius',
-    getParentRoute: () => AuthenticatedSettingsAppearanceRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -201,20 +179,17 @@ export interface FileRoutesByFullPath {
   '/authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/authenticated/student': typeof AuthenticatedStudentRoute
   '/authenticated/teacher': typeof AuthenticatedTeacherRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/authenticated/admin/notifications': typeof AuthenticatedAdminNotificationsRoute
   '/authenticated/admin/students': typeof AuthenticatedAdminStudentsRoute
   '/authenticated/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
-  '/authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRouteWithChildren
   '/authenticated/settings/bell': typeof AuthenticatedSettingsBellRoute
   '/authenticated/settings/home': typeof AuthenticatedSettingsHomeRoute
   '/authenticated/settings/password': typeof AuthenticatedSettingsPasswordRoute
   '/authenticated/settings/privacy-security': typeof AuthenticatedSettingsPrivacySecurityRoute
   '/authenticated/settings/profile': typeof AuthenticatedSettingsProfileRoute
   '/authenticated/users/$userId': typeof AuthenticatedUsersUserIdRoute
-  '/authenticated/settings/appearance/accent': typeof AuthenticatedSettingsAppearanceAccentRoute
-  '/authenticated/settings/appearance/font': typeof AuthenticatedSettingsAppearanceFontRoute
-  '/authenticated/settings/appearance/radius': typeof AuthenticatedSettingsAppearanceRadiusRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -230,20 +205,17 @@ export interface FileRoutesByTo {
   '/authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/authenticated/student': typeof AuthenticatedStudentRoute
   '/authenticated/teacher': typeof AuthenticatedTeacherRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/authenticated/admin/notifications': typeof AuthenticatedAdminNotificationsRoute
   '/authenticated/admin/students': typeof AuthenticatedAdminStudentsRoute
   '/authenticated/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
-  '/authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRouteWithChildren
   '/authenticated/settings/bell': typeof AuthenticatedSettingsBellRoute
   '/authenticated/settings/home': typeof AuthenticatedSettingsHomeRoute
   '/authenticated/settings/password': typeof AuthenticatedSettingsPasswordRoute
   '/authenticated/settings/privacy-security': typeof AuthenticatedSettingsPrivacySecurityRoute
   '/authenticated/settings/profile': typeof AuthenticatedSettingsProfileRoute
   '/authenticated/users/$userId': typeof AuthenticatedUsersUserIdRoute
-  '/authenticated/settings/appearance/accent': typeof AuthenticatedSettingsAppearanceAccentRoute
-  '/authenticated/settings/appearance/font': typeof AuthenticatedSettingsAppearanceFontRoute
-  '/authenticated/settings/appearance/radius': typeof AuthenticatedSettingsAppearanceRadiusRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -260,20 +232,17 @@ export interface FileRoutesById {
   '/authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/authenticated/student': typeof AuthenticatedStudentRoute
   '/authenticated/teacher': typeof AuthenticatedTeacherRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/authenticated/admin/notifications': typeof AuthenticatedAdminNotificationsRoute
   '/authenticated/admin/students': typeof AuthenticatedAdminStudentsRoute
   '/authenticated/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
-  '/authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRouteWithChildren
   '/authenticated/settings/bell': typeof AuthenticatedSettingsBellRoute
   '/authenticated/settings/home': typeof AuthenticatedSettingsHomeRoute
   '/authenticated/settings/password': typeof AuthenticatedSettingsPasswordRoute
   '/authenticated/settings/privacy-security': typeof AuthenticatedSettingsPrivacySecurityRoute
   '/authenticated/settings/profile': typeof AuthenticatedSettingsProfileRoute
   '/authenticated/users/$userId': typeof AuthenticatedUsersUserIdRoute
-  '/authenticated/settings/appearance/accent': typeof AuthenticatedSettingsAppearanceAccentRoute
-  '/authenticated/settings/appearance/font': typeof AuthenticatedSettingsAppearanceFontRoute
-  '/authenticated/settings/appearance/radius': typeof AuthenticatedSettingsAppearanceRadiusRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -291,20 +260,17 @@ export interface FileRouteTypes {
     | '/authenticated/settings'
     | '/authenticated/student'
     | '/authenticated/teacher'
+    | '/api/auth/$'
     | '/authenticated/admin/notifications'
     | '/authenticated/admin/students'
     | '/authenticated/admin/teachers'
     | '/authenticated/settings/account'
-    | '/authenticated/settings/appearance'
     | '/authenticated/settings/bell'
     | '/authenticated/settings/home'
     | '/authenticated/settings/password'
     | '/authenticated/settings/privacy-security'
     | '/authenticated/settings/profile'
     | '/authenticated/users/$userId'
-    | '/authenticated/settings/appearance/accent'
-    | '/authenticated/settings/appearance/font'
-    | '/authenticated/settings/appearance/radius'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -320,20 +286,17 @@ export interface FileRouteTypes {
     | '/authenticated/settings'
     | '/authenticated/student'
     | '/authenticated/teacher'
+    | '/api/auth/$'
     | '/authenticated/admin/notifications'
     | '/authenticated/admin/students'
     | '/authenticated/admin/teachers'
     | '/authenticated/settings/account'
-    | '/authenticated/settings/appearance'
     | '/authenticated/settings/bell'
     | '/authenticated/settings/home'
     | '/authenticated/settings/password'
     | '/authenticated/settings/privacy-security'
     | '/authenticated/settings/profile'
     | '/authenticated/users/$userId'
-    | '/authenticated/settings/appearance/accent'
-    | '/authenticated/settings/appearance/font'
-    | '/authenticated/settings/appearance/radius'
   id:
     | '__root__'
     | '/'
@@ -349,26 +312,24 @@ export interface FileRouteTypes {
     | '/authenticated/settings'
     | '/authenticated/student'
     | '/authenticated/teacher'
+    | '/api/auth/$'
     | '/authenticated/admin/notifications'
     | '/authenticated/admin/students'
     | '/authenticated/admin/teachers'
     | '/authenticated/settings/account'
-    | '/authenticated/settings/appearance'
     | '/authenticated/settings/bell'
     | '/authenticated/settings/home'
     | '/authenticated/settings/password'
     | '/authenticated/settings/privacy-security'
     | '/authenticated/settings/profile'
     | '/authenticated/users/$userId'
-    | '/authenticated/settings/appearance/accent'
-    | '/authenticated/settings/appearance/font'
-    | '/authenticated/settings/appearance/radius'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRouteWithChildren
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -464,6 +425,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTeacherRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/authenticated/admin/notifications': {
       id: '/authenticated/admin/notifications'
       path: '/notifications'
@@ -490,13 +458,6 @@ declare module '@tanstack/react-router' {
       path: '/account'
       fullPath: '/authenticated/settings/account'
       preLoaderRoute: typeof AuthenticatedSettingsAccountRouteImport
-      parentRoute: typeof AuthenticatedSettingsRoute
-    }
-    '/authenticated/settings/appearance': {
-      id: '/authenticated/settings/appearance'
-      path: '/appearance'
-      fullPath: '/authenticated/settings/appearance'
-      preLoaderRoute: typeof AuthenticatedSettingsAppearanceRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
     '/authenticated/settings/bell': {
@@ -541,27 +502,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedUsersUserIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/authenticated/settings/appearance/accent': {
-      id: '/authenticated/settings/appearance/accent'
-      path: '/accent'
-      fullPath: '/authenticated/settings/appearance/accent'
-      preLoaderRoute: typeof AuthenticatedSettingsAppearanceAccentRouteImport
-      parentRoute: typeof AuthenticatedSettingsAppearanceRoute
-    }
-    '/authenticated/settings/appearance/font': {
-      id: '/authenticated/settings/appearance/font'
-      path: '/font'
-      fullPath: '/authenticated/settings/appearance/font'
-      preLoaderRoute: typeof AuthenticatedSettingsAppearanceFontRouteImport
-      parentRoute: typeof AuthenticatedSettingsAppearanceRoute
-    }
-    '/authenticated/settings/appearance/radius': {
-      id: '/authenticated/settings/appearance/radius'
-      path: '/radius'
-      fullPath: '/authenticated/settings/appearance/radius'
-      preLoaderRoute: typeof AuthenticatedSettingsAppearanceRadiusRouteImport
-      parentRoute: typeof AuthenticatedSettingsAppearanceRoute
-    }
   }
 }
 
@@ -598,30 +538,8 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
-interface AuthenticatedSettingsAppearanceRouteChildren {
-  AuthenticatedSettingsAppearanceAccentRoute: typeof AuthenticatedSettingsAppearanceAccentRoute
-  AuthenticatedSettingsAppearanceFontRoute: typeof AuthenticatedSettingsAppearanceFontRoute
-  AuthenticatedSettingsAppearanceRadiusRoute: typeof AuthenticatedSettingsAppearanceRadiusRoute
-}
-
-const AuthenticatedSettingsAppearanceRouteChildren: AuthenticatedSettingsAppearanceRouteChildren =
-  {
-    AuthenticatedSettingsAppearanceAccentRoute:
-      AuthenticatedSettingsAppearanceAccentRoute,
-    AuthenticatedSettingsAppearanceFontRoute:
-      AuthenticatedSettingsAppearanceFontRoute,
-    AuthenticatedSettingsAppearanceRadiusRoute:
-      AuthenticatedSettingsAppearanceRadiusRoute,
-  }
-
-const AuthenticatedSettingsAppearanceRouteWithChildren =
-  AuthenticatedSettingsAppearanceRoute._addFileChildren(
-    AuthenticatedSettingsAppearanceRouteChildren,
-  )
-
 interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsAccountRoute: typeof AuthenticatedSettingsAccountRoute
-  AuthenticatedSettingsAppearanceRoute: typeof AuthenticatedSettingsAppearanceRouteWithChildren
   AuthenticatedSettingsBellRoute: typeof AuthenticatedSettingsBellRoute
   AuthenticatedSettingsHomeRoute: typeof AuthenticatedSettingsHomeRoute
   AuthenticatedSettingsPasswordRoute: typeof AuthenticatedSettingsPasswordRoute
@@ -631,8 +549,6 @@ interface AuthenticatedSettingsRouteChildren {
 
 const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
   AuthenticatedSettingsAccountRoute: AuthenticatedSettingsAccountRoute,
-  AuthenticatedSettingsAppearanceRoute:
-    AuthenticatedSettingsAppearanceRouteWithChildren,
   AuthenticatedSettingsBellRoute: AuthenticatedSettingsBellRoute,
   AuthenticatedSettingsHomeRoute: AuthenticatedSettingsHomeRoute,
   AuthenticatedSettingsPasswordRoute: AuthenticatedSettingsPasswordRoute,
@@ -672,6 +588,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRouteWithChildren,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

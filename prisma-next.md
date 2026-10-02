@@ -11,26 +11,18 @@ This project is set up for PostgreSQL. Prisma Next also supports other databases
 
 ## Your data contract
 
-Your data contract is the heart of your application. It lives at [`src/prisma/contract.ts`](src/prisma/contract.ts) and describes your models:
+Your data contract is the heart of your application. It lives at [`src/prisma/schema.prisma`](src/prisma/schema.prisma) and describes your models in PSL:
 
-```typescript
-import { defineContract } from '@prisma/orm-postgres/contract-builder';
+```prisma
+model User {
+  id        id.uuidv7Native()
+  email     String @unique
+  name      String
+  createdAt temporal.createdAtString()
+  updatedAt temporal.updatedAtString()
 
-export const contract = defineContract(
-  {},
-  ({ field, model }) => ({
-    models: {
-      User: model('User', {
-        fields: {
-          id: field.id.uuidv7String(),
-          email: field.text().unique(),
-          username: field.text().optional(),
-          name: field.text().optional(),
-        },
-      }),
-    },
-  }),
-);
+  @@map("User")
+}
 ```
 
 Every model you define in your contract can be queried from your app. Your editor will autocomplete the query methods and show you what type each model field is:
@@ -48,8 +40,8 @@ const user = await db.orm.public.User
 
 Your contract has two companion files in the same directory:
 
-- **`contract.json`** — this tells your application what models exist, just like `package-lock.json` tells your package manager what dependencies your project has
-- **`contract.d.ts`** — this powers autocomplete and type checking in your editor
+- **`schema.json`** — this tells your application what models exist, just like `package-lock.json` tells your package manager what dependencies your project has
+- **`schema.d.ts`** — this powers autocomplete and type checking in your editor
 
 Commit both files to git. When you change your contract, run `bun prisma contract emit` to update them.
 
@@ -66,7 +58,7 @@ import { defineConfig as ormConfig } from '@prisma/orm-postgres/config';
 
 export default definePrismaConfig({
   orm: ormConfig({
-    contract: './src/prisma/contract.ts',
+    contract: './src/prisma/schema.prisma',
     db: {
       connection: process.env['DATABASE_URL']!,
     },
@@ -87,7 +79,7 @@ You can customize how your environment variables are loaded by changing or remov
 ### Commands
 
 ```bash
-bun prisma contract emit       # Update contract.json and contract.d.ts
+bun prisma contract emit       # Update schema.json and schema.d.ts
 bun prisma db init             # Create tables in the database
 bun prisma migration status    # Show migration status
 ```
@@ -96,15 +88,15 @@ bun prisma migration status    # Show migration status
 
 | File | Purpose |
 |---|---|
-| [`src/prisma/contract.ts`](src/prisma/contract.ts) | Your data contract — define your models here |
+| [`src/prisma/schema.prisma`](src/prisma/schema.prisma) | Your data contract — define your models here |
 | [`prisma.config.ts`](prisma.config.ts) | CLI configuration |
 | [`src/prisma/db.ts`](src/prisma/db.ts) | Database client — `import { db } from './src/prisma/db'` |
-| `src/prisma/contract.json` | Compiled contract (generated) |
-| `src/prisma/contract.d.ts` | Contract types (generated) |
+| `src/prisma/schema.json` | Compiled contract (generated) |
+| `src/prisma/schema.d.ts` | Contract types (generated) |
 
 ### Workflow
 
-1. Edit [`src/prisma/contract.ts`](src/prisma/contract.ts) to add or change models.
+1. Edit [`src/prisma/schema.prisma`](src/prisma/schema.prisma) to add or change models.
 2. Run `bun prisma contract emit` to regenerate the contract.
 3. Query your models — your IDE will autocomplete everything.
 

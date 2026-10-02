@@ -18,7 +18,6 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -102,28 +101,7 @@ function SettingsLayout() {
               <SidebarGroup>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {SETTINGS_NAV.filter((item) => !item.group).map((item) => (
-                      <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton asChild>
-                          <Link
-                            to={item.to}
-                            activeProps={{
-                              className:
-                                "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
-                            }}
-                          >
-                            <HugeiconsIcon icon={item.icon} />
-                            <span>{item.title}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-
-                  <SidebarGroupLabel>外观</SidebarGroupLabel>
-
-                  <SidebarMenu>
-                    {SETTINGS_NAV.filter((item) => item.group === "外观").map((item) => (
+                    {SETTINGS_NAV.map((item) => (
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton asChild>
                           <Link
@@ -149,22 +127,18 @@ function SettingsLayout() {
             aria-label="设置"
             className="flex shrink-0 gap-1 overflow-x-auto border-b p-2 md:hidden"
           >
-            {SETTINGS_NAV.map((item, i, arr) => (
-              <div key={item.to} className="flex shrink-0 items-center gap-1">
-                {item.group && arr[i - 1]?.group !== item.group ? (
-                  <span className="px-1 text-xs text-muted-foreground">{item.group}</span>
-                ) : null}
-                <Link
-                  to={item.to}
-                  activeProps={{
-                    className: "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
-                  }}
-                  className="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1.5 text-sm whitespace-nowrap"
-                >
-                  <HugeiconsIcon icon={item.icon} />
-                  <span>{item.title}</span>
-                </Link>
-              </div>
+            {SETTINGS_NAV.map((item) => (
+              <Link
+                key={item.title}
+                to={item.to}
+                activeProps={{
+                  className: "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
+                }}
+                className="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1.5 text-sm whitespace-nowrap"
+              >
+                <HugeiconsIcon icon={item.icon} />
+                <span>{item.title}</span>
+              </Link>
             ))}
           </nav>
 

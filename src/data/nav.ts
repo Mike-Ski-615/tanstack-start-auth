@@ -2,7 +2,6 @@ import {
   Award01Icon,
   BookBookmark01Icon,
   CompassIcon,
-  DropletIcon,
   HelpCircleIcon,
   Home01Icon,
   Key01Icon,
@@ -10,10 +9,8 @@ import {
   LibraryIcon,
   Notification01Icon,
   PaintBoardIcon,
-  RulerIcon,
   Shield01Icon,
   SidebarLeft01Icon,
-  TextFontIcon,
   UserCircleIcon,
   UserIcon,
   UserGroupIcon,
@@ -29,7 +26,6 @@ export type NavItem = {
   desc: string;
   icon: IconSvgElement;
   to?: string;
-  group?: string;
 };
 
 export type NavGroup = {
@@ -80,30 +76,6 @@ export const SETTINGS_NAV: NavItem[] = [
     desc: "管理站内消息与各类提醒偏好",
     icon: Notification01Icon,
     to: "/authenticated/settings/bell",
-  },
-  {
-    id: "appearance-accent",
-    title: "主题色",
-    desc: "按钮与高亮的主色调",
-    icon: DropletIcon,
-    to: "/authenticated/settings/appearance/accent",
-    group: "外观",
-  },
-  {
-    id: "appearance-radius",
-    title: "圆角",
-    desc: "卡片与控件的圆角大小",
-    icon: RulerIcon,
-    to: "/authenticated/settings/appearance/radius",
-    group: "外观",
-  },
-  {
-    id: "appearance-font",
-    title: "字号",
-    desc: "全局文字缩放比例",
-    icon: TextFontIcon,
-    to: "/authenticated/settings/appearance/font",
-    group: "外观",
   },
   {
     id: "privacy-security",
@@ -316,23 +288,5 @@ export const INTRO: Intro[] = [
     icon: Shield01Icon,
     to: "/authenticated/settings/privacy-security",
     desc: "查看设备与会话详情，撤销全部会话。",
-  },
-  {
-    title: "主题色",
-    icon: DropletIcon,
-    to: "/authenticated/settings/appearance/accent",
-    desc: "选择按钮与高亮的主色调。",
-  },
-  {
-    title: "圆角",
-    icon: RulerIcon,
-    to: "/authenticated/settings/appearance/radius",
-    desc: "设置卡片与控件的圆角大小。",
-  },
-  {
-    title: "字号",
-    icon: TextFontIcon,
-    to: "/authenticated/settings/appearance/font",
-    desc: "调整全局文字缩放比例。",
   },
 ];
