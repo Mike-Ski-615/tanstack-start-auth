@@ -12,7 +12,7 @@ import {
   CommandItem,
   CommandList,
 } from "#components/ui/command";
-import { cn } from "#lib/utils";
+import { cn } from "cn";
 import { Kbd, KbdGroup } from "#components/ui/kbd";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useIsBelow } from "#hooks/use-mobile";

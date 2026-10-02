@@ -1,5 +1,5 @@
 import * as React from "react";
-import { cn } from "#lib/utils";
+import { cn } from "cn";
 import { SIDEBAR_WIDTH_PX, useSidebar } from "#components/ui/sidebar";
 
 const SIDEBAR_COLLAPSE_THRESHOLD_PX = 128;

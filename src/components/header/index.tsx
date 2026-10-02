@@ -5,7 +5,7 @@ import { ContentWidthToggle } from "#components/header/content-width-toggle";
 import { PanelLeftOpen } from "#components/header/panel-left-open";
 import { Separator } from "#components/ui/separator";
 import { useSidebar } from "#components/ui/sidebar";
-import { cn } from "#lib/utils";
+import { cn } from "cn";
 
 export function Header() {
   const { open } = useSidebar();

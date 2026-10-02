@@ -3,7 +3,7 @@ import { PanelLeftCloseIcon, PanelLeftOpenIcon } from "@hugeicons/core-free-icon
 import { Button } from "#components/ui/button";
 import { useSidebar } from "#components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#components/ui/tooltip";
-import { cn } from "#lib/utils";
+import { cn } from "cn";
 
 export function PanelLeftOpen() {
   const { open, openMobile, isMobile, toggleSidebar } = useSidebar();

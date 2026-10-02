@@ -6,7 +6,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { Button } from "#components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "#components/ui/tooltip";
-import { cn } from "#lib/utils";
+import { cn } from "cn";
 import { useContentWidth, CONTENT_WIDTH_LABEL } from "#provider/content-width-provider";
 
 export function ContentWidthToggle({ className }: { className?: string }) {
