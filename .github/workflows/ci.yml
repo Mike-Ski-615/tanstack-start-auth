@@ -27,5 +27,8 @@ jobs:
       - name: 安装依赖
         run: bun install --frozen-lockfile
 
+      - name: 生成 Prisma Client
+        run: bun run db:generate
+
       - name: 类型检查
         run: bun run typecheck
