@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/auth_ci?sslmode=disable
+      DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/auth_ci?sslmode=disable
       SESSION_SECRET: ci-only-secret-not-used-for-real-sessions
       APP_URL: http://localhost:3000
 
